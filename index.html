@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Booffer</title>
+  </head>
+  <body class="select-none overflow-hidden">
+    <main id="app" class="relative flex h-screen w-screen flex-col items-center justify-end pb-3">
+      <div class="relative">
+        <div id="mascot" data-state="idle" class="relative cursor-grab active:cursor-grabbing"></div>
+        <button
+          id="close"
+          title="Fermer Booffer"
+          class="absolute right-0 top-6 grid size-6 place-items-center rounded-full bg-white/95 text-sm leading-none text-zinc-500 shadow ring-1 ring-black/10 hover:bg-rose-100 hover:text-rose-500"
+        >
+          ×
+        </button>
+      </div>
+      <div id="tabs"></div>
+      <div id="bubble"></div>
+      <div id="ask"></div>
+      <div id="menu"></div>
+      <div id="fx" class="pointer-events-none absolute inset-0"></div>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
