@@ -2,8 +2,10 @@ import { AgentAdapter } from "./base-adapter.js";
 import { duration } from "../core/format.js";
 import { State } from "../core/states.js";
 
-/** Steps after which the estimated progress reaches ~63% (when Claude keeps no todo list). */
+/** Actions after which the estimated progress reaches ~63% (when Claude keeps no todo list). */
 const STEP_SCALE = 15;
+/** Same, for one task of Claude's todo list. */
+const TASK_SCALE = 6;
 const MAX_ESTIMATE = 0.9;
 const EDIT_TOOLS = new Set(["Edit", "MultiEdit", "Write", "NotebookEdit"]);
 
@@ -11,8 +13,10 @@ const EDIT_TOOLS = new Set(["Edit", "MultiEdit", "Write", "NotebookEdit"]);
  * Claude Code → hooks (see hooks/claude-code-settings.example.json) send their
  * JSON input to POST /event/claude-code. One session per `session_id`.
  *
- * Progress: the real ratio of completed todos when Claude keeps a todo list
- * (TodoWrite), otherwise an estimate from the number of tool calls this turn.
+ * Progress, when Claude keeps a todo list (TodoWrite): total = (completed tasks
+ * + estimated progress of the current task) / tasks; the current task's progress
+ * is estimated from the actions since it started. Without a list: an estimate
+ * from the number of actions this turn.
  */
 export class ClaudeCodeAdapter extends AgentAdapter {
   source = "claude-code";
@@ -35,7 +39,10 @@ export class ClaudeCodeAdapter extends AgentAdapter {
       case "PreToolUse": {
         const turn = this.#turn(id);
         turn.steps++;
-        if (p.tool_name === "TodoWrite" && Array.isArray(p.tool_input?.todos)) turn.todos = p.tool_input.todos;
+        if (p.tool_name === "TodoWrite" && Array.isArray(p.tool_input?.todos)) {
+          turn.todos = p.tool_input.todos;
+          this.#trackTask(turn);
+        }
         const file = p.tool_input?.file_path ?? p.tool_input?.notebook_path;
         if (EDIT_TOOLS.has(p.tool_name) && file) turn.files.add(file);
         turn.label = this.#describe(p.tool_name, p.tool_input ?? {}, turn);
@@ -89,6 +96,7 @@ export class ClaudeCodeAdapter extends AgentAdapter {
       subagents: 0,
       progress: 0.03,
       label: "Réfléchit…",
+      task: null, // { key, startSteps, startedAt } of the in-progress todo
     };
     this.#turns.set(id, turn);
     return turn;
@@ -97,6 +105,17 @@ export class ClaudeCodeAdapter extends AgentAdapter {
   // A turn may already be running when Booffer starts: create it lazily.
   #turn(id) {
     return this.#turns.get(id) ?? this.#newTurn(id, "");
+  }
+
+  #trackTask(turn) {
+    const current = turn.todos.find((t) => t.status === "in_progress");
+    const key = current ? (current.content ?? current.activeForm) : null;
+    if (key !== turn.task?.key) turn.task = key ? { key, startSteps: turn.steps, startedAt: Date.now() } : null;
+  }
+
+  #taskProgress(turn) {
+    if (!turn.task) return 0;
+    return Math.min(0.95, 1 - Math.exp(-(turn.steps - turn.task.startSteps) / TASK_SCALE));
   }
 
   #details(turn) {
@@ -110,8 +129,15 @@ export class ClaudeCodeAdapter extends AgentAdapter {
       files: turn.files.size,
       errors: turn.errors,
       subagents: turn.subagents,
-      task: todos.length ? `${Math.min(done + 1, todos.length)}/${todos.length}` : "",
-      taskName: current ? truncate(current.activeForm ?? current.content, 60) : "",
+      step: todos.length
+        ? {
+            index: Math.min(done + 1, todos.length),
+            count: todos.length,
+            name: current ? truncate(current.activeForm ?? current.content, 60) : "",
+            progress: this.#taskProgress(turn),
+            startedAt: turn.task?.startedAt ?? null,
+          }
+        : null,
     };
   }
 
@@ -119,8 +145,7 @@ export class ClaudeCodeAdapter extends AgentAdapter {
     let value;
     if (turn.todos?.length) {
       const done = turn.todos.filter((t) => t.status === "completed").length;
-      const doing = turn.todos.filter((t) => t.status === "in_progress").length;
-      value = (done + doing * 0.5) / turn.todos.length;
+      value = (done + this.#taskProgress(turn)) / turn.todos.length;
     } else {
       value = MAX_ESTIMATE * (1 - Math.exp(-turn.steps / STEP_SCALE));
     }

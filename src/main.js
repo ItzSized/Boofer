@@ -115,7 +115,10 @@ function ingest(source, payload) {
 async function runDemo(project = "démo", delay = 0) {
   const id = `demo-${project}-${Date.now()}`;
   const startedAt = Date.now();
-  const details = (steps, files) => ({ prompt: "Ajoute un mode sombre à l'app", startedAt, steps, files, task: `${Math.min(3, 1 + Math.floor(steps / 3))}/3` });
+  const details = (steps, files) => ({
+    prompt: "Ajoute un mode sombre à l'app", startedAt, steps, files,
+    step: { index: Math.min(3, 1 + Math.floor(steps / 3)), count: 3, name: "Écrit les styles", progress: (steps % 3) / 3 + 0.15, startedAt },
+  });
   const step = (state, extra = {}) => ingest("generic", { id, project, state, ...extra });
   await new Promise((r) => setTimeout(r, delay));
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
