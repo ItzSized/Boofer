@@ -1,13 +1,19 @@
 import { State } from "../core/states.js";
-import { duration } from "../core/format.js";
+import { approx, duration } from "../core/format.js";
+
+/** Below this total progress (or this early), a remaining-time estimate is just noise. */
+const ETA_MIN_PROGRESS = 0.08;
+const ETA_MIN_ELAPSED_MS = 8000;
 
 /**
  * Status bubble under the mascot:
- *   ● Claudio · Claude Code            42%
+ *   ● Claudio · Claude Code       Total 42%
  *   « Ajoute le mode sombre »
+ *   Étape 2/5 · Écrit les tests          70%
+ *   ▔▔▔▔▔▔▔▔▔▔▔▔▔▔ (step)
  *   ▸ Modifie pet.js
- *   ⏱ 1 min 20 · 12 actions · 3 fichiers · tâche 2/5
- *   ▓▓▓▓▓▓░░░░░░
+ *   ⏱ 1 min 20 · reste ≈ 2 min · 12 actions · 3 fichiers
+ *   ▓▓▓▓▓▓░░░░░░ (total)
  */
 export function createBubble(el) {
   el.className =
@@ -17,9 +23,21 @@ export function createBubble(el) {
     <div class="flex items-center gap-1.5 text-[11px] leading-4">
       <span data-dot class="size-2 shrink-0 rounded-full"></span>
       <span data-title class="truncate font-semibold text-zinc-800"></span>
-      <span data-pct class="ml-auto shrink-0 font-semibold tabular-nums text-zinc-700"></span>
+      <span class="ml-auto shrink-0 tabular-nums text-zinc-700">
+        <span data-total-label class="text-[10px] font-normal text-zinc-400">Total</span>
+        <span data-pct class="font-semibold"></span>
+      </span>
     </div>
     <div data-prompt class="truncate pl-3.5 text-[11px] italic leading-4 text-zinc-400"></div>
+    <div data-step class="pl-3.5">
+      <div class="flex items-center gap-1 text-[10px] leading-4">
+        <span data-step-name class="truncate text-zinc-600"></span>
+        <span data-step-pct class="ml-auto shrink-0 font-semibold tabular-nums text-zinc-600"></span>
+      </div>
+      <div class="h-1 overflow-hidden rounded-full bg-zinc-100">
+        <div data-step-bar class="h-full rounded-full opacity-60 transition-[width] duration-500"></div>
+      </div>
+    </div>
     <div data-label class="truncate pl-3.5 text-[11px] font-medium leading-4 text-zinc-600"></div>
     <div data-meta class="truncate pl-3.5 text-[10px] leading-4 text-zinc-400"></div>
     <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-zinc-200">
@@ -27,7 +45,11 @@ export function createBubble(el) {
     </div>`;
 
   const $ = (name) => el.querySelector(`[data-${name}]`);
-  const [dot, title, prompt, label, meta, pct, bar] = ["dot", "title", "prompt", "label", "meta", "pct", "bar"].map($);
+  const ui = Object.fromEntries(
+    ["dot", "title", "total-label", "pct", "prompt", "step", "step-name", "step-pct", "step-bar", "label", "meta", "bar"].map(
+      (name) => [name, $(name)],
+    ),
+  );
 
   return {
     render(session) {
@@ -38,29 +60,46 @@ export function createBubble(el) {
 
       const d = session.details ?? {};
       const done = session.state === State.DONE;
-      dot.style.background = session.color;
-      bar.style.background = session.color;
-      title.textContent = session.headline ?? [session.project, session.agent].filter(Boolean).join(" · ");
-      prompt.textContent = d.prompt ? `« ${d.prompt} »` : "";
-      prompt.classList.toggle("hidden", !d.prompt);
-      label.textContent = (done ? "" : "▸ ") + (d.taskName && !done ? `${d.taskName} — ${session.label}` : session.label);
+      const known = typeof session.progress === "number";
+      const total = Math.round((session.progress ?? 0) * 100);
 
+      ui.dot.style.background = session.color;
+      ui.bar.style.background = session.color;
+      ui["step-bar"].style.background = session.color;
+      ui.title.textContent = session.headline ?? [session.project, session.agent].filter(Boolean).join(" · ");
+      ui.pct.textContent = done ? "✨" : known ? `${total}%` : session.tokens ? `${session.tokens} tok` : "";
+      ui["total-label"].classList.toggle("hidden", done || !known || !d.step);
+
+      ui.prompt.textContent = d.prompt ? `« ${d.prompt} »` : "";
+      ui.prompt.classList.toggle("hidden", !d.prompt);
+
+      const step = !done ? d.step : null;
+      ui.step.classList.toggle("hidden", !step);
+      if (step) {
+        const stepPct = Math.round(step.progress * 100);
+        ui["step-name"].textContent = `Étape ${step.index}/${step.count}${step.name ? ` · ${step.name}` : ""}`;
+        ui["step-pct"].textContent = `${stepPct}%`;
+        ui["step-bar"].style.width = `${stepPct}%`;
+      }
+
+      ui.label.textContent = (done ? "" : "▸ ") + session.label;
+
+      const elapsed = d.startedAt ? Date.now() - d.startedAt : 0;
+      const p = session.progress ?? 0;
+      const eta = !done && known && p >= ETA_MIN_PROGRESS && elapsed > ETA_MIN_ELAPSED_MS ? (elapsed * (1 - p)) / p : null;
       const facts = [
-        !done && d.startedAt ? `⏱ ${duration(Date.now() - d.startedAt)}` : "",
+        !done && elapsed ? `⏱ ${duration(elapsed)}` : "",
+        eta ? `reste ${approx(eta)}` : "",
         d.steps ? `${d.steps} action${d.steps > 1 ? "s" : ""}` : "",
-        d.files ? `${d.files} fichier${d.files > 1 ? "s" : ""} modifié${d.files > 1 ? "s" : ""}` : "",
-        d.task && !done ? `tâche ${d.task}` : "",
+        d.files ? `${d.files} fichier${d.files > 1 ? "s" : ""}` : "",
         d.subagents ? `${d.subagents} sous-agent${d.subagents > 1 ? "s" : ""}` : "",
         d.errors ? `⚠ ${d.errors} échec${d.errors > 1 ? "s" : ""}` : "",
       ].filter(Boolean);
-      meta.textContent = facts.join(" · ");
-      meta.classList.toggle("hidden", facts.length === 0);
+      ui.meta.textContent = facts.join(" · ");
+      ui.meta.classList.toggle("hidden", facts.length === 0);
 
-      const known = typeof session.progress === "number";
-      const percent = Math.round((session.progress ?? 0) * 100);
-      bar.classList.toggle("bar-indeterminate", !known);
-      bar.style.width = known ? `${percent}%` : "";
-      pct.textContent = done ? "✨" : known ? `${percent}%` : session.tokens ? `${session.tokens} tok` : "";
+      ui.bar.classList.toggle("bar-indeterminate", !known);
+      ui.bar.style.width = known ? `${total}%` : "";
     },
   };
 }
