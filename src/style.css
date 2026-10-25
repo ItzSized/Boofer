@@ -58,11 +58,16 @@ body {
 /* ---------- Face: which parts are visible ---------- */
 
 .eyes-happy, .eyes-sleep, .mouth { opacity: 0; transition: opacity 0.15s; }
-/* --look-x / --look-y are set from the cursor position (ui/pet.js). */
+/* Gaze, from the cursor position (ui/pet.js): the white highlight slides toward
+   the cursor, the eye itself leans a little. */
 .eyes-open {
-  translate: var(--look-x, 0) var(--look-y, 0);
+  translate: calc(var(--look-x, 0px) * 0.35) calc(var(--look-y, 0px) * 0.35);
   transition: translate 0.12s ease-out, opacity 0.15s;
   animation: blink 4.6s infinite;
+}
+.eyes-open .shine {
+  translate: var(--look-x, 0px) var(--look-y, 0px);
+  transition: translate 0.12s ease-out;
 }
 
 [data-state="idle"] .mouth-smile,
@@ -75,8 +80,6 @@ body {
 
 [data-state="done"] .eyes-open { opacity: 0; }
 [data-state="done"] .eyes-happy { opacity: 1; }
-[data-state="thinking"] .eyes-open { translate: 2px -3px; }
-[data-state="tool"] .eyes-open { animation: look 2.2s ease-in-out infinite, blink 4.6s infinite; }
 [data-state="streaming"] .mouth-o { animation: talk 0.35s ease-in-out infinite alternate; }
 
 /* ---------- Body motion ---------- */
@@ -196,7 +199,6 @@ body {
   100% { translate: 0 0; scale: 1 1; }
 }
 @keyframes blink { 0%, 93%, 100% { scale: 1 1; } 96% { scale: 1 0.1; } }
-@keyframes look { 0%, 100% { translate: -3px 0; } 50% { translate: 3px 0; } }
 @keyframes talk { from { scale: 1 0.6; } to { scale: 1 1.2; } }
 @keyframes dot { 0%, 100% { opacity: 0.25; translate: 0 0; } 40% { opacity: 1; translate: 0 -4px; } }
 @keyframes sparkle {
