@@ -51,7 +51,8 @@ export function createPet({ app, mascot, mascotEl, closeBtn, fx, targets, isTaur
     const dx = t.x - (b.left + b.width / 2);
     const dy = t.y - (b.top + b.height * 0.47);
     const d = Math.hypot(dx, dy) || 1;
-    const reach = Math.min(3.5, d / 40) / d;
+    // Up to 2.6 SVG units: keeps the highlight inside the eye.
+    const reach = Math.min(2.6, d / 30) / d;
     mascotEl.style.setProperty("--look-x", `${(dx * reach).toFixed(2)}px`);
     mascotEl.style.setProperty("--look-y", `${(dy * reach).toFixed(2)}px`);
 

@@ -53,8 +53,8 @@ const svg = (gradientId) => `
     <g class="eyes-open">
       <ellipse cx="47" cy="62" rx="5.5" ry="7.5" />
       <ellipse cx="73" cy="62" rx="5.5" ry="7.5" />
-      <circle class="shine" cx="49" cy="59" r="1.8" />
-      <circle class="shine" cx="75" cy="59" r="1.8" />
+      <circle class="shine" cx="47.8" cy="60" r="1.8" />
+      <circle class="shine" cx="73.8" cy="60" r="1.8" />
     </g>
     <g class="eyes-happy">
       <path d="M41 64 Q47 55 53 64" />
