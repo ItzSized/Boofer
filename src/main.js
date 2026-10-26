@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { adapterBySource } from "./agents/index.js";
 import { EventBus } from "./core/event-bus.js";
+import { recordFinished } from "./core/history.js";
 import { State } from "./core/states.js";
 import { setTheme } from "./core/theme.js";
 import { Tracker } from "./core/tracker.js";
@@ -102,6 +103,7 @@ bus.on("finished", (session) => {
   mascot.celebrate();
   playDone();
   speech.say("done");
+  recordFinished(session);
 });
 
 function onWindowTitle(title) {

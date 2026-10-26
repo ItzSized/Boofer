@@ -1,6 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { configureSound, playDone } from "./audio/chime.js";
+import { duration } from "./core/format.js";
+import { clearHistory, loadHistory, todayStats } from "./core/history.js";
 import { setTheme } from "./core/theme.js";
 import { createMascot } from "./ui/mascot.js";
 import "./style.css";
@@ -139,6 +141,47 @@ function renderEditors() {
   $("editors").replaceChildren(...chips);
 }
 
+function renderHistory() {
+  const entries = loadHistory();
+  const stats = todayStats(entries);
+  $("stat-tasks").textContent = stats.tasks;
+  $("stat-time").textContent = duration(stats.ms);
+  $("stat-files").textContent = stats.files;
+
+  const rows = entries.slice(0, 8).map((entry) => {
+    const li = document.createElement("li");
+    li.className = "flex items-center gap-2 py-1.5 text-xs";
+    const dot = Object.assign(document.createElement("span"), { className: "size-2 shrink-0 rounded-full" });
+    dot.style.background = entry.color;
+    const text = document.createElement("div");
+    text.className = "min-w-0 flex-1";
+    const title = Object.assign(document.createElement("p"), {
+      className: "truncate font-medium",
+      textContent: entry.prompt ? `« ${entry.prompt} »` : entry.agent,
+    });
+    const meta = Object.assign(document.createElement("p"), {
+      className: "truncate text-[11px] text-zinc-400",
+      textContent: [entry.project, entry.ms ? duration(entry.ms) : "", entry.files ? `${entry.files} fichier${entry.files > 1 ? "s" : ""}` : ""]
+        .filter(Boolean)
+        .join(" · "),
+    });
+    text.append(title, meta);
+    const time = Object.assign(document.createElement("span"), {
+      className: "shrink-0 text-[11px] tabular-nums text-zinc-400",
+      textContent: new Date(entry.at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+    });
+    li.append(dot, text, time);
+    return li;
+  });
+  if (rows.length === 0) {
+    rows.push(Object.assign(document.createElement("li"), {
+      className: "py-2 text-xs text-zinc-400",
+      textContent: "Rien pour l'instant : Booffer note ici chaque tâche terminée.",
+    }));
+  }
+  $("history").replaceChildren(...rows);
+}
+
 async function refreshHooks() {
   const installed = await call("claude_hooks_installed");
   $("hooks-title").textContent = installed ? "✓ Claude Code est connecté" : "Claude Code n'est pas connecté";
@@ -181,6 +224,14 @@ $("autostart").addEventListener("change", async (e) => {
 $("dnd-toggle").addEventListener("change", (e) => save({ dnd: e.target.checked }));
 $("speech-toggle").addEventListener("change", (e) => save({ speech: e.target.checked }));
 $("approvals").addEventListener("change", (e) => save({ approvals: e.target.checked }));
+$("clear-history").addEventListener("click", () => {
+  clearHistory();
+  renderHistory();
+});
+// The ghost window writes the history: refresh when it changes or when we come back.
+window.addEventListener("storage", renderHistory);
+window.addEventListener("focus", renderHistory);
+setInterval(renderHistory, 30_000);
 $("install-hooks").addEventListener("click", async () => {
   try {
     await call("install_claude_hooks");
@@ -205,3 +256,4 @@ call("get_settings").then((loaded) => {
 });
 refreshHooks();
 call("get_autostart").then((on) => ($("autostart").checked = on));
+renderHistory();
