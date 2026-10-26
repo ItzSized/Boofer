@@ -1,13 +1,13 @@
-//! The ghost's "body": lives on top of the target app (one spot per window),
-//! optionally follows the mouse, and tells the frontend which window is in front.
+//! The ghost's "body": lives on top of the target apps (one spot per window) or
+//! anywhere on the desktop, optionally follows the mouse, and tells the
+//! frontend which window is in front.
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering::Relaxed};
 use std::time::Duration;
 use tauri::{Emitter, Manager, PhysicalPosition, WebviewWindow};
 
-/// Substring of the executable name the ghost is allowed to live on (lowercase).
-const TARGET_APP: &str = "antigravity";
+use crate::settings::SettingsState;
 
 const FRAME: Duration = Duration::from_millis(16);
 /// Logical px. Starts gliding toward the cursor beyond FAR, stops once within NEAR.
@@ -43,7 +43,7 @@ struct Tick {
     visible: bool,
     moving: bool,
     vx: i32,
-    /// Title of the target window in front (its project name picks the session to show).
+    /// Title of the window in front (its project name picks the session to show).
     title: String,
 }
 
@@ -56,6 +56,9 @@ pub fn start(window: WebviewWindow) {
         let mut spots: HashMap<usize, (f64, f64)> = HashMap::new();
         let mut placed_on: Option<usize> = None;
         let mut title = String::new();
+        let mut settings_version = u64::MAX;
+        let mut everywhere = false;
+        let mut targets: Vec<String> = Vec::new();
 
         for frame in 0u64.. {
             std::thread::sleep(FRAME);
@@ -67,9 +70,29 @@ pub fn start(window: WebviewWindow) {
             ) else {
                 continue;
             };
+            let config = window.state::<SettingsState>();
+            if config.version.load(Relaxed) != settings_version {
+                settings_version = config.version.load(Relaxed);
+                let current = config.current.lock().unwrap();
+                everywhere = current.everywhere();
+                targets = current.target_apps.iter().map(|t| t.trim().to_lowercase()).collect();
+                foreground = ForegroundTracker::default();
+                placed_on = None;
+            }
+
             let state = window.state::<PetState>();
-            let target = foreground.target();
-            let visible = (target.is_some() || state.attention.load(Relaxed)) && !state.hidden.load(Relaxed);
+            foreground.poll(&targets);
+            let target = if everywhere { None } else { foreground.target() };
+            let shown = everywhere || target.is_some() || state.attention.load(Relaxed);
+            let visible = shown && !state.hidden.load(Relaxed);
+
+            // Title of the window in front: names the project, hence the session to show.
+            let title_hwnd = if everywhere { foreground.other } else { target.map(|(h, _)| h) };
+            if let Some(hwnd) = title_hwnd {
+                if frame % 30 == 0 || placed_on != Some(hwnd) {
+                    title = os::window_title(hwnd);
+                }
+            }
 
             let (x, y) = (pos.x as f64, pos.y as f64);
             let (w, h) = (size.width as f64, size.height as f64);
@@ -90,9 +113,6 @@ pub fn start(window: WebviewWindow) {
                     ny = r.bottom - oy;
                     placed_on = Some(hwnd);
                     arrived = true;
-                    title = os::window_title(hwnd);
-                } else if frame % 30 == 0 {
-                    title = os::window_title(hwnd); // the title follows the open file/project
                 }
             }
 
@@ -148,26 +168,35 @@ pub fn start(window: WebviewWindow) {
     });
 }
 
-/// Remembers whether the foreground window belongs to the target app.
+/// Remembers the last foreground window that isn't ours, and whether it is a target app.
 /// Clicking the ghost makes *our* window foreground: that keeps the last answer.
 #[derive(Default)]
 struct ForegroundTracker {
     hwnd: usize,
+    other: Option<usize>,
     target: Option<usize>,
 }
 
 impl ForegroundTracker {
-    fn target(&mut self) -> Option<(usize, os::Rect)> {
+    fn poll(&mut self, targets: &[String]) {
         let hwnd = os::foreground_window();
-        if hwnd != self.hwnd {
-            self.hwnd = hwnd;
-            let pid = os::window_pid(hwnd);
-            if pid != std::process::id() {
-                let is_target = os::process_name(pid)
-                    .is_some_and(|name| name.to_lowercase().contains(TARGET_APP));
-                self.target = is_target.then_some(hwnd);
-            }
+        if hwnd == self.hwnd {
+            return;
         }
+        self.hwnd = hwnd;
+        let pid = os::window_pid(hwnd);
+        if pid == std::process::id() {
+            return;
+        }
+        self.other = Some(hwnd);
+        let is_target = os::process_name(pid).is_some_and(|path| {
+            let exe = path.rsplit(['\\', '/']).next().unwrap_or(&path).to_lowercase();
+            targets.iter().any(|t| !t.is_empty() && exe.contains(t.as_str()))
+        });
+        self.target = is_target.then_some(hwnd);
+    }
+
+    fn target(&self) -> Option<(usize, os::Rect)> {
         let hwnd = self.target.filter(|&h| !os::is_minimized(h))?;
         os::window_rect(hwnd).map(|r| (hwnd, r))
     }

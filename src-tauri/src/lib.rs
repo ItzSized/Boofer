@@ -1,5 +1,6 @@
 mod permission;
 mod pet;
+mod settings;
 
 use std::io::Read;
 use std::sync::atomic::Ordering::Relaxed;
@@ -8,6 +9,7 @@ use tauri::tray::TrayIconBuilder;
 use tauri::{AppHandle, Emitter, Manager, Wry};
 
 use pet::PetState;
+use settings::SettingsState;
 
 /// Local port that agents (Claude Code hooks, scripts, other CLIs) POST to.
 const EVENT_PORT: u16 = 47823;
@@ -51,8 +53,9 @@ fn start_event_server(app: AppHandle) {
             let payload = serde_json::from_str(&body).unwrap_or(serde_json::Value::Null);
 
             if is_post && read_ok && request.url() == "/permission" {
-                // Hidden: don't make Claude Code wait for a card nobody sees.
-                if !app.state::<PetState>().hidden.load(Relaxed) {
+                // Hidden or approvals off: don't make Claude Code wait for a card nobody sees.
+                let approvals = app.state::<SettingsState>().current.lock().unwrap().approvals;
+                if approvals && !app.state::<PetState>().hidden.load(Relaxed) {
                     permission::ask(&app, request, payload);
                     continue;
                 }
@@ -79,15 +82,32 @@ struct TrayItems {
 }
 
 #[tauri::command]
-fn get_follow(state: tauri::State<'_, PetState>) -> bool {
-    state.follow.load(Relaxed)
+fn set_follow(app: AppHandle, enabled: bool) -> Result<(), String> {
+    settings::update(&app, |s| s.follow = enabled)?;
+    let _ = app.state::<TrayItems>().follow.set_checked(enabled);
+    Ok(())
 }
 
 #[tauri::command]
-fn set_follow(app: AppHandle, enabled: bool) {
-    app.state::<PetState>().follow.store(enabled, Relaxed);
-    let _ = app.state::<TrayItems>().follow.set_checked(enabled);
-    let _ = app.emit("follow-changed", enabled);
+async fn open_settings(app: AppHandle) -> Result<(), String> {
+    show_settings(&app)
+}
+
+fn show_settings(app: &AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("settings") {
+        let _ = window.unminimize();
+        let _ = window.show();
+        let _ = window.set_focus();
+        return Ok(());
+    }
+    tauri::WebviewWindowBuilder::new(app, "settings", tauri::WebviewUrl::App("settings.html".into()))
+        .title("Réglages · Booffer")
+        .inner_size(500.0, 720.0)
+        .min_inner_size(420.0, 480.0)
+        .center()
+        .build()
+        .map(|_| ())
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -116,8 +136,9 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
     let following = app.state::<PetState>().follow.load(Relaxed);
     let follow = CheckMenuItem::with_id(app, "follow", "Me suivre", true, following, None::<&str>)?;
     let hidden = CheckMenuItem::with_id(app, "hidden", "Masquer", true, false, None::<&str>)?;
+    let settings_item = MenuItem::with_id(app, "settings", "Réglages…", true, None::<&str>)?;
     let quit_item = MenuItem::with_id(app, "quit", "Quitter Booffer", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&follow, &hidden, &quit_item])?;
+    let menu = Menu::with_items(app, &[&settings_item, &follow, &hidden, &quit_item])?;
 
     TrayIconBuilder::new()
         .icon(app.default_window_icon().cloned().expect("bundle icon"))
@@ -126,7 +147,12 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
         .on_menu_event(|app, event| {
             let state = app.state::<PetState>();
             match event.id.as_ref() {
-                "follow" => set_follow(app.clone(), !state.follow.load(Relaxed)),
+                "settings" => {
+                    let _ = show_settings(app);
+                }
+                "follow" => {
+                    let _ = set_follow(app.clone(), !state.follow.load(Relaxed));
+                }
                 "hidden" => set_hidden(app.clone(), !state.hidden.load(Relaxed)),
                 "quit" => app.exit(0),
                 _ => {}
@@ -144,7 +170,11 @@ pub fn run() {
         .manage(PetState::default())
         .manage(permission::Permissions::default())
         .invoke_handler(tauri::generate_handler![
-            get_follow,
+            settings::get_settings,
+            settings::set_settings,
+            settings::claude_hooks_installed,
+            settings::install_claude_hooks,
+            open_settings,
             set_follow,
             set_hidden,
             set_attention,
@@ -152,6 +182,10 @@ pub fn run() {
             quit
         ])
         .setup(|app| {
+            let loaded = settings::load(app.handle());
+            let initial = loaded.current.lock().unwrap().clone();
+            app.manage(loaded);
+            settings::apply(app.handle(), &initial);
             build_tray(app.handle())?;
             start_event_server(app.handle().clone());
             permission::start_reaper(app.handle().clone());

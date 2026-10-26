@@ -7,7 +7,7 @@ body {
   background: transparent;
 }
 
-#mascot {
+.mascot {
   --agent: #a78bfa;
   --ink: #2b2240;
   --body-top: #ffffff;
@@ -16,13 +16,13 @@ body {
   filter: drop-shadow(0 6px 10px rgb(70 50 130 / 0.25));
 }
 
-#mascot svg {
+.mascot svg {
   display: block;
   width: 100%;
   overflow: visible;
 }
 
-#mascot svg * {
+.mascot svg * {
   transform-box: fill-box;
   transform-origin: center;
 }
@@ -32,12 +32,12 @@ body {
 .stop-top { stop-color: var(--body-top); }
 .stop-bottom { stop-color: var(--body-bottom); }
 
-#mascot:is([data-state="thinking"], [data-state="tool"], [data-state="streaming"]) {
+.mascot:is([data-state="thinking"], [data-state="tool"], [data-state="streaming"]) {
   --body-bottom: color-mix(in oklab, var(--agent) 40%, white);
 }
-#mascot[data-state="done"] { --body-bottom: #c8f5d8; }
-#mascot[data-state="attention"] { --body-bottom: #fde68a; }
-#mascot[data-state="error"] { --body-bottom: #c7d2fe; }
+.mascot[data-state="done"] { --body-bottom: #c8f5d8; }
+.mascot[data-state="attention"] { --body-bottom: #fde68a; }
+.mascot[data-state="error"] { --body-bottom: #c7d2fe; }
 
 .eyes-open ellipse, .think-dots circle, .mouth-o, .mouth-grin, .alert rect, .alert circle:last-child { fill: var(--ink); }
 .eyes-open .shine { fill: white; }
@@ -49,8 +49,8 @@ body {
 }
 .mouth-smile, .mouth-frown { stroke-width: 2.5; }
 .cheeks ellipse { fill: #ff9fb2; opacity: 0.55; transition: opacity 0.25s; }
-#mascot .arm { fill: var(--body-bottom); transform-origin: 50% 12%; transition: fill 0.4s; }
-#mascot .zzz text { font: 700 11px ui-rounded, system-ui, sans-serif; fill: var(--ink); opacity: 0; }
+.mascot .arm { fill: var(--body-bottom); transform-origin: 50% 12%; transition: fill 0.4s; }
+.mascot .zzz text { font: 700 11px ui-rounded, system-ui, sans-serif; fill: var(--ink); opacity: 0; }
 .shadow { fill: rgb(60 40 110 / 0.18); animation: shadow 3.2s ease-in-out infinite; }
 .alert circle:first-child { fill: #fbbf24; }
 .spark { fill: #fcd34d; opacity: 0; }
@@ -84,7 +84,7 @@ body {
 
 /* ---------- Body motion ---------- */
 
-#mascot .ghost { transform-origin: 50% 100%; }
+.mascot .ghost { transform-origin: 50% 100%; }
 .ghost { animation: float 3.2s ease-in-out infinite; }
 [data-state="thinking"] .ghost { animation: float 1.8s ease-in-out infinite, sway 2.6s ease-in-out infinite; }
 [data-state="tool"] .ghost { animation: float 1.2s ease-in-out infinite, sway 1.1s ease-in-out infinite; }
@@ -109,48 +109,48 @@ body {
 /* ---------- Pet behaviors (ui/pet.js) ---------- */
 
 /* Leans into the direction it's gliding. */
-#mascot svg { rotate: var(--tilt, 0deg); transition: rotate 0.4s ease-out; }
-#mascot.moving .ghost { animation: float 1s ease-in-out infinite; }
+.mascot svg { rotate: var(--tilt, 0deg); transition: rotate 0.4s ease-out; }
+.mascot.moving .ghost { animation: float 1s ease-in-out infinite; }
 
 /* Arms: idle sway, flap while moving, wave on hover / attention, cheer on done. */
 .arm-l { animation: arm-l-idle 3.2s ease-in-out infinite; }
 .arm-r { animation: arm-r-idle 3.2s ease-in-out infinite; }
-#mascot.moving .arm-l { animation: flap-l 0.22s ease-in-out infinite alternate; }
-#mascot.moving .arm-r { animation: flap-r 0.22s ease-in-out infinite alternate; }
-.hovering #mascot .arm-r,
-#mascot[data-state="attention"] .arm-r { animation: wave 0.28s ease-in-out infinite alternate; }
-#mascot.celebrate .arm-l { animation: cheer-l 0.9s ease-in-out; }
-#mascot.celebrate .arm-r { animation: cheer-r 0.9s ease-in-out; }
+.mascot.moving .arm-l { animation: flap-l 0.22s ease-in-out infinite alternate; }
+.mascot.moving .arm-r { animation: flap-r 0.22s ease-in-out infinite alternate; }
+.hovering .mascot .arm-r,
+.mascot[data-state="attention"] .arm-r { animation: wave 0.28s ease-in-out infinite alternate; }
+.mascot.celebrate .arm-l { animation: cheer-l 0.9s ease-in-out; }
+.mascot.celebrate .arm-r { animation: cheer-r 0.9s ease-in-out; }
 
 /* Hovered (when idle) or patted: happy squint, big blush. */
-.hovering #mascot[data-state="idle"] .eyes-open,
-#mascot.patted .eyes-open { opacity: 0; }
-.hovering #mascot[data-state="idle"] .eyes-happy,
-#mascot.patted .eyes-happy { opacity: 1; }
-#mascot.patted .mouth { opacity: 0; }
-#mascot.patted .mouth-grin { opacity: 1; }
-.hovering #mascot .cheeks ellipse,
-#mascot.patted .cheeks ellipse { opacity: 0.9; }
-#mascot.patted .ghost { animation: squish 0.9s cubic-bezier(0.3, 1.6, 0.5, 1), float 3.2s ease-in-out 0.9s infinite; }
+.hovering .mascot[data-state="idle"] .eyes-open,
+.mascot.patted .eyes-open { opacity: 0; }
+.hovering .mascot[data-state="idle"] .eyes-happy,
+.mascot.patted .eyes-happy { opacity: 1; }
+.mascot.patted .mouth { opacity: 0; }
+.mascot.patted .mouth-grin { opacity: 1; }
+.hovering .mascot .cheeks ellipse,
+.mascot.patted .cheeks ellipse { opacity: 0.9; }
+.mascot.patted .ghost { animation: squish 0.9s cubic-bezier(0.3, 1.6, 0.5, 1), float 3.2s ease-in-out 0.9s infinite; }
 
 /* Asleep after a while without mouse movement. */
-#mascot.sleeping .eyes-open,
-#mascot.sleeping .eyes-happy,
-#mascot.sleeping .mouth { opacity: 0; }
-#mascot.sleeping .eyes-sleep,
-#mascot.sleeping .mouth-o { opacity: 1; }
-#mascot.sleeping .mouth-o { scale: 0.7; }
-#mascot.sleeping .ghost { animation: float 5s ease-in-out infinite, breathe 3s ease-in-out infinite; }
-#mascot.sleeping .zzz text { animation: zfloat 2.4s ease-in-out infinite; }
-#mascot.sleeping .zzz text:nth-child(2) { animation-delay: 0.8s; }
-#mascot.sleeping .zzz text:nth-child(3) { animation-delay: 1.6s; }
-#mascot.waking .eyes-open { animation: startle 0.7s ease-out; }
-#mascot.waking .ghost { animation: hop 0.7s ease-in-out; }
+.mascot.sleeping .eyes-open,
+.mascot.sleeping .eyes-happy,
+.mascot.sleeping .mouth { opacity: 0; }
+.mascot.sleeping .eyes-sleep,
+.mascot.sleeping .mouth-o { opacity: 1; }
+.mascot.sleeping .mouth-o { scale: 0.7; }
+.mascot.sleeping .ghost { animation: float 5s ease-in-out infinite, breathe 3s ease-in-out infinite; }
+.mascot.sleeping .zzz text { animation: zfloat 2.4s ease-in-out infinite; }
+.mascot.sleeping .zzz text:nth-child(2) { animation-delay: 0.8s; }
+.mascot.sleeping .zzz text:nth-child(3) { animation-delay: 1.6s; }
+.mascot.waking .eyes-open { animation: startle 0.7s ease-out; }
+.mascot.waking .ghost { animation: hop 0.7s ease-in-out; }
 
 /* Random little tricks when idle. */
-#mascot.trick-spin .ghost { animation: spin 1.1s cubic-bezier(0.5, 0, 0.3, 1); }
-#mascot.trick-hop .ghost { animation: hop 0.9s ease-in-out; }
-#mascot.trick-peek .eyes-open { animation: peek 1.6s ease-in-out; }
+.mascot.trick-spin .ghost { animation: spin 1.1s cubic-bezier(0.5, 0, 0.3, 1); }
+.mascot.trick-hop .ghost { animation: hop 0.9s ease-in-out; }
+.mascot.trick-peek .eyes-open { animation: peek 1.6s ease-in-out; }
 
 /* Close button appears next to the ghost on hover. */
 #close { opacity: 0; scale: 0.6; pointer-events: none; transition: opacity 0.2s, scale 0.25s cubic-bezier(0.3, 1.8, 0.5, 1); }

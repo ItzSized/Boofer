@@ -3,6 +3,14 @@
  * Swap for `new Audio("/sounds/done.mp3").play()` if you prefer a sample.
  */
 let ctx;
+let enabled = true;
+let masterVolume = 0.8;
+
+/** From the settings: sounds on/off and volume (0–1). */
+export function configureSound({ sounds, volume }) {
+  enabled = sounds;
+  masterVolume = volume;
+}
 
 function audio() {
   ctx ??= new AudioContext();
@@ -11,6 +19,8 @@ function audio() {
 }
 
 function tone(freq, start, { duration = 0.6, volume = 0.22, type = "sine", glideTo } = {}) {
+  if (!enabled || masterVolume <= 0) return;
+  volume *= masterVolume;
   const ac = audio();
   const osc = ac.createOscillator();
   const gain = ac.createGain();

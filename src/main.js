@@ -4,7 +4,7 @@ import { adapterBySource } from "./agents/index.js";
 import { EventBus } from "./core/event-bus.js";
 import { State } from "./core/states.js";
 import { Tracker } from "./core/tracker.js";
-import { playAttention, playDone, playError } from "./audio/chime.js";
+import { configureSound, playAttention, playDone, playError } from "./audio/chime.js";
 import { createBubble } from "./ui/bubble.js";
 import { createMascot } from "./ui/mascot.js";
 import { createMenu } from "./ui/menu.js";
@@ -147,16 +147,27 @@ const TEST_REQUEST = () => ({
 
 const quit = () => (isTauri ? invoke("quit") : window.close());
 
-let following = false;
+// Settings live in Rust (settings.json); every window gets "settings-changed".
+let settings = { follow: false, sleepAfter: 45, size: 1, sounds: true, volume: 0.8, skin: "classique", accessory: "aucun" };
+
+function applySettings(next) {
+  settings = next;
+  configureSound(settings);
+  document.documentElement.style.zoom = String(settings.size); // the window is resized to match
+  mascotEl.dataset.skin = settings.skin;
+  mascotEl.dataset.accessory = settings.accessory;
+}
+
 const menu = createMenu(document.getElementById("menu"), [
   { label: "✨ Tester l'animation", action: () => runDemo() },
   { label: "👻 Tester 2 sessions", action: () => (runDemo("site-web"), runDemo("api", 2500)) },
   { label: "🔐 Tester une demande", action: () => card.add(TEST_REQUEST()) },
   ...(isTauri
     ? [
+        { label: "⚙️ Réglages", action: () => invoke("open_settings") },
         {
-          label: () => (following ? "🐾 Arrête de me suivre" : "🐾 Suis-moi !"),
-          action: () => invoke("set_follow", { enabled: !following }),
+          label: () => (settings.follow ? "🐾 Arrête de me suivre" : "🐾 Suis-moi !"),
+          action: () => invoke("set_follow", { enabled: !settings.follow }),
         },
         { label: "🙈 Me cacher (icône de la barre)", action: () => invoke("set_hidden", { hidden: true }) },
       ]
@@ -178,14 +189,15 @@ createPet({
   isTauri,
   onClose: quit,
   onWindowTitle,
+  sleepAfterMs: () => settings.sleepAfter * 1000,
 });
 
 if (isTauri) {
   listen("agent-event", ({ payload }) => ingest(payload.source, payload.payload));
   listen("permission-request", ({ payload }) => card.add(payload));
   listen("permission-expired", ({ payload }) => card.expire(payload));
-  listen("follow-changed", ({ payload }) => (following = payload));
-  invoke("get_follow").then((value) => (following = value));
+  listen("settings-changed", ({ payload }) => applySettings(payload));
+  invoke("get_settings").then(applySettings);
 }
 
 // Exposed for quick experiments in the devtools console: booffer.demo()
