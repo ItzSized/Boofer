@@ -17,13 +17,13 @@ const ETA_MIN_ELAPSED_MS = 8000;
  */
 export function createBubble(el) {
   el.className =
-    "pointer-events-none mt-1 w-[224px] rounded-2xl bg-white/95 px-3 py-1.5 shadow-md ring-1 ring-black/5 " +
+    "pointer-events-none mt-1 w-[224px] rounded-2xl bg-white/95 dark:bg-zinc-900/95 px-3 py-1.5 shadow-md ring-1 ring-black/5 dark:ring-white/10 " +
     "transition duration-300 opacity-0 translate-y-1";
   el.innerHTML = `
     <div class="flex items-center gap-1.5 text-[11px] leading-4">
       <span data-dot class="size-2 shrink-0 rounded-full"></span>
-      <span data-title class="truncate font-semibold text-zinc-800"></span>
-      <span class="ml-auto shrink-0 tabular-nums text-zinc-700">
+      <span data-title class="truncate font-semibold text-zinc-800 dark:text-zinc-100"></span>
+      <span class="ml-auto shrink-0 tabular-nums text-zinc-700 dark:text-zinc-200">
         <span data-total-label class="text-[10px] font-normal text-zinc-400">Total</span>
         <span data-pct class="font-semibold"></span>
       </span>
@@ -31,16 +31,16 @@ export function createBubble(el) {
     <div data-prompt class="truncate pl-3.5 text-[11px] italic leading-4 text-zinc-400"></div>
     <div data-step class="pl-3.5">
       <div class="flex items-center gap-1 text-[10px] leading-4">
-        <span data-step-name class="truncate text-zinc-600"></span>
-        <span data-step-pct class="ml-auto shrink-0 font-semibold tabular-nums text-zinc-600"></span>
+        <span data-step-name class="truncate text-zinc-600 dark:text-zinc-300"></span>
+        <span data-step-pct class="ml-auto shrink-0 font-semibold tabular-nums text-zinc-600 dark:text-zinc-300"></span>
       </div>
-      <div class="h-1 overflow-hidden rounded-full bg-zinc-100">
+      <div class="h-1 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
         <div data-step-bar class="h-full rounded-full opacity-60 transition-[width] duration-500"></div>
       </div>
     </div>
-    <div data-label class="truncate pl-3.5 text-[11px] font-medium leading-4 text-zinc-600"></div>
+    <div data-label class="truncate pl-3.5 text-[11px] font-medium leading-4 text-zinc-600 dark:text-zinc-300"></div>
     <div data-meta class="truncate pl-3.5 text-[10px] leading-4 text-zinc-400"></div>
-    <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-zinc-200">
+    <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">
       <div data-bar class="h-full rounded-full transition-[width] duration-500"></div>
     </div>`;
 

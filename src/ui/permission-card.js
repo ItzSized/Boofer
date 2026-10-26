@@ -7,21 +7,21 @@
  */
 export function createPermissionCard(el, { agentName, color, resolve, onChange }) {
   el.className =
-    "mt-1 hidden w-[224px] flex-col rounded-2xl bg-white px-3 py-2 text-[11px] leading-4 shadow-lg ring-1 ring-black/10";
+    "mt-1 hidden w-[224px] flex-col rounded-2xl bg-white dark:bg-zinc-900 px-3 py-2 text-[11px] leading-4 shadow-lg ring-1 ring-black/10 dark:ring-white/15";
   el.innerHTML = `
     <div class="flex items-center gap-1.5">
       <span class="size-2 shrink-0 rounded-full" style="background:${color}"></span>
-      <span data-title class="truncate font-semibold text-zinc-800"></span>
-      <span data-count class="ml-auto shrink-0 rounded-full bg-zinc-100 px-1.5 text-[10px] text-zinc-500"></span>
+      <span data-title class="truncate font-semibold text-zinc-800 dark:text-zinc-100"></span>
+      <span data-count class="ml-auto shrink-0 rounded-full bg-zinc-100 dark:bg-zinc-800 px-1.5 text-[10px] text-zinc-500 dark:text-zinc-400"></span>
     </div>
-    <div data-what class="mt-0.5 text-zinc-500"></div>
-    <div data-detail class="mt-1 max-h-[42px] overflow-hidden break-all rounded-lg bg-zinc-100 px-2 py-1 font-mono text-[10px] text-zinc-700"></div>
+    <div data-what class="mt-0.5 text-zinc-500 dark:text-zinc-400"></div>
+    <div data-detail class="mt-1 max-h-[42px] overflow-hidden break-all rounded-lg bg-zinc-100 dark:bg-zinc-800 px-2 py-1 font-mono text-[10px] text-zinc-700 dark:text-zinc-200"></div>
     <div data-buttons class="mt-2 grid gap-1">
       <button data-allow class="rounded-lg bg-emerald-500 py-1 font-semibold text-white hover:bg-emerald-600">Autoriser</button>
-      <button data-always title="Autoriser et ne plus demander pour ça" class="rounded-lg bg-emerald-100 py-1 font-semibold text-emerald-700 hover:bg-emerald-200">Toujours</button>
-      <button data-deny class="rounded-lg bg-rose-100 py-1 font-semibold text-rose-600 hover:bg-rose-200">Refuser</button>
+      <button data-always title="Autoriser et ne plus demander pour ça" class="rounded-lg bg-emerald-100 dark:bg-emerald-900/60 py-1 font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900">Toujours</button>
+      <button data-deny class="rounded-lg bg-rose-100 dark:bg-rose-900/50 py-1 font-semibold text-rose-600 dark:text-rose-300 hover:bg-rose-200 dark:hover:bg-rose-900">Refuser</button>
     </div>
-    <button data-skip class="mt-1 text-[10px] text-zinc-400 hover:text-zinc-600">Répondre dans Claude Code</button>`;
+    <button data-skip class="mt-1 text-[10px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300">Répondre dans Claude Code</button>`;
 
   const $ = (name) => el.querySelector(`[data-${name}]`);
   const queue = [];

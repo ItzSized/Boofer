@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { configureSound, playDone } from "./audio/chime.js";
+import { setTheme } from "./core/theme.js";
 import { createMascot } from "./ui/mascot.js";
 import "./style.css";
 import "./settings.css";
@@ -43,7 +44,7 @@ const SLEEP_CHOICES = [
 const isTauri = "__TAURI_INTERNALS__" in window;
 const DEV_SETTINGS = {
   display: "editor", targetApps: ["antigravity"], follow: false, sounds: true, volume: 0.8,
-  size: 1, skin: "classique", accessory: "aucun", sleepAfter: 45, approvals: true,
+  size: 1, skin: "classique", accessory: "aucun", sleepAfter: 45, approvals: true, theme: "auto",
 };
 const call = isTauri ? invoke : async (cmd) => (cmd === "get_settings" ? { ...DEV_SETTINGS } : cmd === "claude_hooks_installed" ? false : undefined);
 
@@ -62,13 +63,13 @@ skinsBlock.innerHTML = `
   <div id="accessories" class="flex flex-wrap gap-1.5"></div>`;
 const skinButtons = SKINS.map((skin) => {
   const button = document.createElement("button");
-  button.className = "skin-card flex flex-col items-center rounded-xl pt-2 pb-1 ring-1 ring-black/10";
+  button.className = "skin-card flex flex-col items-center rounded-xl pt-2 pb-1 ring-1 ring-black/10 dark:ring-white/15";
   const preview = document.createElement("div");
   preview.className = "mascot mini";
   preview.dataset.state = "idle";
   preview.dataset.skin = skin.id;
   createMascot(preview);
-  const label = Object.assign(document.createElement("span"), { className: "text-[11px] text-zinc-600", textContent: skin.name });
+  const label = Object.assign(document.createElement("span"), { className: "text-[11px] text-zinc-600 dark:text-zinc-300", textContent: skin.name });
   button.append(preview, label);
   button.addEventListener("click", () => save({ skin: skin.id }));
   return { skin, button, preview };
@@ -88,6 +89,10 @@ async function save(change) {
 }
 
 function render() {
+  setTheme(settings.theme);
+  document.querySelectorAll("[data-theme-choice]").forEach((button) => {
+    button.classList.toggle("selected", button.dataset.themeChoice === settings.theme);
+  });
   hero.dataset.skin = settings.skin;
   hero.dataset.accessory = settings.accessory;
   for (const { skin, button, preview } of skinButtons) {
@@ -144,6 +149,9 @@ $("sleep").replaceChildren(
   ...SLEEP_CHOICES.map(([value, label]) => Object.assign(document.createElement("option"), { value, textContent: label })),
 );
 
+document.querySelectorAll("[data-theme-choice]").forEach((button) =>
+  button.addEventListener("click", () => save({ theme: button.dataset.themeChoice })),
+);
 $("size").addEventListener("input", (e) => save({ size: Number(e.target.value) }));
 document.querySelectorAll(".display-card").forEach((card) =>
   card.addEventListener("click", () => save({ display: card.dataset.display })),

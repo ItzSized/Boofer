@@ -24,8 +24,8 @@ export function createTabs(el, { onSelect }) {
           button.dataset.key = s.key;
           const selected = s.key === selectedKey;
           button.className =
-            "flex max-w-[112px] items-center gap-1 rounded-full bg-white/95 px-2 py-0.5 text-[10px] leading-4 shadow-sm " +
-            (selected ? "font-semibold text-zinc-800 ring-2 ring-zinc-700" : "text-zinc-500 ring-1 ring-black/10 hover:text-zinc-800");
+            "flex max-w-[112px] items-center gap-1 rounded-full bg-white/95 dark:bg-zinc-900/95 px-2 py-0.5 text-[10px] leading-4 shadow-sm " +
+            (selected ? "font-semibold text-zinc-800 dark:text-zinc-100 ring-2 ring-zinc-700 dark:ring-zinc-200" : "text-zinc-500 dark:text-zinc-400 ring-1 ring-black/10 dark:ring-white/15 hover:text-zinc-800 dark:hover:text-zinc-100");
 
           const dot = document.createElement("span");
           dot.className = "size-1.5 shrink-0 rounded-full";
