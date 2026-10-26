@@ -54,8 +54,12 @@ fn start_event_server(app: AppHandle) {
             let payload = serde_json::from_str(&body).unwrap_or(serde_json::Value::Null);
 
             if is_post && read_ok && request.url() == "/permission" {
-                // Hidden or approvals off: don't make Claude Code wait for a card nobody sees.
-                let approvals = app.state::<SettingsState>().current.lock().unwrap().approvals;
+                // Hidden, approvals off or "ne pas déranger": don't make Claude Code wait for a card.
+                let config = app.state::<SettingsState>();
+                let approvals = {
+                    let settings = config.current.lock().unwrap();
+                    settings.approvals && !settings.dnd
+                };
                 if approvals && !app.state::<PetState>().hidden.load(Relaxed) {
                     permission::ask(&app, request, payload);
                     continue;
@@ -79,14 +83,21 @@ fn start_event_server(app: AppHandle) {
 /// Tray menu items whose checkmark mirrors the pet state.
 struct TrayItems {
     follow: CheckMenuItem<Wry>,
+    dnd: CheckMenuItem<Wry>,
     hidden: CheckMenuItem<Wry>,
+}
+
+/// Keeps the tray checkmarks in line with the settings (they can change from any window).
+pub(crate) fn sync_tray(app: &AppHandle, settings: &settings::Settings) {
+    if let Some(items) = app.try_state::<TrayItems>() {
+        let _ = items.follow.set_checked(settings.follow);
+        let _ = items.dnd.set_checked(settings.dnd);
+    }
 }
 
 #[tauri::command]
 fn set_follow(app: AppHandle, enabled: bool) -> Result<(), String> {
-    settings::update(&app, |s| s.follow = enabled)?;
-    let _ = app.state::<TrayItems>().follow.set_checked(enabled);
-    Ok(())
+    settings::update(&app, |s| s.follow = enabled)
 }
 
 #[tauri::command]
@@ -136,10 +147,12 @@ fn quit(app: AppHandle) {
 fn build_tray(app: &AppHandle) -> tauri::Result<()> {
     let following = app.state::<PetState>().follow.load(Relaxed);
     let follow = CheckMenuItem::with_id(app, "follow", "Me suivre", true, following, None::<&str>)?;
+    let dnd_on = app.state::<SettingsState>().current.lock().unwrap().dnd;
+    let dnd = CheckMenuItem::with_id(app, "dnd", "Ne pas déranger", true, dnd_on, None::<&str>)?;
     let hidden = CheckMenuItem::with_id(app, "hidden", "Masquer", true, false, None::<&str>)?;
     let settings_item = MenuItem::with_id(app, "settings", "Réglages…", true, None::<&str>)?;
     let quit_item = MenuItem::with_id(app, "quit", "Quitter Booffer", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&settings_item, &follow, &hidden, &quit_item])?;
+    let menu = Menu::with_items(app, &[&settings_item, &follow, &dnd, &hidden, &quit_item])?;
 
     TrayIconBuilder::new()
         .icon(app.default_window_icon().cloned().expect("bundle icon"))
@@ -154,6 +167,9 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
                 "follow" => {
                     let _ = set_follow(app.clone(), !state.follow.load(Relaxed));
                 }
+                "dnd" => {
+                    let _ = settings::update(app, |s| s.dnd = !s.dnd);
+                }
                 "hidden" => set_hidden(app.clone(), !state.hidden.load(Relaxed)),
                 "quit" => app.exit(0),
                 _ => {}
@@ -161,7 +177,7 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
         })
         .build(app)?;
 
-    app.manage(TrayItems { follow, hidden });
+    app.manage(TrayItems { follow, dnd, hidden });
     Ok(())
 }
 

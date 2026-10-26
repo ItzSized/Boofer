@@ -29,6 +29,8 @@ pub struct Settings {
     pub approvals: bool,
     /// "auto" (follows Windows), "light" or "dark".
     pub theme: String,
+    /// Ne pas déranger: no sounds, no permission cards.
+    pub dnd: bool,
 }
 
 impl Default for Settings {
@@ -45,6 +47,7 @@ impl Default for Settings {
             sleep_after: 45,
             approvals: true,
             theme: "auto".into(),
+            dnd: false,
         }
     }
 }
@@ -96,9 +99,10 @@ pub fn update(app: &AppHandle, change: impl FnOnce(&mut Settings)) -> Result<(),
     store(app, settings)
 }
 
-/// Side effects that live in Rust: follow flag, window size.
+/// Side effects that live in Rust: follow flag, window size, tray checkmarks.
 pub fn apply(app: &AppHandle, settings: &Settings) {
     app.state::<PetState>().follow.store(settings.follow, Relaxed);
+    crate::sync_tray(app, settings);
     if let Some(window) = app.get_webview_window("main") {
         let size = settings.size.clamp(0.6, 1.6);
         let _ = window.set_size(LogicalSize::new(BASE_WINDOW.0 * size, BASE_WINDOW.1 * size));
