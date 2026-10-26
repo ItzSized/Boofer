@@ -1,9 +1,15 @@
 @reference "tailwindcss";
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /* The ghost window is transparent; this one is a regular window. */
 html,
 body {
   background: var(--color-zinc-100);
+}
+html[data-theme="dark"],
+html[data-theme="dark"] body {
+  background: var(--color-zinc-950);
+  color-scheme: dark;
 }
 
 .hero.mascot {
@@ -17,15 +23,16 @@ body {
 }
 
 .skin-card:hover {
-  @apply bg-zinc-50;
+  @apply bg-zinc-50 dark:bg-zinc-800;
 }
 .skin-card.selected,
-.display-card.selected {
-  @apply bg-violet-50 ring-2 ring-violet-500;
+.display-card.selected,
+.segment.selected {
+  @apply bg-violet-50 ring-2 ring-violet-500 dark:bg-violet-950/60;
 }
 
 .chip {
-  @apply rounded-full bg-zinc-100 px-3 py-1 text-xs text-zinc-600 hover:bg-zinc-200;
+  @apply rounded-full bg-zinc-100 px-3 py-1 text-xs text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700;
 }
 .chip.on {
   @apply bg-violet-500 font-semibold text-white hover:bg-violet-600;
@@ -39,7 +46,7 @@ body {
   @apply sr-only;
 }
 .toggle span {
-  @apply h-5 w-9 rounded-full bg-zinc-300 transition-colors;
+  @apply h-5 w-9 rounded-full bg-zinc-300 transition-colors dark:bg-zinc-600;
 }
 .toggle input:checked + span {
   @apply bg-violet-500;

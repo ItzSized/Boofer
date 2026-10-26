@@ -27,6 +27,8 @@ pub struct Settings {
     /// Seconds without mouse movement before the ghost falls asleep; 0 = never.
     pub sleep_after: u64,
     pub approvals: bool,
+    /// "auto" (follows Windows), "light" or "dark".
+    pub theme: String,
 }
 
 impl Default for Settings {
@@ -42,6 +44,7 @@ impl Default for Settings {
             accessory: "aucun".into(),
             sleep_after: 45,
             approvals: true,
+            theme: "auto".into(),
         }
     }
 }

@@ -4,13 +4,13 @@
  */
 export function createMenu(el, items) {
   el.className =
-    "absolute top-2 hidden min-w-36 flex-col overflow-hidden rounded-xl bg-white/95 py-1 text-xs shadow-lg ring-1 ring-black/10";
+    "absolute top-2 hidden min-w-36 flex-col overflow-hidden rounded-xl bg-white/95 dark:bg-zinc-900/95 py-1 text-xs shadow-lg ring-1 ring-black/10 dark:ring-white/15";
 
   const render = () => {
     el.innerHTML = items
       .map((item, i) => {
         const label = typeof item.label === "function" ? item.label() : item.label;
-        return `<button data-i="${i}" class="px-3 py-1.5 text-left text-zinc-700 hover:bg-violet-100">${label}</button>`;
+        return `<button data-i="${i}" class="px-3 py-1.5 text-left text-zinc-700 dark:text-zinc-200 hover:bg-violet-100 dark:hover:bg-violet-900/50">${label}</button>`;
       })
       .join("");
   };

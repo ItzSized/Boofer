@@ -3,6 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { adapterBySource } from "./agents/index.js";
 import { EventBus } from "./core/event-bus.js";
 import { State } from "./core/states.js";
+import { setTheme } from "./core/theme.js";
 import { Tracker } from "./core/tracker.js";
 import { configureSound, playAttention, playDone, playError } from "./audio/chime.js";
 import { createBubble } from "./ui/bubble.js";
@@ -153,6 +154,7 @@ let settings = { follow: false, sleepAfter: 45, size: 1, sounds: true, volume: 0
 function applySettings(next) {
   settings = next;
   configureSound(settings);
+  setTheme(settings.theme);
   document.documentElement.style.zoom = String(settings.size); // the window is resized to match
   mascotEl.dataset.skin = settings.skin;
   mascotEl.dataset.accessory = settings.accessory;
