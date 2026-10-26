@@ -13,7 +13,10 @@ Un petit fantôme qui vit sur ton écran pendant que tes agents IA codent. Il te
 - **Plusieurs sessions** : chaque session a sa couleur et son onglet. Booffer affiche automatiquement la session du projet ouvert dans la fenêtre au premier plan, et garde sa place dans chaque fenêtre.
 - **Un vrai compagnon** : ses yeux suivent la souris, il fait coucou au survol, aime les caresses (clic), s'endort quand tu ne bouges plus et fait des petites pirouettes.
 - **Skins et accessoires** : 8 skins (Classique, Fraise, Menthe, Ciel, Citrouille, Gelée, Or, Nuit) et 6 accessoires (nœud, chapeau, couronne, casque, pousse, lunettes).
-- **Réglages** (icône de la barre système ou clic droit → Réglages) : sur ton éditeur seulement ou partout sur le bureau, éditeurs suivis, suivi de la souris, délai avant de s'endormir, sons et volume, taille, approbations, et un bouton pour connecter Claude Code.
+- **Réglages** (icône de la barre système ou clic droit → Réglages) : thème clair / sombre / auto, sur ton éditeur seulement ou partout sur le bureau, éditeurs suivis, lancement au démarrage de Windows, suivi de la souris, délai avant de s'endormir, sons et volume, taille, approbations, et un bouton pour connecter Claude Code.
+- **Ne pas déranger** : plus de sons ni de cartes de permission, en un clic depuis la barre système.
+- **Petites phrases** : « Coucou ! », « Tadaa ! ✨ », « Psst… il a besoin de toi », et des réactions quand tu le caresses ou le réveilles.
+- **Historique** : les tâches terminées du jour, le temps de travail des agents et les fichiers modifiés, dans les réglages.
 - **Discret** : les clics passent à travers les zones vides, et il se ferme avec le bouton ×, le clic droit ou l'icône de la barre système.
 
 ## Installation (Windows)
