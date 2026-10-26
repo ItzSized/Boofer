@@ -1,3 +1,4 @@
+mod autostart;
 mod permission;
 mod pet;
 mod settings;
@@ -174,6 +175,8 @@ pub fn run() {
             settings::set_settings,
             settings::claude_hooks_installed,
             settings::install_claude_hooks,
+            autostart::get_autostart,
+            autostart::set_autostart,
             open_settings,
             set_follow,
             set_hidden,
