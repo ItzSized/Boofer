@@ -131,6 +131,29 @@
         </div>
       </section>
 
+      <section class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
+        <div class="mb-2 flex items-center justify-between">
+          <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Aujourd'hui</h2>
+          <button id="clear-history" class="text-[11px] text-zinc-400 hover:text-rose-500">Effacer l'historique</button>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="rounded-xl bg-violet-50 py-2 dark:bg-violet-950/50">
+            <p id="stat-tasks" class="text-xl font-bold text-violet-600 dark:text-violet-300">0</p>
+            <p class="text-[11px] text-zinc-500 dark:text-zinc-400">tâches finies</p>
+          </div>
+          <div class="rounded-xl bg-emerald-50 py-2 dark:bg-emerald-950/50">
+            <p id="stat-time" class="text-xl font-bold text-emerald-600 dark:text-emerald-300">0 s</p>
+            <p class="text-[11px] text-zinc-500 dark:text-zinc-400">de travail des agents</p>
+          </div>
+          <div class="rounded-xl bg-amber-50 py-2 dark:bg-amber-950/50">
+            <p id="stat-files" class="text-xl font-bold text-amber-600 dark:text-amber-300">0</p>
+            <p class="text-[11px] text-zinc-500 dark:text-zinc-400">fichiers modifiés</p>
+          </div>
+        </div>
+        <p class="mt-3 mb-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">Dernières tâches</p>
+        <ul id="history" class="divide-y divide-zinc-100 dark:divide-zinc-800"></ul>
+      </section>
+
       <footer class="pb-2 text-center text-[11px] text-zinc-400">Booffer 0.1.0 · github.com/ItzSized/Claudio</footer>
     </main>
     <script type="module" src="/src/settings.js"></script>
