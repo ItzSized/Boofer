@@ -46,7 +46,8 @@ const DEV_SETTINGS = {
   display: "editor", targetApps: ["antigravity"], follow: false, sounds: true, volume: 0.8,
   size: 1, skin: "classique", accessory: "aucun", sleepAfter: 45, approvals: true, theme: "auto",
 };
-const call = isTauri ? invoke : async (cmd) => (cmd === "get_settings" ? { ...DEV_SETTINGS } : cmd === "claude_hooks_installed" ? false : undefined);
+const DEV_ANSWERS = { get_settings: () => ({ ...DEV_SETTINGS }), claude_hooks_installed: () => false, get_autostart: () => false };
+const call = isTauri ? invoke : async (cmd) => DEV_ANSWERS[cmd]?.();
 
 const $ = (id) => document.getElementById(id);
 const hero = $("hero");
@@ -167,6 +168,14 @@ $("sleep").addEventListener("change", (e) => save({ sleepAfter: Number(e.target.
 $("sounds").addEventListener("change", (e) => save({ sounds: e.target.checked }));
 $("volume").addEventListener("change", (e) => save({ volume: Number(e.target.value) }));
 $("test-sound").addEventListener("click", () => playDone());
+$("autostart").addEventListener("change", async (e) => {
+  try {
+    await call("set_autostart", { enabled: e.target.checked });
+  } catch (error) {
+    $("autostart-text").textContent = `Impossible : ${error}`;
+  }
+  e.target.checked = await call("get_autostart");
+});
 $("approvals").addEventListener("change", (e) => save({ approvals: e.target.checked }));
 $("install-hooks").addEventListener("click", async () => {
   try {
@@ -191,3 +200,4 @@ call("get_settings").then((loaded) => {
   render();
 });
 refreshHooks();
+call("get_autostart").then((on) => ($("autostart").checked = on));
