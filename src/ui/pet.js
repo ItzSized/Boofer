@@ -2,7 +2,6 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import { playPat } from "../audio/chime.js";
 
-const SLEEP_AFTER_MS = 45_000;
 const TRICKS = [
   ["trick-spin", 1100],
   ["trick-hop", 900],
@@ -18,7 +17,7 @@ const inside = (p, r, pad = 0) =>
  * Everything that makes the ghost feel alive: eyes that follow the cursor,
  * hover/pat reactions, sleep, idle tricks, and window click-through.
  */
-export function createPet({ app, mascot, mascotEl, closeBtn, fx, targets, isTauri, onClose, onWindowTitle }) {
+export function createPet({ app, mascot, mascotEl, closeBtn, fx, targets, isTauri, onClose, onWindowTitle, sleepAfterMs }) {
   const win = isTauri ? getCurrentWindow() : null;
   const body = () => mascotEl.querySelector(".body").getBoundingClientRect();
   const isIdle = () => mascotEl.dataset.state === "idle";
@@ -78,7 +77,8 @@ export function createPet({ app, mascot, mascotEl, closeBtn, fx, targets, isTaur
   }
 
   setInterval(() => {
-    if (isIdle() && visible && Date.now() - lastMoveAt > SLEEP_AFTER_MS) mascotEl.classList.add("sleeping");
+    const sleepAfter = sleepAfterMs(); // 0 = never
+    if (sleepAfter && isIdle() && visible && Date.now() - lastMoveAt > sleepAfter) mascotEl.classList.add("sleeping");
     if (!isIdle()) wake();
   }, 1000);
 
