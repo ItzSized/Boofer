@@ -44,7 +44,7 @@ const SLEEP_CHOICES = [
 const isTauri = "__TAURI_INTERNALS__" in window;
 const DEV_SETTINGS = {
   display: "editor", targetApps: ["antigravity"], follow: false, sounds: true, volume: 0.8,
-  size: 1, skin: "classique", accessory: "aucun", sleepAfter: 45, approvals: true, theme: "auto", dnd: false,
+  size: 1, skin: "classique", accessory: "aucun", sleepAfter: 45, approvals: true, theme: "auto", dnd: false, speech: true,
 };
 const DEV_ANSWERS = { get_settings: () => ({ ...DEV_SETTINGS }), claude_hooks_installed: () => false, get_autostart: () => false };
 const call = isTauri ? invoke : async (cmd) => DEV_ANSWERS[cmd]?.();
@@ -119,6 +119,7 @@ function render() {
   $("volume").disabled = !settings.sounds;
   $("approvals").checked = settings.approvals;
   $("dnd-toggle").checked = settings.dnd;
+  $("speech-toggle").checked = settings.speech;
 }
 
 function renderEditors() {
@@ -178,6 +179,7 @@ $("autostart").addEventListener("change", async (e) => {
   e.target.checked = await call("get_autostart");
 });
 $("dnd-toggle").addEventListener("change", (e) => save({ dnd: e.target.checked }));
+$("speech-toggle").addEventListener("change", (e) => save({ speech: e.target.checked }));
 $("approvals").addEventListener("change", (e) => save({ approvals: e.target.checked }));
 $("install-hooks").addEventListener("click", async () => {
   try {

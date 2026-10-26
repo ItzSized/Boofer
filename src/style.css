@@ -212,6 +212,21 @@ body {
   animation: heart-float 1.2s ease-out both;
 }
 
+/* Speech bubble: pops in, little tail pointing at the ghost. */
+.speech { opacity: 0; scale: 0.6; transition: opacity 0.2s, scale 0.3s cubic-bezier(0.3, 1.8, 0.5, 1); }
+.speech.show { opacity: 1; scale: 1; }
+.speech::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  translate: -50% 0;
+  rotate: 45deg;
+  background: inherit;
+}
+
 /* ---------- Progress bar (unknown progress) ---------- */
 
 .bar-indeterminate {

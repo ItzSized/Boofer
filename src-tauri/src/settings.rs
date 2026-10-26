@@ -31,6 +31,8 @@ pub struct Settings {
     pub theme: String,
     /// Ne pas déranger: no sounds, no permission cards.
     pub dnd: bool,
+    /// Little lines in a speech bubble ("Coucou !", "Tadaa !").
+    pub speech: bool,
 }
 
 impl Default for Settings {
@@ -48,6 +50,7 @@ impl Default for Settings {
             approvals: true,
             theme: "auto".into(),
             dnd: false,
+            speech: true,
         }
     }
 }

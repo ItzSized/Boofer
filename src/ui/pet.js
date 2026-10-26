@@ -17,7 +17,7 @@ const inside = (p, r, pad = 0) =>
  * Everything that makes the ghost feel alive: eyes that follow the cursor,
  * hover/pat reactions, sleep, idle tricks, and window click-through.
  */
-export function createPet({ app, mascot, mascotEl, closeBtn, fx, targets, isTauri, onClose, onWindowTitle, sleepAfterMs }) {
+export function createPet({ app, mascot, mascotEl, closeBtn, fx, targets, isTauri, onClose, onWindowTitle, sleepAfterMs, onMoment = () => {} }) {
   const win = isTauri ? getCurrentWindow() : null;
   const body = () => mascotEl.querySelector(".body").getBoundingClientRect();
   const isIdle = () => mascotEl.dataset.state === "idle";
@@ -74,11 +74,16 @@ export function createPet({ app, mascot, mascotEl, closeBtn, fx, targets, isTaur
     if (!mascotEl.classList.contains("sleeping")) return;
     mascotEl.classList.remove("sleeping");
     mascot.flash("waking", 700);
+    onMoment("wake");
   }
 
   setInterval(() => {
     const sleepAfter = sleepAfterMs(); // 0 = never
-    if (sleepAfter && isIdle() && visible && Date.now() - lastMoveAt > sleepAfter) mascotEl.classList.add("sleeping");
+    const sleepy = sleepAfter && isIdle() && visible && Date.now() - lastMoveAt > sleepAfter;
+    if (sleepy && !mascotEl.classList.contains("sleeping")) {
+      mascotEl.classList.add("sleeping");
+      onMoment("sleep");
+    }
     if (!isIdle()) wake();
   }, 1000);
 
@@ -98,6 +103,7 @@ export function createPet({ app, mascot, mascotEl, closeBtn, fx, targets, isTaur
     wake();
     mascot.flash("patted", 900);
     playPat();
+    onMoment("pat");
     const b = body();
     for (let i = 0; i < 3; i++) {
       const heart = document.createElement("div");

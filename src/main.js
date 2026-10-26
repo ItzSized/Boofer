@@ -11,6 +11,7 @@ import { createMascot } from "./ui/mascot.js";
 import { createMenu } from "./ui/menu.js";
 import { createPermissionCard } from "./ui/permission-card.js";
 import { createPet } from "./ui/pet.js";
+import { createSpeech } from "./ui/speech.js";
 import { createTabs } from "./ui/tabs.js";
 import "./style.css";
 
@@ -22,6 +23,7 @@ const mascotEl = document.getElementById("mascot");
 const mascot = createMascot(mascotEl);
 const bubble = createBubble(document.getElementById("bubble"));
 const app = document.getElementById("app");
+const speech = createSpeech(document.getElementById("speech"), { enabled: () => settings.speech !== false });
 
 const claudeCode = adapterBySource.get("claude-code");
 const card = createPermissionCard(document.getElementById("ask"), {
@@ -77,8 +79,14 @@ function render() {
   tabs.render(sessions, selected?.key);
 
   if (state !== lastState) {
-    if (state === State.ATTENTION) playAttention();
-    if (state === State.ERROR) playError();
+    if (state === State.ATTENTION) {
+      playAttention();
+      speech.say("attention");
+    }
+    if (state === State.ERROR) {
+      playError();
+      speech.say("error");
+    }
   }
   lastState = state;
 }
@@ -93,6 +101,7 @@ bus.on("finished", (session) => {
   setTimeout(render, 8100);
   mascot.celebrate();
   playDone();
+  speech.say("done");
 });
 
 function onWindowTitle(title) {
@@ -149,7 +158,7 @@ const TEST_REQUEST = () => ({
 const quit = () => (isTauri ? invoke("quit") : window.close());
 
 // Settings live in Rust (settings.json); every window gets "settings-changed".
-let settings = { follow: false, sleepAfter: 45, size: 1, sounds: true, volume: 0.8, skin: "classique", accessory: "aucun" };
+let settings = { follow: false, sleepAfter: 45, size: 1, sounds: true, volume: 0.8, skin: "classique", accessory: "aucun", theme: "auto", dnd: false, speech: true };
 
 function applySettings(next) {
   settings = next;
@@ -197,6 +206,7 @@ createPet({
   onClose: quit,
   onWindowTitle,
   sleepAfterMs: () => settings.sleepAfter * 1000,
+  onMoment: (kind) => speech.say(kind),
 });
 
 if (isTauri) {
@@ -204,7 +214,10 @@ if (isTauri) {
   listen("permission-request", ({ payload }) => card.add(payload));
   listen("permission-expired", ({ payload }) => card.expire(payload));
   listen("settings-changed", ({ payload }) => applySettings(payload));
-  invoke("get_settings").then(applySettings);
+  invoke("get_settings").then((loaded) => {
+    applySettings(loaded);
+    setTimeout(() => speech.say("hello"), 900);
+  });
 }
 
 // Exposed for quick experiments in the devtools console: booffer.demo()
