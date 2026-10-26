@@ -6,13 +6,15 @@ Un petit fantôme qui vit sur ton écran pendant que tes agents IA codent. Il te
 
 ## Ce qu'il fait
 
-- **Statut en direct** : le projet, ta demande, l'action en cours (« Modifie pet.js », « Lance : npm run build »), le temps écoulé, le nombre d'actions, les fichiers modifiés, la tâche en cours (« 2/5 »), les échecs et les sous-agents actifs.
-- **Pourcentage** : exact quand Claude tient une liste de tâches, estimé sinon. Il ne recule jamais et n'atteint 100 % qu'à la fin.
+- **Statut en direct** : le projet, ta demande, l'action en cours (« Modifie pet.js », « Lance : npm run build »), le temps écoulé, le temps restant estimé, le nombre d'actions, les fichiers modifiés, les échecs et les sous-agents actifs.
+- **Progression totale et par étape** : quand Claude tient une liste de tâches, Booffer affiche « Étape 2/5 · Écrit les tests — 70 % » et un total (« Total 42 % »). Sans liste, une estimation du total. Le total ne recule jamais et n'atteint 100 % qu'à la fin.
 - **Ping de fin** : le fantôme saute et la bulle affiche « Claudio a fini ! · Terminé en 45 s ».
 - **Approbations** : quand Claude Code demande une permission, une carte affiche la commande ou le fichier avec **Autoriser / Toujours / Refuser**. Sans réponse en 55 s, ou si tu cliques « Répondre dans Claude Code », Claude Code te demande normalement.
 - **Plusieurs sessions** : chaque session a sa couleur et son onglet. Booffer affiche automatiquement la session du projet ouvert dans la fenêtre au premier plan, et garde sa place dans chaque fenêtre.
 - **Un vrai compagnon** : ses yeux suivent la souris, il fait coucou au survol, aime les caresses (clic), s'endort quand tu ne bouges plus et fait des petites pirouettes.
-- **Discret** : il ne s'affiche que sur ton éditeur (Antigravity par défaut), les clics passent à travers les zones vides, et il se ferme avec le bouton ×, le clic droit ou l'icône de la barre système.
+- **Skins et accessoires** : 8 skins (Classique, Fraise, Menthe, Ciel, Citrouille, Gelée, Or, Nuit) et 6 accessoires (nœud, chapeau, couronne, casque, pousse, lunettes).
+- **Réglages** (icône de la barre système ou clic droit → Réglages) : sur ton éditeur seulement ou partout sur le bureau, éditeurs suivis, suivi de la souris, délai avant de s'endormir, sons et volume, taille, approbations, et un bouton pour connecter Claude Code.
+- **Discret** : les clics passent à travers les zones vides, et il se ferme avec le bouton ×, le clic droit ou l'icône de la barre système.
 
 ## Installation (Windows)
 
@@ -35,13 +37,11 @@ Pour développer : `npm run tauri dev`. Pour travailler l'interface dans un navi
 
 ## Brancher Claude Code
 
-Copie le bloc `hooks` de [hooks/claude-code-settings.example.json](hooks/claude-code-settings.example.json) dans `~/.claude/settings.json` (fusionne-le avec tes réglages existants). Ouvre ensuite `/hooks` dans Claude Code, ou relance-le.
+Le plus simple : **Réglages → Claude Code → Connecter**. Booffer ajoute ses hooks à `~/.claude/settings.json` en gardant tes réglages (une copie `settings.json.booffer-backup` est faite). Relance ensuite Claude Code.
+
+À la main : copie le bloc `hooks` de [hooks/claude-code-settings.example.json](hooks/claude-code-settings.example.json) dans `~/.claude/settings.json` (fusionne-le avec tes réglages existants). Ouvre ensuite `/hooks` dans Claude Code, ou relance-le.
 
 Les hooks envoient leurs événements à Booffer sur `http://127.0.0.1:47823`. Si Booffer n'est pas lancé, `curl` abandonne en silence et Claude Code n'est pas gêné.
-
-## Changer d'éditeur
-
-Booffer ne s'affiche que sur les fenêtres dont l'exécutable contient `TARGET_APP` (`"antigravity"` par défaut), dans [src-tauri/src/pet.rs](src-tauri/src/pet.rs). Mets `"code"` pour VS Code ou `"cursor"` pour Cursor.
 
 ## Suivre tes propres scripts Claude API
 
@@ -71,10 +71,12 @@ src-tauri/src/
   lib.rs          serveur local (événements + permissions), icône de la barre système
   pet.rs          fenêtre : détection de l'éditeur au premier plan, place par fenêtre, suivi souris
   permission.rs   requêtes de permission gardées ouvertes jusqu'à ta réponse
+  settings.rs     réglages (JSON), installation des hooks Claude Code
 src/
   agents/         un adaptateur par agent (Claude Code, generic)
   core/           tracker des sessions, états, bus d'événements
-  ui/             fantôme (SVG), bulle, onglets, carte de permission, menu, comportements
+  ui/             fantôme (SVG, skins, accessoires), bulle, onglets, carte de permission, menu
+  settings.js     fenêtre de réglages
   audio/          sons générés en Web Audio
 ```
 

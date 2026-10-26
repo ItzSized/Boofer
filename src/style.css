@@ -9,9 +9,14 @@ body {
 
 .mascot {
   --agent: #a78bfa;
+  /* Skin (see "Skins" below): body gradient, face color, eye highlight, cheeks. */
+  --skin-top: #ffffff;
+  --skin-bottom: #e6dcff;
   --ink: #2b2240;
-  --body-top: #ffffff;
-  --body-bottom: #e6dcff;
+  --shine: #ffffff;
+  --cheek: #ff9fb2;
+  --body-top: var(--skin-top);
+  --body-bottom: var(--skin-bottom);
   width: 132px;
   filter: drop-shadow(0 6px 10px rgb(70 50 130 / 0.25));
 }
@@ -32,15 +37,17 @@ body {
 .stop-top { stop-color: var(--body-top); }
 .stop-bottom { stop-color: var(--body-bottom); }
 
+/* States tint the skin rather than replacing it, so every skin stays readable. */
 .mascot:is([data-state="thinking"], [data-state="tool"], [data-state="streaming"]) {
-  --body-bottom: color-mix(in oklab, var(--agent) 40%, white);
+  --body-bottom: color-mix(in oklab, var(--agent) 45%, var(--skin-bottom));
 }
-.mascot[data-state="done"] { --body-bottom: #c8f5d8; }
-.mascot[data-state="attention"] { --body-bottom: #fde68a; }
-.mascot[data-state="error"] { --body-bottom: #c7d2fe; }
+.mascot[data-state="done"] { --body-bottom: color-mix(in oklab, #4ade80 40%, var(--skin-bottom)); }
+.mascot[data-state="attention"] { --body-bottom: color-mix(in oklab, #facc15 50%, var(--skin-bottom)); }
+.mascot[data-state="error"] { --body-bottom: color-mix(in oklab, #818cf8 45%, var(--skin-bottom)); }
 
-.eyes-open ellipse, .think-dots circle, .mouth-o, .mouth-grin, .alert rect, .alert circle:last-child { fill: var(--ink); }
-.eyes-open .shine { fill: white; }
+.eyes-open ellipse, .think-dots circle, .mouth-o, .mouth-grin { fill: var(--ink); }
+.alert rect, .alert circle:last-child { fill: #2b2240; }
+.eyes-open .shine { fill: var(--shine); }
 .eyes-happy path, .eyes-sleep path, .mouth-smile, .mouth-frown {
   fill: none;
   stroke: var(--ink);
@@ -48,12 +55,45 @@ body {
   stroke-linecap: round;
 }
 .mouth-smile, .mouth-frown { stroke-width: 2.5; }
-.cheeks ellipse { fill: #ff9fb2; opacity: 0.55; transition: opacity 0.25s; }
+.cheeks ellipse { fill: var(--cheek); opacity: 0.55; transition: opacity 0.25s; }
 .mascot .arm { fill: var(--body-bottom); transform-origin: 50% 12%; transition: fill 0.4s; }
 .mascot .zzz text { font: 700 11px ui-rounded, system-ui, sans-serif; fill: var(--ink); opacity: 0; }
 .shadow { fill: rgb(60 40 110 / 0.18); animation: shadow 3.2s ease-in-out infinite; }
 .alert circle:first-child { fill: #fbbf24; }
 .spark { fill: #fcd34d; opacity: 0; }
+
+/* ---------- Skins (settings → Apparence) ---------- */
+
+.mascot[data-skin="fraise"] { --skin-top: #fff5f8; --skin-bottom: #ffb8cf; --ink: #4a1f33; --cheek: #ff5f8f; }
+.mascot[data-skin="menthe"] { --skin-top: #f4fffa; --skin-bottom: #b2ecd5; --ink: #1f3b33; }
+.mascot[data-skin="citrouille"] { --skin-top: #fff3e2; --skin-bottom: #ffa94d; --ink: #4a2a12; --cheek: #ff6b4a; }
+.mascot[data-skin="gelee"] { --skin-top: #f1ffd6; --skin-bottom: #93d65a; --ink: #22401a; --cheek: #ff9fb2; }
+.mascot[data-skin="ciel"] { --skin-top: #f3f9ff; --skin-bottom: #a9d4ff; --ink: #1d2f4a; }
+.mascot[data-skin="nuit"] { --skin-top: #8d91d6; --skin-bottom: #393c70; --ink: #f6f4ff; --shine: #393c70; --cheek: #ff8fb8; }
+.mascot[data-skin="or"] { --skin-top: #fffbe8; --skin-bottom: #f3c94e; --ink: #4a3a10; --cheek: #ff9f7a; }
+
+/* ---------- Accessories ---------- */
+
+.mascot .acc { display: none; }
+.mascot[data-accessory="noeud"] .acc-noeud,
+.mascot[data-accessory="chapeau"] .acc-chapeau,
+.mascot[data-accessory="couronne"] .acc-couronne,
+.mascot[data-accessory="casque"] .acc-casque,
+.mascot[data-accessory="pousse"] .acc-pousse,
+.mascot[data-accessory="lunettes"] .acc-lunettes { display: inline; }
+
+.acc-noeud path { fill: #ff6f9c; }
+.acc-noeud circle { fill: #e0457b; }
+.acc-chapeau .hat { fill: #2b2240; }
+.acc-chapeau .band { fill: #e5484d; }
+.acc-couronne polygon { fill: #f6c343; stroke: #d99a1e; stroke-width: 1.2; stroke-linejoin: round; }
+.acc-couronne circle { fill: #e5484d; }
+.acc-casque path { fill: none; stroke: #3b3f73; stroke-width: 4.5; stroke-linecap: round; }
+.acc-casque rect { fill: #5b8cff; }
+.acc-pousse .stem { fill: none; stroke: #3fa34d; stroke-width: 2.5; stroke-linecap: round; }
+.acc-pousse .leaf { fill: #6cc46c; }
+.acc-lunettes circle { fill: rgb(255 255 255 / 0.18); stroke: var(--ink); stroke-width: 2; }
+.acc-lunettes path { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; }
 
 /* ---------- Face: which parts are visible ---------- */
 

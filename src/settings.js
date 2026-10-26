@@ -5,6 +5,25 @@ import { createMascot } from "./ui/mascot.js";
 import "./style.css";
 import "./settings.css";
 
+const SKINS = [
+  { id: "classique", name: "Classique" },
+  { id: "fraise", name: "Fraise" },
+  { id: "menthe", name: "Menthe" },
+  { id: "ciel", name: "Ciel" },
+  { id: "citrouille", name: "Citrouille" },
+  { id: "gelee", name: "Gelée" },
+  { id: "or", name: "Or" },
+  { id: "nuit", name: "Nuit" },
+];
+const ACCESSORIES = [
+  { id: "aucun", name: "Aucun" },
+  { id: "noeud", name: "🎀 Nœud" },
+  { id: "chapeau", name: "🎩 Chapeau" },
+  { id: "couronne", name: "👑 Couronne" },
+  { id: "casque", name: "🎧 Casque" },
+  { id: "pousse", name: "🌱 Pousse" },
+  { id: "lunettes", name: "👓 Lunettes" },
+];
 const EDITORS = [
   { id: "antigravity", name: "Antigravity" },
   { id: "code", name: "VS Code" },
@@ -34,6 +53,34 @@ createMascot(hero);
 
 let settings = null;
 
+// Skin picker: one mini ghost per skin, wearing the chosen accessory.
+const skinsBlock = $("skins-block");
+skinsBlock.innerHTML = `
+  <p class="mb-1.5 text-sm font-medium">Skin</p>
+  <div id="skins" class="grid grid-cols-4 gap-2"></div>
+  <p class="mt-3 mb-1.5 text-sm font-medium">Accessoire</p>
+  <div id="accessories" class="flex flex-wrap gap-1.5"></div>`;
+const skinButtons = SKINS.map((skin) => {
+  const button = document.createElement("button");
+  button.className = "skin-card flex flex-col items-center rounded-xl pt-2 pb-1 ring-1 ring-black/10";
+  const preview = document.createElement("div");
+  preview.className = "mascot mini";
+  preview.dataset.state = "idle";
+  preview.dataset.skin = skin.id;
+  createMascot(preview);
+  const label = Object.assign(document.createElement("span"), { className: "text-[11px] text-zinc-600", textContent: skin.name });
+  button.append(preview, label);
+  button.addEventListener("click", () => save({ skin: skin.id }));
+  return { skin, button, preview };
+});
+$("skins").replaceChildren(...skinButtons.map((s) => s.button));
+const accessoryButtons = ACCESSORIES.map((accessory) => {
+  const button = Object.assign(document.createElement("button"), { className: "chip", textContent: accessory.name });
+  button.addEventListener("click", () => save({ accessory: accessory.id }));
+  return { accessory, button };
+});
+$("accessories").replaceChildren(...accessoryButtons.map((a) => a.button));
+
 async function save(change) {
   settings = { ...settings, ...change };
   render();
@@ -43,6 +90,11 @@ async function save(change) {
 function render() {
   hero.dataset.skin = settings.skin;
   hero.dataset.accessory = settings.accessory;
+  for (const { skin, button, preview } of skinButtons) {
+    button.classList.toggle("selected", skin.id === settings.skin);
+    preview.dataset.accessory = settings.accessory;
+  }
+  for (const { accessory, button } of accessoryButtons) button.classList.toggle("on", accessory.id === settings.accessory);
   configureSound(settings);
 
   $("size").value = settings.size;
