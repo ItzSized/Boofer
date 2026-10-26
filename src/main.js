@@ -153,7 +153,8 @@ let settings = { follow: false, sleepAfter: 45, size: 1, sounds: true, volume: 0
 
 function applySettings(next) {
   settings = next;
-  configureSound(settings);
+  configureSound({ sounds: settings.sounds && !settings.dnd, volume: settings.volume });
+  document.getElementById("dnd").classList.toggle("hidden", !settings.dnd);
   setTheme(settings.theme);
   document.documentElement.style.zoom = String(settings.size); // the window is resized to match
   mascotEl.dataset.skin = settings.skin;
@@ -170,6 +171,10 @@ const menu = createMenu(document.getElementById("menu"), [
         {
           label: () => (settings.follow ? "🐾 Arrête de me suivre" : "🐾 Suis-moi !"),
           action: () => invoke("set_follow", { enabled: !settings.follow }),
+        },
+        {
+          label: () => (settings.dnd ? "🔔 Réactiver sons et demandes" : "🌙 Ne pas déranger"),
+          action: () => invoke("set_settings", { settings: { ...settings, dnd: !settings.dnd } }),
         },
         { label: "🙈 Me cacher (icône de la barre)", action: () => invoke("set_hidden", { hidden: true }) },
       ]
