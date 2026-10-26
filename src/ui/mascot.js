@@ -65,6 +65,37 @@ const svg = (gradientId) => `
       <path d="M67 62 Q73 67 79 62" />
     </g>
 
+    <!-- Accessories (settings → Apparence), only one is displayed. -->
+    <g class="acc acc-noeud">
+      <path d="M80 24 L69 17 L69 31 Z" />
+      <path d="M80 24 L91 17 L91 31 Z" />
+      <circle cx="80" cy="24" r="3.2" />
+    </g>
+    <g class="acc acc-chapeau">
+      <ellipse class="hat" cx="60" cy="18" rx="23" ry="4" />
+      <rect class="hat" x="46" y="-6" width="28" height="24" rx="3" />
+      <rect class="band" x="46" y="10" width="28" height="4" />
+    </g>
+    <g class="acc acc-couronne">
+      <polygon points="44,19 45,3 52.5,11 60,0 67.5,11 75,3 76,19" />
+      <circle cx="60" cy="13" r="2.2" />
+    </g>
+    <g class="acc acc-casque">
+      <path d="M22 60 C22 18 98 18 98 60" />
+      <rect x="14" y="52" width="11" height="20" rx="4.5" />
+      <rect x="95" y="52" width="11" height="20" rx="4.5" />
+    </g>
+    <g class="acc acc-pousse">
+      <path class="stem" d="M60 15 C60 9 60 5 61 1" />
+      <path class="leaf" d="M61 3 C68 -4 77 0 74 5 C70 9 64 8 61 3 Z" />
+      <path class="leaf" d="M60 7 C53 1 45 4 48 8 C51 11 57 10 60 7 Z" />
+    </g>
+    <g class="acc acc-lunettes">
+      <circle cx="47" cy="62" r="9.5" />
+      <circle cx="73" cy="62" r="9.5" />
+      <path d="M56.5 60 Q60 57 63.5 60" />
+    </g>
+
     <path class="mouth mouth-smile" d="M55 76 Q60 81 65 76" />
     <ellipse class="mouth mouth-o" cx="60" cy="78" rx="3" ry="3.5" />
     <path class="mouth mouth-grin" d="M53 75 Q60 87 67 75 Z" />

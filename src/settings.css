@@ -11,6 +11,15 @@ body {
   filter: drop-shadow(0 4px 6px rgb(70 50 130 / 0.2));
 }
 
+.mini.mascot {
+  width: 48px;
+  filter: none;
+}
+
+.skin-card:hover {
+  @apply bg-zinc-50;
+}
+.skin-card.selected,
 .display-card.selected {
   @apply bg-violet-50 ring-2 ring-violet-500;
 }
