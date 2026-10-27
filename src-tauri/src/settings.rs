@@ -9,7 +9,7 @@ use tauri::{AppHandle, Emitter, LogicalSize, Manager};
 use crate::pet::PetState;
 
 /// Window size at `size: 1.0`, in logical px.
-pub const BASE_WINDOW: (f64, f64) = (240.0, 360.0);
+pub const BASE_WINDOW: (f64, f64) = (248.0, 440.0);
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
@@ -39,7 +39,7 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             display: "editor".into(),
-            target_apps: vec!["antigravity".into()],
+            target_apps: vec!["antigravity".into(), "agy".into(), "code".into(), "cursor".into()],
             follow: false,
             sounds: true,
             volume: 0.8,
@@ -133,12 +133,31 @@ fn claude_settings_path() -> Option<PathBuf> {
         .map(|home| PathBuf::from(home).join(".claude").join("settings.json"))
 }
 
-/// True when ~/.claude/settings.json already sends events to Booffer.
+/// "missing": no Booffer hooks yet. "outdated": installed by an older Booffer (some events
+/// are missing, e.g. compaction). "ok": everything is there.
 #[tauri::command]
-pub fn claude_hooks_installed() -> bool {
-    claude_settings_path()
+pub fn claude_hooks_status() -> &'static str {
+    let Some(root) = claude_settings_path()
         .and_then(|path| std::fs::read_to_string(path).ok())
-        .is_some_and(|text| text.contains(&format!("{HOOK_MARKER}/permission")) && text.contains("/event/claude-code"))
+        .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok())
+    else {
+        return "missing";
+    };
+    let Ok(template) = serde_json::from_str::<serde_json::Value>(HOOKS_TEMPLATE) else { return "ok" };
+    let ours = |event: &str| root["hooks"][event].to_string().contains(HOOK_MARKER);
+    let events: Vec<&String> = template["hooks"].as_object().map(|o| o.keys().collect()).unwrap_or_default();
+    match events.iter().filter(|e| ours(e)).count() {
+        0 => "missing",
+        n if n < events.len() => "outdated",
+        _ => "ok",
+    }
+}
+
+/// Booffer hooks from an older version: add the new events (the user already said yes once).
+pub fn upgrade_claude_hooks() {
+    if claude_hooks_status() == "outdated" {
+        let _ = install_claude_hooks();
+    }
 }
 
 /// Adds Booffer's hooks to ~/.claude/settings.json, keeping everything else.

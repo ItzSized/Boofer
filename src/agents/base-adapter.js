@@ -4,6 +4,7 @@ const DEFAULT_LABELS = {
   [State.THINKING]: "Réfléchit…",
   [State.TOOL]: "Travaille…",
   [State.STREAMING]: "Écrit…",
+  [State.COMPACTING]: "Compacte le contexte…",
   [State.ATTENTION]: "A besoin de toi !",
   [State.DONE]: "Terminé !",
   [State.ERROR]: "Oups, erreur",

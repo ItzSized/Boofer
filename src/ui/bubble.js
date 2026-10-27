@@ -1,9 +1,12 @@
 import { State } from "../core/states.js";
+import { EtaEstimator } from "../core/eta.js";
 import { approx, duration } from "../core/format.js";
+import { compact, describeModel } from "../core/models.js";
 
-/** Below this total progress (or this early), a remaining-time estimate is just noise. */
-const ETA_MIN_PROGRESS = 0.08;
-const ETA_MIN_ELAPSED_MS = 8000;
+/** A compaction usually takes about this long when we haven't seen one on this PC yet. */
+const DEFAULT_COMPACT_MS = 75_000;
+/** Context fuller than this: the next compaction is close. */
+const CONTEXT_WARN = 0.8;
 
 /**
  * Status bubble under the mascot:
@@ -13,7 +16,10 @@ const ETA_MIN_ELAPSED_MS = 8000;
  *   ▔▔▔▔▔▔▔▔▔▔▔▔▔▔ (step)
  *   ▸ Modifie pet.js
  *   ⏱ 1 min 20 · reste ≈ 2 min · 12 actions · 3 fichiers
+ *   🧠 Contexte ▓▓▓░░ 64 %          (Claude Code)
  *   ▓▓▓▓▓▓░░░░░░ (total)
+ * While the context is being compacted, the step row becomes « 🧹 Compactage » with
+ * its own progress, based on how long compactions usually take.
  */
 export function createBubble(el) {
   el.className =
@@ -40,56 +46,79 @@ export function createBubble(el) {
     </div>
     <div data-label class="truncate pl-3.5 text-[11px] font-medium leading-4 text-zinc-600 dark:text-zinc-300"></div>
     <div data-meta class="truncate pl-3.5 text-[10px] leading-4 text-zinc-400"></div>
+    <div data-context class="flex items-center gap-1.5 pl-3.5 text-[10px] leading-4 text-zinc-400">
+      <span class="shrink-0">🧠 Contexte</span>
+      <div class="h-1 flex-1 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+        <div data-context-bar class="h-full rounded-full transition-[width] duration-500"></div>
+      </div>
+      <span data-context-pct class="shrink-0 tabular-nums"></span>
+    </div>
     <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">
       <div data-bar class="h-full rounded-full transition-[width] duration-500"></div>
     </div>`;
 
   const $ = (name) => el.querySelector(`[data-${name}]`);
   const ui = Object.fromEntries(
-    ["dot", "title", "total-label", "pct", "prompt", "step", "step-name", "step-pct", "step-bar", "label", "meta", "bar"].map(
+    ["dot", "title", "total-label", "pct", "prompt", "step", "step-name", "step-pct", "step-bar", "label", "meta", "context", "context-bar", "context-pct", "bar"].map(
       (name) => [name, $(name)],
     ),
   );
 
+  const eta = new EtaEstimator();
+
   return {
-    render(session) {
-      const visible = session && session.state !== State.IDLE;
+    /** @param context { tokens, window, model, compactMs } of a Claude Code session, if known */
+    render(session, context = null) {
+      const visible = Boolean(session && session.state !== State.IDLE);
+      el.classList.toggle("hidden", !visible);
       el.classList.toggle("opacity-0", !visible);
       el.classList.toggle("translate-y-1", !visible);
       if (!visible) return;
 
       const d = session.details ?? {};
       const done = session.state === State.DONE;
-      const known = typeof session.progress === "number";
-      const total = Math.round((session.progress ?? 0) * 100);
+      const compacting = session.state === State.COMPACTING ? d.compact : null;
+      const compactMs = context?.compactMs ?? DEFAULT_COMPACT_MS;
+      const compactPct = compacting ? Math.min(95, Math.round(((Date.now() - compacting.startedAt) / compactMs) * 100)) : 0;
+      // A /compact on its own: the compaction *is* the task.
+      const onlyCompacting = Boolean(compacting && d.compactOnly);
+      const known = onlyCompacting || typeof session.progress === "number";
+      const total = onlyCompacting ? compactPct : Math.round((session.progress ?? 0) * 100);
 
       ui.dot.style.background = session.color;
       ui.bar.style.background = session.color;
       ui["step-bar"].style.background = session.color;
-      ui.title.textContent = session.headline ?? [session.project, session.agent].filter(Boolean).join(" · ");
+      const model = d.model ?? context?.model;
+      const agentLabel = model ? `${session.agent} · ${describeModel(model).name}` : session.agent;
+      ui.title.textContent = session.headline ?? [session.project, agentLabel].filter(Boolean).join(" · ");
       ui.pct.textContent = done ? "✨" : known ? `${total}%` : session.tokens ? `${session.tokens} tok` : "";
       ui["total-label"].classList.toggle("hidden", done || !known || !d.step);
 
       ui.prompt.textContent = d.prompt ? `« ${d.prompt} »` : "";
       ui.prompt.classList.toggle("hidden", !d.prompt);
 
-      const step = !done ? d.step : null;
-      ui.step.classList.toggle("hidden", !step);
-      if (step) {
+      const step = !done && !compacting ? d.step : null;
+      ui.step.classList.toggle("hidden", !step && !(compacting && !onlyCompacting));
+      if (compacting && !onlyCompacting) {
+        ui["step-name"].textContent = "🧹 Compactage du contexte (auto)";
+        ui["step-pct"].textContent = `${compactPct}%`;
+        ui["step-bar"].style.width = `${compactPct}%`;
+      } else if (step) {
         const stepPct = Math.round(step.progress * 100);
         ui["step-name"].textContent = `Étape ${step.index}/${step.count}${step.name ? ` · ${step.name}` : ""}`;
         ui["step-pct"].textContent = `${stepPct}%`;
         ui["step-bar"].style.width = `${stepPct}%`;
       }
 
-      ui.label.textContent = (done ? "" : "▸ ") + session.label;
+      ui.label.textContent = compacting ? "🧹 Compacte le contexte…" : (done ? "" : "▸ ") + session.label;
 
       const elapsed = d.startedAt ? Date.now() - d.startedAt : 0;
-      const p = session.progress ?? 0;
-      const eta = !done && known && p >= ETA_MIN_PROGRESS && elapsed > ETA_MIN_ELAPSED_MS ? (elapsed * (1 - p)) / p : null;
+      const left = compacting
+        ? Math.max(0, compacting.startedAt + compactMs - Date.now())
+        : done ? null : eta.remaining(session);
       const facts = [
         !done && elapsed ? `⏱ ${duration(elapsed)}` : "",
-        eta ? `reste ${approx(eta)}` : "",
+        left === null ? "" : left < 5000 ? "presque fini…" : `reste ${approx(left)}`,
         d.steps ? `${d.steps} action${d.steps > 1 ? "s" : ""}` : "",
         d.files ? `${d.files} fichier${d.files > 1 ? "s" : ""}` : "",
         d.subagents ? `${d.subagents} sous-agent${d.subagents > 1 ? "s" : ""}` : "",
@@ -97,6 +126,16 @@ export function createBubble(el) {
       ].filter(Boolean);
       ui.meta.textContent = facts.join(" · ");
       ui.meta.classList.toggle("hidden", facts.length === 0);
+
+      const fill = context?.tokens && !compacting && !done ? Math.min(1, context.tokens / context.window) : null;
+      ui.context.classList.toggle("hidden", fill === null);
+      if (fill !== null) {
+        const warn = fill >= CONTEXT_WARN;
+        ui["context-bar"].style.width = `${Math.round(fill * 100)}%`;
+        ui["context-bar"].style.background = warn ? "#f59e0b" : "#a1a1aa";
+        ui["context-pct"].textContent = `${Math.round(fill * 100)} %${warn ? " · compactage bientôt" : ""}`;
+        ui.context.title = `${compact(context.tokens)} tokens sur ${compact(context.window)}`;
+      }
 
       ui.bar.classList.toggle("bar-indeterminate", !known);
       ui.bar.style.width = known ? `${total}%` : "";
