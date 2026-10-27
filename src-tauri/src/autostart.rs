@@ -1,5 +1,7 @@
-//! "Lancer au démarrage de Windows": a value under HKCU\…\Run pointing at this exe.
-//! Windows is the source of truth, so it isn't duplicated in settings.json.
+//! "Lancer au démarrage":
+//! - Windows: HKCU\Software\Microsoft\Windows\CurrentVersion\Run\Booffer
+//! - macOS:   ~/Library/LaunchAgents/dev.booffer.desktop.plist
+//! - Linux:   ~/.config/autostart/booffer.desktop
 
 #[tauri::command]
 pub fn get_autostart() -> bool {
@@ -67,12 +69,98 @@ mod os {
     }
 }
 
-#[cfg(not(windows))]
+#[cfg(target_os = "macos")]
+mod os {
+    use std::path::PathBuf;
+
+    fn plist_path() -> Option<PathBuf> {
+        std::env::var_os("HOME").map(|h| {
+            PathBuf::from(h)
+                .join("Library")
+                .join("LaunchAgents")
+                .join("dev.booffer.desktop.plist")
+        })
+    }
+
+    pub fn enabled() -> bool {
+        plist_path().is_some_and(|p| p.exists())
+    }
+
+    pub fn set(enabled: bool) -> Result<(), String> {
+        let path = plist_path().ok_or("dossier HOME introuvable")?;
+        if enabled {
+            let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+            if let Some(dir) = path.parent() {
+                std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+            }
+            let plist = format!(
+                r#"<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>dev.booffer.desktop</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>{}</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+</dict>
+</plist>
+"#,
+                exe.display()
+            );
+            std::fs::write(path, plist).map_err(|e| e.to_string())
+        } else if path.exists() {
+            std::fs::remove_file(path).map_err(|e| e.to_string())
+        } else {
+            Ok(())
+        }
+    }
+}
+
+#[cfg(target_os = "linux")]
+mod os {
+    use std::path::PathBuf;
+
+    fn desktop_path() -> Option<PathBuf> {
+        std::env::var_os("XDG_CONFIG_HOME")
+            .map(PathBuf::from)
+            .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".config")))
+            .map(|cfg| cfg.join("autostart").join("booffer.desktop"))
+    }
+
+    pub fn enabled() -> bool {
+        desktop_path().is_some_and(|p| p.exists())
+    }
+
+    pub fn set(enabled: bool) -> Result<(), String> {
+        let path = desktop_path().ok_or("dossier ~/.config introuvable")?;
+        if enabled {
+            let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+            if let Some(dir) = path.parent() {
+                std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+            }
+            let entry = format!(
+                "[Desktop Entry]\nType=Application\nName=Booffer\nComment=Compagnon IA sur ton bureau\nExec=\"{}\"\nTerminal=false\nX-GNOME-Autostart-enabled=true\n",
+                exe.display()
+            );
+            std::fs::write(path, entry).map_err(|e| e.to_string())
+        } else if path.exists() {
+            std::fs::remove_file(path).map_err(|e| e.to_string())
+        } else {
+            Ok(())
+        }
+    }
+}
+
+#[cfg(not(any(windows, target_os = "macos", target_os = "linux")))]
 mod os {
     pub fn enabled() -> bool {
         false
     }
     pub fn set(_: bool) -> Result<(), String> {
-        Err("disponible seulement sur Windows".into())
+        Err("plateforme non supportée".into())
     }
 }

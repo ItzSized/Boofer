@@ -26,11 +26,18 @@ pub struct PetState {
     pub hidden: AtomicBool,
     /// A permission card is waiting: stay visible even outside the target app.
     pub attention: AtomicBool,
+    /// An AI agent is actively thinking or running tools: stay visible so the user sees live progress.
+    pub working: AtomicBool,
 }
 
 impl Default for PetState {
     fn default() -> Self {
-        Self { follow: AtomicBool::new(false), hidden: AtomicBool::new(false), attention: AtomicBool::new(false) }
+        Self {
+            follow: AtomicBool::new(false),
+            hidden: AtomicBool::new(false),
+            attention: AtomicBool::new(false),
+            working: AtomicBool::new(false),
+        }
     }
 }
 
@@ -66,7 +73,7 @@ pub fn start(window: WebviewWindow) {
                 window.outer_position(),
                 window.outer_size(),
                 window.scale_factor(),
-                os::cursor_pos(),
+                os::cursor_pos().or_else(|| window.cursor_position().ok().map(|p| (p.x, p.y))),
             ) else {
                 continue;
             };
@@ -83,7 +90,11 @@ pub fn start(window: WebviewWindow) {
             let state = window.state::<PetState>();
             foreground.poll(&targets);
             let target = if everywhere { None } else { foreground.target() };
-            let shown = everywhere || target.is_some() || state.attention.load(Relaxed);
+            let shown = everywhere
+                || !os::supports_window_tracking()
+                || target.is_some()
+                || state.attention.load(Relaxed)
+                || state.working.load(Relaxed);
             let visible = shown && !state.hidden.load(Relaxed);
 
             // Title of the window in front: names the project, hence the session to show.
@@ -189,10 +200,13 @@ impl ForegroundTracker {
             return;
         }
         self.other = Some(hwnd);
+        let win_title = os::window_title(hwnd).to_lowercase();
         let is_target = os::process_name(pid).is_some_and(|path| {
-            let exe = path.rsplit(['\\', '/']).next().unwrap_or(&path).to_lowercase();
-            targets.iter().any(|t| !t.is_empty() && exe.contains(t.as_str()))
-        });
+            let path_lower = path.to_lowercase();
+            targets
+                .iter()
+                .any(|t| !t.is_empty() && (path_lower.contains(t.as_str()) || win_title.contains(t.as_str())))
+        }) || targets.iter().any(|t| !t.is_empty() && win_title.contains(t.as_str()));
         self.target = is_target.then_some(hwnd);
     }
 
@@ -224,6 +238,10 @@ mod os {
     pub fn cursor_pos() -> Option<(f64, f64)> {
         let mut p = POINT { x: 0, y: 0 };
         (unsafe { GetCursorPos(&mut p) } != 0).then(|| (p.x as f64, p.y as f64))
+    }
+
+    pub fn supports_window_tracking() -> bool {
+        true
     }
 
     pub fn left_button_down() -> bool {
@@ -275,7 +293,8 @@ mod os {
     }
 }
 
-/// Other platforms: no following yet, the frontend keeps the ghost visible.
+/// macOS & Linux: cursor position comes from Tauri's `window.cursor_position()`,
+/// and `/proc/<pid>/comm` is used on Linux when an X11 window PID is available.
 #[cfg(not(windows))]
 mod os {
     #[derive(Clone, Copy)]
@@ -286,11 +305,24 @@ mod os {
         pub bottom: f64,
     }
     pub fn cursor_pos() -> Option<(f64, f64)> { None }
+    pub fn supports_window_tracking() -> bool { false }
     pub fn left_button_down() -> bool { false }
     pub fn foreground_window() -> usize { 0 }
     pub fn window_pid(_: usize) -> u32 { 0 }
     pub fn is_minimized(_: usize) -> bool { false }
     pub fn window_rect(_: usize) -> Option<Rect> { None }
-    pub fn process_name(_: u32) -> Option<String> { None }
+    pub fn process_name(pid: u32) -> Option<String> {
+        #[cfg(target_os = "linux")]
+        {
+            return std::fs::read_to_string(format!("/proc/{pid}/comm"))
+                .ok()
+                .map(|s| s.trim().to_string());
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            let _ = pid;
+            None
+        }
+    }
     pub fn window_title(_: usize) -> String { String::new() }
 }
