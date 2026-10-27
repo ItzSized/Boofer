@@ -28,6 +28,8 @@ pub struct PetState {
     pub attention: AtomicBool,
     /// An AI agent is actively thinking or running tools: stay visible so the user sees live progress.
     pub working: AtomicBool,
+    /// The window in front is one of the editors: no need for a Windows notification.
+    pub editor_in_front: AtomicBool,
 }
 
 impl Default for PetState {
@@ -37,6 +39,7 @@ impl Default for PetState {
             hidden: AtomicBool::new(false),
             attention: AtomicBool::new(false),
             working: AtomicBool::new(false),
+            editor_in_front: AtomicBool::new(false),
         }
     }
 }
@@ -65,6 +68,8 @@ pub fn start(window: WebviewWindow) {
         let mut title = String::new();
         let mut settings_version = u64::MAX;
         let mut everywhere = false;
+        // "Me suit partout": sits on whatever window is in front, any app.
+        let mut follow_windows = false;
         let mut targets: Vec<String> = Vec::new();
 
         for frame in 0u64.. {
@@ -82,15 +87,18 @@ pub fn start(window: WebviewWindow) {
                 settings_version = config.version.load(Relaxed);
                 let current = config.current.lock().unwrap();
                 everywhere = current.everywhere();
+                follow_windows = current.follows_windows();
                 targets = current.target_apps.iter().map(|t| t.trim().to_lowercase()).collect();
                 foreground = ForegroundTracker::default();
                 placed_on = None;
             }
 
             let state = window.state::<PetState>();
-            foreground.poll(&targets);
+            foreground.poll(&targets, follow_windows);
+            state.editor_in_front.store(foreground.editor.is_some(), Relaxed);
             let target = if everywhere { None } else { foreground.target() };
             let shown = everywhere
+                || follow_windows
                 || !os::supports_window_tracking()
                 || target.is_some()
                 || state.attention.load(Relaxed)
@@ -185,11 +193,14 @@ pub fn start(window: WebviewWindow) {
 struct ForegroundTracker {
     hwnd: usize,
     other: Option<usize>,
+    /// Where the ghost sits: the editor in front, or (follow mode) any app window in front.
     target: Option<usize>,
+    /// The editor in front, if it is one.
+    editor: Option<usize>,
 }
 
 impl ForegroundTracker {
-    fn poll(&mut self, targets: &[String]) {
+    fn poll(&mut self, targets: &[String], any_window: bool) {
         let hwnd = os::foreground_window();
         if hwnd == self.hwnd {
             return;
@@ -207,13 +218,24 @@ impl ForegroundTracker {
                 .iter()
                 .any(|t| !t.is_empty() && (path_lower.contains(t.as_str()) || win_title.contains(t.as_str())))
         }) || targets.iter().any(|t| !t.is_empty() && win_title.contains(t.as_str()));
-        self.target = is_target.then_some(hwnd);
+        self.editor = is_target.then_some(hwnd);
+        if is_target || (any_window && os::is_app_window(hwnd)) {
+            self.target = Some(hwnd);
+        } else if !any_window {
+            self.target = None;
+        }
+        // Follow mode, desktop or taskbar in front: stay on the last window.
     }
 
     fn target(&self) -> Option<(usize, os::Rect)> {
         let hwnd = self.target.filter(|&h| !os::is_minimized(h))?;
         os::window_rect(hwnd).map(|r| (hwnd, r))
     }
+}
+
+/// Brings to the front the first app window whose title contains `needle`.
+pub fn focus_window_titled(needle: &str) -> bool {
+    os::focus_window_titled(&needle.to_lowercase())
 }
 
 #[cfg(windows)]
@@ -223,8 +245,11 @@ mod os {
         OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
     };
     use windows_sys::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON};
+    use windows_sys::core::BOOL;
+    use windows_sys::Win32::Foundation::LPARAM;
     use windows_sys::Win32::UI::WindowsAndMessaging::{
-        GetCursorPos, GetForegroundWindow, GetWindowRect, GetWindowTextW, GetWindowThreadProcessId, IsIconic,
+        EnumWindows, GetClassNameW, GetCursorPos, GetForegroundWindow, GetWindowRect, GetWindowTextW,
+        GetWindowThreadProcessId, IsIconic, IsWindowVisible, SetForegroundWindow, ShowWindow, SW_RESTORE,
     };
 
     #[derive(Clone, Copy)]
@@ -270,6 +295,57 @@ mod os {
             right: r.right as f64,
             bottom: r.bottom as f64,
         })
+    }
+
+    /// A real application window: visible, titled, not the desktop, taskbar or a start menu.
+    pub fn is_app_window(hwnd: usize) -> bool {
+        const SHELL: [&str; 7] = [
+            "Progman",
+            "WorkerW",
+            "Shell_TrayWnd",
+            "Shell_SecondaryTrayWnd",
+            "Windows.UI.Core.CoreWindow",
+            "NotifyIconOverflowWindow",
+            "XamlExplorerHostIslandWindow",
+        ];
+        let mut buf = [0u16; 128];
+        let len = unsafe { GetClassNameW(hwnd as HWND, buf.as_mut_ptr(), buf.len() as i32) };
+        let class = String::from_utf16_lossy(&buf[..len.max(0) as usize]);
+        hwnd != 0
+            && unsafe { IsWindowVisible(hwnd as HWND) } != 0
+            && !SHELL.contains(&class.as_str())
+            && !window_title(hwnd).is_empty()
+            && window_rect(hwnd).is_some_and(|r| r.right - r.left > 300.0 && r.bottom - r.top > 200.0)
+    }
+
+    pub fn focus_window_titled(needle: &str) -> bool {
+        struct Search<'a> {
+            needle: &'a str,
+            found: usize,
+        }
+        unsafe extern "system" fn visit(hwnd: HWND, data: LPARAM) -> BOOL {
+            let search = unsafe { &mut *(data as *mut Search) };
+            let h = hwnd as usize;
+            if window_pid(h) != std::process::id()
+                && is_app_window(h)
+                && window_title(h).to_lowercase().contains(search.needle)
+            {
+                search.found = h;
+                return 0; // stop
+            }
+            1
+        }
+        let mut search = Search { needle, found: 0 };
+        unsafe { EnumWindows(Some(visit), &mut search as *mut Search as LPARAM) };
+        if search.found == 0 {
+            return false;
+        }
+        unsafe {
+            if IsIconic(search.found as HWND) != 0 {
+                ShowWindow(search.found as HWND, SW_RESTORE);
+            }
+            SetForegroundWindow(search.found as HWND) != 0
+        }
     }
 
     pub fn window_title(hwnd: usize) -> String {
@@ -325,4 +401,6 @@ mod os {
         }
     }
     pub fn window_title(_: usize) -> String { String::new() }
+    pub fn is_app_window(_: usize) -> bool { false }
+    pub fn focus_window_titled(_: &str) -> bool { false }
 }

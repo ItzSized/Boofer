@@ -15,6 +15,7 @@ pub const BASE_WINDOW: (f64, f64) = (248.0, 440.0);
 #[serde(default, rename_all = "camelCase")]
 pub struct Settings {
     /// "editor": only on top of `target_apps` windows. "everywhere": always, anywhere on the desktop.
+    /// "follow": on top of whatever window is in front, and moves with you from app to app.
     pub display: String,
     /// Substrings of executable names, lowercase ("antigravity", "code", "cursor"…).
     pub target_apps: Vec<String>,
@@ -33,12 +34,14 @@ pub struct Settings {
     pub dnd: bool,
     /// Little lines in a speech bubble ("Coucou !", "Tadaa !").
     pub speech: bool,
+    /// Windows notification when a task ends while the editor isn't in front.
+    pub notifications: bool,
 }
 
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            display: "editor".into(),
+            display: "follow".into(),
             target_apps: vec!["antigravity".into(), "agy".into(), "code".into(), "cursor".into()],
             follow: false,
             sounds: true,
@@ -51,6 +54,7 @@ impl Default for Settings {
             theme: "auto".into(),
             dnd: false,
             speech: true,
+            notifications: true,
         }
     }
 }
@@ -58,6 +62,10 @@ impl Default for Settings {
 impl Settings {
     pub fn everywhere(&self) -> bool {
         self.display == "everywhere"
+    }
+
+    pub fn follows_windows(&self) -> bool {
+        self.display == "follow"
     }
 }
 
