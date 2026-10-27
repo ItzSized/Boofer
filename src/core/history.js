@@ -2,6 +2,8 @@
  * Finished tasks, kept in localStorage (shared by the ghost and settings windows,
  * which have the same origin). Only local conveniences: nothing else depends on it.
  */
+import { describeModel } from "./models.js";
+
 const KEY = "booffer.history";
 const MAX_ENTRIES = 200;
 
@@ -20,7 +22,7 @@ export function recordFinished(session) {
   const entry = {
     at: Date.now(),
     project: session.project || "",
-    agent: session.agent,
+    agent: d.model ? `${session.agent} · ${describeModel(d.model).name}` : session.agent,
     color: session.color,
     prompt: d.prompt || "",
     ms: d.startedAt ? Date.now() - d.startedAt : 0,

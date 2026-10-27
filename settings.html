@@ -1,161 +1,252 @@
 <!doctype html>
 <html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Réglages · Booffer</title>
-  </head>
-  <body class="min-h-screen bg-zinc-100 dark:bg-zinc-950 text-zinc-800 dark:text-zinc-100 antialiased select-none">
-    <main class="mx-auto max-w-lg space-y-4 p-5">
-      <header class="flex items-center gap-4 rounded-2xl bg-gradient-to-br from-violet-100 dark:from-violet-950 to-white dark:to-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
-        <div id="hero" data-state="idle" class="mascot hero shrink-0"></div>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Réglages · Booffer</title>
+</head>
+
+<body class="min-h-screen bg-zinc-100 dark:bg-zinc-950 text-zinc-800 dark:text-zinc-100 antialiased select-none">
+  <main class="mx-auto max-w-lg space-y-4 p-5">
+    <header
+      class="flex items-center gap-4 rounded-2xl bg-gradient-to-br from-violet-100 dark:from-violet-950 to-white dark:to-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
+      <div id="hero" data-state="idle" class="mascot hero shrink-0"></div>
+      <div>
+        <h1 class="text-lg font-bold">Réglages de Booffer</h1>
+        <p class="text-xs text-zinc-500 dark:text-zinc-400">Tout s'applique tout de suite, et reste enregistré.</p>
+      </div>
+    </header>
+
+    <nav class="flex gap-1 rounded-2xl bg-white p-1 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
+      <button data-page="settings" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold">⚙️ Réglages</button>
+      <button data-page="models" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold">📊 Modèles</button>
+    </nav>
+
+    <div id="page-settings" class="space-y-4">
+
+    <section id="appearance" class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
+      <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Apparence</h2>
+      <div class="flex items-center justify-between gap-4 pb-3">
+        <p class="text-sm font-medium">Thème</p>
+        <div class="flex gap-1.5">
+          <button data-theme-choice="auto"
+            class="segment rounded-lg px-3 py-1 text-xs ring-1 ring-black/10 dark:ring-white/15">🌗 Auto</button>
+          <button data-theme-choice="light"
+            class="segment rounded-lg px-3 py-1 text-xs ring-1 ring-black/10 dark:ring-white/15">☀️ Clair</button>
+          <button data-theme-choice="dark"
+            class="segment rounded-lg px-3 py-1 text-xs ring-1 ring-black/10 dark:ring-white/15">🌙 Sombre</button>
+        </div>
+      </div>
+      <div id="skins-block"></div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <h1 class="text-lg font-bold">Réglages de Booffer</h1>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Tout s'applique tout de suite, et reste enregistré.</p>
+          <p class="text-sm font-medium">Taille</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400" id="size-label"></p>
         </div>
-      </header>
+        <input id="size" type="range" min="0.7" max="1.4" step="0.1" class="w-40 accent-violet-500" />
+      </div>
+    </section>
 
-      <section id="appearance" class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
-        <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Apparence</h2>
-        <div class="flex items-center justify-between gap-4 pb-3">
-          <p class="text-sm font-medium">Thème</p>
-          <div class="flex gap-1.5">
-            <button data-theme-choice="auto" class="segment rounded-lg px-3 py-1 text-xs ring-1 ring-black/10 dark:ring-white/15">🌗 Auto</button>
-            <button data-theme-choice="light" class="segment rounded-lg px-3 py-1 text-xs ring-1 ring-black/10 dark:ring-white/15">☀️ Clair</button>
-            <button data-theme-choice="dark" class="segment rounded-lg px-3 py-1 text-xs ring-1 ring-black/10 dark:ring-white/15">🌙 Sombre</button>
+    <section class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
+      <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Où vit Booffer</h2>
+      <div class="grid grid-cols-2 gap-2">
+        <button data-display="editor"
+          class="display-card rounded-xl p-3 text-left ring-1 ring-black/10 dark:ring-white/15">
+          <p class="text-sm font-semibold">💻 Sur mon éditeur</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Visible seulement quand l'éditeur est au premier plan.</p>
+        </button>
+        <button data-display="everywhere"
+          class="display-card rounded-xl p-3 text-left ring-1 ring-black/10 dark:ring-white/15">
+          <p class="text-sm font-semibold">🖥️ Partout</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Toujours sur le bureau, où tu le poses.</p>
+        </button>
+      </div>
+      <div id="editors-block" class="mt-3">
+        <p class="mb-1.5 text-xs text-zinc-500 dark:text-zinc-400">Éditeurs :</p>
+        <div id="editors" class="flex flex-wrap gap-1.5"></div>
+        <input id="custom-editor" placeholder="Autre : nom de l'exécutable (ex. zed), puis Entrée"
+          class="mt-2 w-full rounded-lg bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 text-xs outline-none ring-violet-400 focus:ring-2" />
+      </div>
+    </section>
+
+    <section
+      class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
+      <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Comportement</h2>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">Lancer au démarrage de Windows</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400" id="autostart-text">Booffer s'ouvre tout seul quand tu
+            allumes le PC.</p>
+        </div>
+        <label class="toggle"><input id="autostart" type="checkbox" /><span></span></label>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">Suivre la souris</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Il glisse vers ton curseur quand tu t'éloignes.</p>
+        </div>
+        <label class="toggle"><input id="follow" type="checkbox" /><span></span></label>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">S'endort après</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Sans mouvement de souris, quand aucun agent ne travaille.
+          </p>
+        </div>
+        <select id="sleep" class="rounded-lg bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-sm outline-none"></select>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">💬 Petites phrases</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">« Coucou ! », « Tadaa ! », « Psst… il a besoin de toi ».
+          </p>
+        </div>
+        <label class="toggle"><input id="speech-toggle" type="checkbox" /><span></span></label>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">🌙 Ne pas déranger</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Pas de sons ni de cartes : Claude Code te demande
+            lui-même.</p>
+        </div>
+        <label class="toggle"><input id="dnd-toggle" type="checkbox" /><span></span></label>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">Sons</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Ping de fin, demande d'attention, caresses.</p>
+        </div>
+        <label class="toggle"><input id="sounds" type="checkbox" /><span></span></label>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <p class="text-sm font-medium">Volume</p>
+        <div class="flex items-center gap-2">
+          <input id="volume" type="range" min="0" max="1" step="0.05" class="w-32 accent-violet-500" />
+          <button id="test-sound"
+            class="rounded-lg bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-xs hover:bg-zinc-200 dark:hover:bg-zinc-700">▶
+            Tester</button>
+        </div>
+      </div>
+    </section>
+
+    <section
+      class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
+      <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Agents IA (Antigravity &amp; Claude
+        Code)</h2>
+      <div class="py-2.5">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-sm font-medium text-blue-600 dark:text-blue-400">✓ Antigravity est connecté automatiquement
+            </p>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">
+              Suit tes sessions en direct depuis <code
+                class="rounded bg-zinc-100 dark:bg-zinc-800 px-1">~/.gemini/antigravity</code>.
+            </p>
+          </div>
+          <span
+            class="shrink-0 rounded-full bg-blue-50 dark:bg-blue-950/70 px-2.5 py-1 text-[11px] font-semibold text-blue-600 dark:text-blue-300">Actif</span>
+        </div>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">Approuver depuis Booffer (Claude Code)</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Autoriser / Refuser les demandes de permission depuis la
+            carte.</p>
+        </div>
+        <label class="toggle"><input id="approvals" type="checkbox" /><span></span></label>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium" id="hooks-title"></p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400" id="hooks-text"></p>
+        </div>
+        <button id="install-hooks"
+          class="shrink-0 rounded-lg bg-violet-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-600">
+          Connecter
+        </button>
+      </div>
+    </section>
+
+    <section class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
+      <div class="mb-2 flex items-center justify-between">
+        <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Aujourd'hui</h2>
+        <button id="clear-history" class="text-[11px] text-zinc-400 hover:text-rose-500">Effacer l'historique</button>
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="rounded-xl bg-violet-50 py-2 dark:bg-violet-950/50">
+          <p id="stat-tasks" class="text-xl font-bold text-violet-600 dark:text-violet-300">0</p>
+          <p class="text-[11px] text-zinc-500 dark:text-zinc-400">tâches finies</p>
+        </div>
+        <div class="rounded-xl bg-emerald-50 py-2 dark:bg-emerald-950/50">
+          <p id="stat-time" class="text-xl font-bold text-emerald-600 dark:text-emerald-300">0 s</p>
+          <p class="text-[11px] text-zinc-500 dark:text-zinc-400">de travail des agents</p>
+        </div>
+        <div class="rounded-xl bg-amber-50 py-2 dark:bg-amber-950/50">
+          <p id="stat-files" class="text-xl font-bold text-amber-600 dark:text-amber-300">0</p>
+          <p class="text-[11px] text-zinc-500 dark:text-zinc-400">fichiers modifiés</p>
+        </div>
+      </div>
+      <p class="mt-3 mb-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">Dernières tâches</p>
+      <ul id="history" class="divide-y divide-zinc-100 dark:divide-zinc-800"></ul>
+    </section>
+
+    </div>
+
+    <div id="page-models" class="hidden space-y-4">
+      <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-sm font-bold">Quelles IA tu utilises</h2>
+          <div class="flex gap-1">
+            <button data-range="today" class="segment rounded-lg px-2 py-0.5 text-[11px] ring-1 ring-black/10 dark:ring-white/15">Aujourd'hui</button>
+            <button data-range="7d" class="segment rounded-lg px-2 py-0.5 text-[11px] ring-1 ring-black/10 dark:ring-white/15">7 jours</button>
+            <button data-range="30d" class="segment rounded-lg px-2 py-0.5 text-[11px] ring-1 ring-black/10 dark:ring-white/15">30 jours</button>
+            <button data-range="all" class="segment rounded-lg px-2 py-0.5 text-[11px] ring-1 ring-black/10 dark:ring-white/15">Tout</button>
           </div>
         </div>
-        <div id="skins-block"></div>
-        <div class="flex items-center justify-between gap-4 py-2.5">
-          <div>
-            <p class="text-sm font-medium">Taille</p>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400" id="size-label"></p>
+        <div id="usage-loading" class="flex items-center gap-2 py-6 text-xs text-zinc-500 dark:text-zinc-400">
+          <span class="spinner"></span> Lecture de tes historiques (Claude Code, Antigravity, Codex)…
+        </div>
+        <div id="usage-body" class="hidden">
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="rounded-xl bg-zinc-50 py-2 dark:bg-zinc-800/60">
+              <p id="usage-calls" class="text-lg font-bold tabular-nums">0</p>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400">réponses d'IA</p>
+            </div>
+            <div class="rounded-xl bg-zinc-50 py-2 dark:bg-zinc-800/60">
+              <p id="usage-models-count" class="text-lg font-bold tabular-nums">0</p>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400">modèles utilisés</p>
+            </div>
+            <div class="rounded-xl bg-zinc-50 py-2 dark:bg-zinc-800/60">
+              <p id="usage-tokens" class="text-lg font-bold tabular-nums">0</p>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400">tokens (lus + écrits)</p>
+            </div>
           </div>
-          <input id="size" type="range" min="0.7" max="1.4" step="0.1" class="w-40 accent-violet-500" />
+          <p class="mt-4 mb-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">Répartition des réponses</p>
+          <div id="usage-share" class="flex h-3 gap-0.5 overflow-hidden rounded-full"></div>
+          <div id="usage-legend" class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs"></div>
         </div>
       </section>
 
-      <section class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
-        <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Où vit Booffer</h2>
-        <div class="grid grid-cols-2 gap-2">
-          <button data-display="editor" class="display-card rounded-xl p-3 text-left ring-1 ring-black/10 dark:ring-white/15">
-            <p class="text-sm font-semibold">💻 Sur mon éditeur</p>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400">Visible seulement quand l'éditeur est au premier plan.</p>
-          </button>
-          <button data-display="everywhere" class="display-card rounded-xl p-3 text-left ring-1 ring-black/10 dark:ring-white/15">
-            <p class="text-sm font-semibold">🖥️ Partout</p>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400">Toujours sur le bureau, où tu le poses.</p>
-          </button>
-        </div>
-        <div id="editors-block" class="mt-3">
-          <p class="mb-1.5 text-xs text-zinc-500 dark:text-zinc-400">Éditeurs :</p>
-          <div id="editors" class="flex flex-wrap gap-1.5"></div>
-          <input
-            id="custom-editor"
-            placeholder="Autre : nom de l'exécutable (ex. zed), puis Entrée"
-            class="mt-2 w-full rounded-lg bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 text-xs outline-none ring-violet-400 focus:ring-2"
-          />
-        </div>
+      <section id="usage-limits-block" class="hidden rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
+        <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Limites de ton abonnement</h2>
+        <div id="usage-limits" class="space-y-2.5"></div>
       </section>
 
-      <section class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
-        <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Comportement</h2>
-        <div class="flex items-center justify-between gap-4 py-2.5">
-          <div>
-            <p class="text-sm font-medium">Lancer au démarrage de Windows</p>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400" id="autostart-text">Booffer s'ouvre tout seul quand tu allumes le PC.</p>
-          </div>
-          <label class="toggle"><input id="autostart" type="checkbox" /><span></span></label>
-        </div>
-        <div class="flex items-center justify-between gap-4 py-2.5">
-          <div>
-            <p class="text-sm font-medium">Suivre la souris</p>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400">Il glisse vers ton curseur quand tu t'éloignes.</p>
-          </div>
-          <label class="toggle"><input id="follow" type="checkbox" /><span></span></label>
-        </div>
-        <div class="flex items-center justify-between gap-4 py-2.5">
-          <div>
-            <p class="text-sm font-medium">S'endort après</p>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400">Sans mouvement de souris, quand aucun agent ne travaille.</p>
-          </div>
-          <select id="sleep" class="rounded-lg bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-sm outline-none"></select>
-        </div>
-        <div class="flex items-center justify-between gap-4 py-2.5">
-          <div>
-            <p class="text-sm font-medium">💬 Petites phrases</p>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400">« Coucou ! », « Tadaa ! », « Psst… il a besoin de toi ».</p>
-          </div>
-          <label class="toggle"><input id="speech-toggle" type="checkbox" /><span></span></label>
-        </div>
-        <div class="flex items-center justify-between gap-4 py-2.5">
-          <div>
-            <p class="text-sm font-medium">🌙 Ne pas déranger</p>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400">Pas de sons ni de cartes : Claude Code te demande lui-même.</p>
-          </div>
-          <label class="toggle"><input id="dnd-toggle" type="checkbox" /><span></span></label>
-        </div>
-        <div class="flex items-center justify-between gap-4 py-2.5">
-          <div>
-            <p class="text-sm font-medium">Sons</p>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400">Ping de fin, demande d'attention, caresses.</p>
-          </div>
-          <label class="toggle"><input id="sounds" type="checkbox" /><span></span></label>
-        </div>
-        <div class="flex items-center justify-between gap-4 py-2.5">
-          <p class="text-sm font-medium">Volume</p>
-          <div class="flex items-center gap-2">
-            <input id="volume" type="range" min="0" max="1" step="0.05" class="w-32 accent-violet-500" />
-            <button id="test-sound" class="rounded-lg bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-xs hover:bg-zinc-200 dark:hover:bg-zinc-700">▶ Tester</button>
-          </div>
-        </div>
+      <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
+        <h2 class="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">Par modèle</h2>
+        <ul id="usage-models" class="divide-y divide-zinc-100 dark:divide-zinc-800"></ul>
       </section>
 
-      <section class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
-        <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Claude Code</h2>
-        <div class="flex items-center justify-between gap-4 py-2.5">
-          <div>
-            <p class="text-sm font-medium">Approuver depuis Booffer</p>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400">Autoriser / Refuser les demandes de permission depuis la carte.</p>
-          </div>
-          <label class="toggle"><input id="approvals" type="checkbox" /><span></span></label>
-        </div>
-        <div class="flex items-center justify-between gap-4 py-2.5">
-          <div>
-            <p class="text-sm font-medium" id="hooks-title"></p>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400" id="hooks-text"></p>
-          </div>
-          <button id="install-hooks" class="shrink-0 rounded-lg bg-violet-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-600">
-            Connecter
-          </button>
-        </div>
-      </section>
+      <p class="px-2 text-center text-[11px] leading-relaxed text-zinc-400">
+        Lu directement dans les fichiers de tes outils, rien ne quitte ton PC.<br />
+        Une « réponse » = un message de l'IA. Les tokens d'Antigravity sont approximatifs.
+      </p>
+    </div>
 
-      <section class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
-        <div class="mb-2 flex items-center justify-between">
-          <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Aujourd'hui</h2>
-          <button id="clear-history" class="text-[11px] text-zinc-400 hover:text-rose-500">Effacer l'historique</button>
-        </div>
-        <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="rounded-xl bg-violet-50 py-2 dark:bg-violet-950/50">
-            <p id="stat-tasks" class="text-xl font-bold text-violet-600 dark:text-violet-300">0</p>
-            <p class="text-[11px] text-zinc-500 dark:text-zinc-400">tâches finies</p>
-          </div>
-          <div class="rounded-xl bg-emerald-50 py-2 dark:bg-emerald-950/50">
-            <p id="stat-time" class="text-xl font-bold text-emerald-600 dark:text-emerald-300">0 s</p>
-            <p class="text-[11px] text-zinc-500 dark:text-zinc-400">de travail des agents</p>
-          </div>
-          <div class="rounded-xl bg-amber-50 py-2 dark:bg-amber-950/50">
-            <p id="stat-files" class="text-xl font-bold text-amber-600 dark:text-amber-300">0</p>
-            <p class="text-[11px] text-zinc-500 dark:text-zinc-400">fichiers modifiés</p>
-          </div>
-        </div>
-        <p class="mt-3 mb-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">Dernières tâches</p>
-        <ul id="history" class="divide-y divide-zinc-100 dark:divide-zinc-800"></ul>
-      </section>
+    <footer class="pb-2 text-center text-[11px] text-zinc-400">Booffer 0.1.0 · github.com/ItzSized/Boofer</footer>
+  </main>
+  <script type="module" src="/src/settings.js"></script>
+</body>
 
-      <footer class="pb-2 text-center text-[11px] text-zinc-400">Booffer 0.1.0 · github.com/ItzSized/Boofer</footer>
-    </main>
-    <script type="module" src="/src/settings.js"></script>
-  </body>
 </html>
