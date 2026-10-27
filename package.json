@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "tauri": "tauri",
-    "demo:api": "node examples/claude-api-demo.mjs"
+    "demo:api": "node examples/claude-api-demo.mjs",
+    "site:dev": "vite --config website/vite.config.js",
+    "site:build": "vite build --config website/vite.config.js",
+    "site:preview": "vite preview --config website/vite.config.js --port 4173"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.4"
