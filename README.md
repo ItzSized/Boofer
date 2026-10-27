@@ -18,7 +18,8 @@ Un petit fantôme qui vit sur ton écran pendant que tes agents IA codent. Il te
 - **Petites phrases** : « Coucou ! », « Tadaa ! ✨ », « Psst… il a besoin de toi », et des réactions quand tu le caresses ou le réveilles.
 - **Usage des modèles** (barre système → « Usage des modèles… », ou clic sur la petite carte sous le fantôme) : quelles IA tu utilises vraiment (Claude Opus 5.5, Gemini 3.1 Pro, Gemini 4 Argon, GPT-6…), leur part, leur activité sur 14 jours et les limites de ton abonnement Codex. Seuls les modèles trouvés sur ton PC apparaissent, et tout est lu localement.
 - **Compactage et contexte** : une jauge « 🧠 Contexte 64 % » prévient avant que Claude Code compacte, et pendant un compactage le fantôme se serre comme un accordéon avec un % et le temps restant (d'après la durée de tes compactages précédents).
-- **Me suit partout** : il se pose sur la fenêtre où tu es, quelle que soit l'appli, et te suit d'une fenêtre à l'autre (ou reste sur ton éditeur, ou sur le bureau : au choix dans les réglages).
+- **Suis-moi** (clic droit, barre système ou réglages) : il saute sur la fenêtre où tu es, quelle que soit l'appli. Coupé, il reste sur ton éditeur ou là où tu l'as posé sur le bureau.
+- **Économiser des tokens** (Réglages → ✂️ Tokens) : compacter Claude Code plus tôt (contexte plus petit, chaque message coûte moins), réponses courtes, et un compresseur de prompt en « langage IA » (local et gratuit, ou reformulé par Claude Haiku). Raccourci : copie un prompt puis Ctrl+Alt+P.
 - **Clic sur la bulle** : ramène au premier plan la fenêtre du projet en cours.
 - **Notifications Windows** quand une tâche finit et que tu n'es pas sur ton éditeur, et une alerte quand une limite d'abonnement dépasse 80 %.
 - **Raccourcis** : Ctrl+Alt+B pour l'afficher ou le cacher, Ctrl+Alt+M pour l'usage des modèles.

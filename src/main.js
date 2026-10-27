@@ -6,6 +6,7 @@ import { loadHistory, recordFinished, todayStats } from "./core/history.js";
 import { gainXp, levelFor, loadXp } from "./core/level.js";
 import { describeModel, localDay, summarize } from "./core/models.js";
 import { duration, isNewer } from "./core/format.js";
+import { compressWithStats } from "./core/compress.js";
 import { State } from "./core/states.js";
 import { setTheme } from "./core/theme.js";
 import { Tracker } from "./core/tracker.js";
@@ -256,10 +257,10 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   const quit = () => (isTauri ? invoke("quit") : window.close());
 
   // Settings live in Rust (settings.json); every window gets "settings-changed".
-  let settings = { follow: false, sleepAfter: 45, size: 1, sounds: true, volume: 0.8, skin: "classique", accessory: "aucun", theme: "auto", dnd: false, speech: true };
+  let settings = { follow: false, glide: false, sleepAfter: 45, size: 1, sounds: true, volume: 0.8, skin: "classique", accessory: "aucun", theme: "auto", dnd: false, speech: true };
 
   function applySettings(next) {
-    if (settingsLoaded && settings.display !== "follow" && next.display === "follow") speech.say("follow");
+    if (settingsLoaded && !settings.follow && next.follow) speech.say("follow");
     settingsLoaded = true;
     settings = next;
     configureSound({ sounds: settings.sounds && !settings.dnd, volume: settings.volume });
@@ -352,18 +353,32 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   }
   setTimeout(checkUpdate, 20_000);
 
+  // Booffer can't type in Claude Code: it copies /compact and brings its window up.
+  async function compactNow() {
+    const project = selectedSession()?.project;
+    await invoke("write_clipboard", { text: "/compact" });
+    const focused = project ? await invoke("focus_project", { project }) : false;
+    speech.tell(focused ? "📋 /compact copié : colle-le (Ctrl+V) puis Entrée" : "📋 /compact copié : colle-le dans Claude Code", 6000);
+  }
+
   const menu = createMenu(document.getElementById("menu"), [
     { label: "✨ Tester l'animation", action: () => runDemo("Booffer", 0, "antigravity", "Gemini 3.1 Pro") },
     { label: "👻 Tester 2 sessions", action: () => (runDemo("site-web", 0, "antigravity", "Gemini 3.1 Pro"), runDemo("api", 2500, "claude-api")) },
     { label: "🧹 Tester un compactage", action: () => runCompactDemo() },
     { label: "📅 Ma journée", action: () => daySummary() },
+    ...(isTauri
+      ? [
+        { label: "🧹 Compacter maintenant", action: () => compactNow() },
+        { label: "✂️ Économiser des tokens", action: () => invoke("open_settings", { page: "tokens" }) },
+      ]
+      : []),
     { label: "🔐 Tester une demande", action: () => card.add(TEST_REQUEST()) },
     ...(isTauri
       ? [
         { label: "⚙️ Réglages", action: () => invoke("open_settings") },
         { label: "📊 Usage des modèles", action: () => invoke("open_settings", { page: "models" }) },
         {
-          label: () => (settings.follow ? "🐾 Arrête de me suivre" : "🐾 Suis-moi !"),
+          label: () => (settings.follow ? "🐾 Reste ici" : "🐾 Suis-moi (de fenêtre en fenêtre)"),
           action: () => invoke("set_follow", { enabled: !settings.follow }),
         },
         {
@@ -402,6 +417,12 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     listen("permission-request", ({ payload }) => card.add(payload));
     listen("permission-expired", ({ payload }) => card.expire(payload));
     listen("settings-changed", ({ payload }) => applySettings(payload));
+    // Ctrl+Alt+P: the prompt in the clipboard comes back compressed.
+    listen("compress-clipboard", async ({ payload }) => {
+      const r = compressWithStats(payload);
+      await invoke("write_clipboard", { text: r.text });
+      speech.tell(`✂️ Prompt compressé : −${Math.round(r.saved * 100)} % (${r.before} → ${r.after} tokens). Colle-le !`, 5000);
+    });
     invoke("get_settings").then((loaded) => {
       applySettings(loaded);
       setTimeout(() => speech.say("hello"), 900);

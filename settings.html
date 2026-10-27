@@ -31,6 +31,7 @@
     <nav class="flex gap-1 rounded-2xl bg-white p-1 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
       <button data-page="settings" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold">⚙️ Réglages</button>
       <button data-page="models" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold">📊 Modèles</button>
+      <button data-page="tokens" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold">✂️ Tokens</button>
     </nav>
 
     <div id="page-settings" class="space-y-4">
@@ -60,12 +61,7 @@
 
     <section class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
       <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Où vit Booffer</h2>
-      <div class="grid grid-cols-3 gap-2">
-        <button data-display="follow"
-          class="display-card rounded-xl p-3 text-left ring-1 ring-black/10 dark:ring-white/15">
-          <p class="text-sm font-semibold">🐾 Me suit partout</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Se pose sur la fenêtre où tu es, quelle que soit l'appli.</p>
-        </button>
+      <div class="grid grid-cols-2 gap-2">
         <button data-display="editor"
           class="display-card rounded-xl p-3 text-left ring-1 ring-black/10 dark:ring-white/15">
           <p class="text-sm font-semibold">💻 Sur mon éditeur</p>
@@ -98,10 +94,17 @@
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">Suivre la souris</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Il glisse vers ton curseur quand tu t'éloignes.</p>
+          <p class="text-sm font-medium">🐾 Suis-moi</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Il saute sur la fenêtre où tu es, quelle que soit l'appli. Sinon il reste où tu le poses.</p>
         </div>
         <label class="toggle"><input id="follow" type="checkbox" /><span></span></label>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">Glisser vers la souris</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Il glisse vers ton curseur quand tu t'éloignes.</p>
+        </div>
+        <label class="toggle"><input id="glide" type="checkbox" /><span></span></label>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
@@ -271,6 +274,58 @@
         Lu directement dans les fichiers de tes outils, rien ne quitte ton PC.<br />
         Une « réponse » = un message de l'IA. Les tokens d'Antigravity sont approximatifs.
       </p>
+    </div>
+
+    <div id="page-tokens" class="hidden space-y-4">
+      <section class="divide-y divide-zinc-100 rounded-2xl bg-white px-4 py-2 ring-1 ring-black/5 dark:divide-zinc-800 dark:bg-zinc-900 dark:ring-white/10">
+        <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Économiser des tokens avec Claude Code</h2>
+        <div class="py-3">
+          <p class="text-sm font-medium">🧹 Compacter plus tôt</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">
+            À chaque message, Claude relit tout le contexte de la session : c'est là que partent presque tous tes tokens.
+            En gardant le contexte plus petit, chaque message coûte moins. Il oublie juste plus vite les détails anciens.
+          </p>
+          <div class="mt-2 flex items-center gap-1.5">
+            <span class="text-xs text-zinc-500 dark:text-zinc-400">Compacter vers :</span>
+            <div id="compact-windows" class="flex gap-1"></div>
+          </div>
+          <p id="compact-note" class="mt-1 text-[11px] text-zinc-400">« Normal » = quand le contexte est plein (jusqu'à 1 M de tokens pour Opus 5.5).</p>
+        </div>
+        <div class="flex items-center justify-between gap-4 py-3">
+          <div>
+            <p class="text-sm font-medium">✍️ Réponses courtes</p>
+            <p id="concise-note" class="text-xs text-zinc-500 dark:text-zinc-400">
+              Demande à Claude d'aller droit au but : pas de récap, pas de code recopié pour rien.
+              Ajoute 4 lignes à <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">~/.claude/CLAUDE.md</code>, retirées si tu décoches.
+            </p>
+          </div>
+          <label class="toggle"><input id="concise" type="checkbox" /><span></span></label>
+        </div>
+      </section>
+
+      <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
+        <h2 class="text-sm font-bold">✂️ Compresser un prompt</h2>
+        <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+          Écris ta demande normalement : Booffer la réécrit en « langage IA » (télégraphique, sans politesse ni mots inutiles).
+          Pas joli pour un humain, mais l'IA comprend pareil.
+        </p>
+        <textarea id="prompt-in" rows="4" placeholder="Ex. : Salut ! Est-ce que tu peux stp corriger le bug du fichier pet.rs et ensuite lancer les tests ?"
+          class="mt-2 w-full resize-y rounded-lg bg-zinc-100 px-3 py-2 text-xs outline-none ring-violet-400 focus:ring-2 dark:bg-zinc-800"></textarea>
+        <div class="mt-1 flex items-center justify-between gap-2">
+          <span id="prompt-stats" class="text-xs font-semibold tabular-nums text-violet-600 dark:text-violet-300"></span>
+          <button id="prompt-ai" class="hidden rounded-lg bg-zinc-100 px-2.5 py-1 text-xs hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700">✨ Reformuler avec Haiku</button>
+        </div>
+        <textarea id="prompt-out" rows="3" readonly placeholder="Version compressée"
+          class="mt-1 w-full resize-y rounded-lg bg-violet-50 px-3 py-2 font-mono text-xs outline-none dark:bg-violet-950/40"></textarea>
+        <div class="mt-1 flex items-center justify-between gap-2">
+          <p class="text-[11px] text-zinc-400">Astuce : copie un prompt puis <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd>, il est compressé dans le presse-papier.</p>
+          <button id="prompt-copy" disabled class="shrink-0 rounded-lg bg-violet-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-600 disabled:opacity-40">📋 Copier</button>
+        </div>
+        <p class="mt-2 text-[11px] leading-relaxed text-zinc-400">
+          Compression locale : gratuite et instantanée. Haiku : plus malin (peut passer en anglais, plus court), mais lancé avec ton compte Claude Code, donc ça coûte un tout petit peu.
+          Ton prompt ne pèse que quelques dizaines de tokens à côté du contexte : les deux options du haut économisent bien plus.
+        </p>
+      </section>
     </div>
 
     <footer class="pb-2 text-center text-[11px] text-zinc-400">
