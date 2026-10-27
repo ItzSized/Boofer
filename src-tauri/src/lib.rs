@@ -32,14 +32,18 @@ pub(crate) struct RawAgentEvent {
     pub(crate) payload: serde_json::Value,
 }
 
-/// When this executable was built (its modification time, in seconds).
+/// When this executable was built (its modification time, in seconds). Read once at
+/// launch: the file may be replaced while we run, and then it would describe the new one.
 fn build_stamp() -> u64 {
-    std::env::current_exe()
-        .and_then(std::fs::metadata)
-        .and_then(|m| m.modified())
-        .ok()
-        .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
-        .map_or(0, |d| d.as_secs())
+    static STAMP: std::sync::OnceLock<u64> = std::sync::OnceLock::new();
+    *STAMP.get_or_init(|| {
+        std::env::current_exe()
+            .and_then(std::fs::metadata)
+            .and_then(|m| m.modified())
+            .ok()
+            .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+            .map_or(0, |d| d.as_secs())
+    })
 }
 
 /// Ensures only one instance of Booffer can run at a time.
