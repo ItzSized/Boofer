@@ -1,0 +1,64 @@
+@import "tailwindcss";
+@import "../../src/style.css";
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+html[data-mode="website"] {
+  scroll-behavior: smooth;
+  background-color: #09090b;
+  color: #f4f4f5;
+}
+
+html[data-mode="website"][data-theme="light"],
+html[data-mode="website"][data-theme="light"] body {
+  background-color: #fafafa;
+  color: #18181b;
+}
+
+html[data-mode="website"][data-theme="dark"],
+html[data-mode="website"][data-theme="dark"] body {
+  background-color: #09090b;
+  color: #f4f4f5;
+}
+
+html[data-mode="website"] body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Subtle tech grid background */
+.bg-grid {
+  background-size: 40px 40px;
+  background-image:
+    linear-gradient(to right, rgb(161 161 170 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(161 161 170 / 0.06) 1px, transparent 1px);
+}
+
+/* Mascot sizes for website sections */
+.mascot.site-hero {
+  width: 128px;
+  filter: drop-shadow(0 12px 24px rgb(99 102 241 / 0.35));
+}
+
+.mascot.site-logo {
+  width: 36px;
+  filter: drop-shadow(0 2px 6px rgb(139 92 246 / 0.35));
+}
+
+.mascot.site-customizer {
+  width: 152px;
+  filter: drop-shadow(0 14px 28px rgb(139 92 246 / 0.4));
+}
+
+.mascot.site-mini {
+  width: 52px;
+  filter: none;
+}
+
+/* Custom active pill styles */
+.pill-active {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgb(124 58 237 / 0.35);
+}
