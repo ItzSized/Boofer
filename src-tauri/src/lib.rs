@@ -214,12 +214,6 @@ fn set_attention(app: AppHandle, active: bool) {
     app.state::<PetState>().attention.store(active, Relaxed);
 }
 
-/// Keeps the ghost visible while an AI session is actively thinking or running tools.
-#[tauri::command]
-fn set_working(app: AppHandle, active: bool) {
-    app.state::<PetState>().working.store(active, Relaxed);
-}
-
 /// Windows notification for a finished task, unless the user is already looking
 /// at their editor (the ghost told them) or asked not to be disturbed.
 #[tauri::command]
@@ -373,7 +367,6 @@ pub fn run() {
             set_follow,
             set_hidden,
             set_attention,
-            set_working,
             notify,
             focus_project,
             tokens::get_token_savers,
