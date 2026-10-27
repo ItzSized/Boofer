@@ -5,6 +5,7 @@ import { duration } from "./core/format.js";
 import { clearHistory, loadHistory, todayStats } from "./core/history.js";
 import { setTheme } from "./core/theme.js";
 import { createMascot } from "./ui/mascot.js";
+import { createUsageView } from "./ui/usage-view.js";
 import "./style.css";
 import "./settings.css";
 
@@ -48,8 +49,34 @@ const DEV_SETTINGS = {
   display: "editor", targetApps: ["antigravity"], follow: false, sounds: true, volume: 0.8,
   size: 1, skin: "classique", accessory: "aucun", sleepAfter: 45, approvals: true, theme: "auto", dnd: false, speech: true,
 };
-const DEV_ANSWERS = { get_settings: () => ({ ...DEV_SETTINGS }), claude_hooks_installed: () => false, get_autostart: () => false };
-const call = isTauri ? invoke : async (cmd) => DEV_ANSWERS[cmd]?.();
+const todayIso = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+const DEV_ANSWERS = {
+  get_settings: () => ({ ...DEV_SETTINGS }),
+  claude_hooks_status: () => "outdated",
+  get_autostart: () => false,
+  model_usage: () => new Promise((resolve) => setTimeout(() => resolve(DEV_USAGE()), 600)),
+};
+function DEV_USAGE() {
+  const day = (ago) => new Date(Date.now() - ago * 86_400_000 - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+  const rows = [];
+  const add = (tool, model, ago, calls, input, output) => rows.push({ tool, model, day: day(ago), calls, input, output });
+  for (let i = 0; i < 14; i++) {
+    add("Claude Code", "claude-opus-5-5", i, 120 + ((i * 37) % 90), 40_000_000, 160_000);
+    if (i % 3 !== 1) add("Antigravity", "Gemini 3.1 Pro", i, 200 + ((i * 53) % 140), 11_000_000, 1_400_000);
+    if (i < 5) add("Antigravity", "Gemini 4 Argon (f3.8)", i, 30 + i * 4, 4_000_000, 30_000);
+    if (i % 4 === 0) add("Codex", "gpt-6-astra", i, 25, 3_000_000, 9_000);
+  }
+  add("Antigravity", "gemini-3.8-flash-n", 2, 76, 7_800_000, 400_000);
+  add("Claude Code", "claude-fable-5-1", 0, 18, 900_000, 12_000);
+  return {
+    rows,
+    limits: [
+      { tool: "Codex", windowMinutes: 300, usedPercent: 99, resetsAt: Date.now() + 2.2 * 3_600_000, seenAt: Date.now() - 600_000 },
+      { tool: "Codex", windowMinutes: 10080, usedPercent: 24, resetsAt: Date.now() + 5.5 * 86_400_000, seenAt: Date.now() - 600_000 },
+    ],
+  };
+}
+const call = isTauri ? invoke : async (cmd, args) => DEV_ANSWERS[cmd]?.(args);
 
 const $ = (id) => document.getElementById(id);
 const hero = $("hero");
@@ -183,12 +210,17 @@ function renderHistory() {
 }
 
 async function refreshHooks() {
-  const installed = await call("claude_hooks_installed");
-  $("hooks-title").textContent = installed ? "✓ Claude Code est connecté" : "Claude Code n'est pas connecté";
-  $("hooks-text").textContent = installed
-    ? "Les hooks sont dans ~/.claude/settings.json."
-    : "Ajoute les hooks de Booffer à ~/.claude/settings.json (tes réglages sont gardés, une copie de sauvegarde est faite).";
-  $("install-hooks").classList.toggle("hidden", installed);
+  const status = await call("claude_hooks_status");
+  const texts = {
+    ok: ["✓ Claude Code est connecté", "Les hooks sont dans ~/.claude/settings.json (statut, demandes, compactage)."],
+    outdated: ["Claude Code : mise à jour dispo", "Ajoute les nouveaux hooks (ex. voir quand le contexte se compacte)."],
+    missing: ["Claude Code n'est pas connecté", "Ajoute les hooks de Booffer à ~/.claude/settings.json (tes réglages sont gardés, une copie de sauvegarde est faite)."],
+  };
+  const [title, text] = texts[status] ?? texts.missing;
+  $("hooks-title").textContent = title;
+  $("hooks-text").textContent = text;
+  $("install-hooks").textContent = status === "outdated" ? "Mettre à jour" : "Connecter";
+  $("install-hooks").classList.toggle("hidden", status === "ok");
 }
 
 $("sleep").replaceChildren(
@@ -230,8 +262,27 @@ $("clear-history").addEventListener("click", () => {
 });
 // The ghost window writes the history: refresh when it changes or when we come back.
 window.addEventListener("storage", renderHistory);
-window.addEventListener("focus", renderHistory);
-setInterval(renderHistory, 30_000);
+window.addEventListener("focus", () => {
+  renderHistory();
+  if (page === "models") usage.refresh();
+});
+setInterval(() => {
+  renderHistory();
+  if (page === "models") usage.refresh();
+}, 30_000);
+
+// Two pages: settings, and the usage of each model (tray → « Usage des modèles… »).
+let page = "settings";
+function showPage(next) {
+  page = next === "models" ? "models" : "settings";
+  document.querySelectorAll("[data-page]").forEach((tab) => tab.classList.toggle("selected", tab.dataset.page === page));
+  $("page-settings").classList.toggle("hidden", page !== "settings");
+  $("page-models").classList.toggle("hidden", page !== "models");
+  if (page === "models") usage.refresh();
+  window.history.replaceState(null, "", `#${page}`);
+}
+document.querySelectorAll("[data-page]").forEach((tab) => tab.addEventListener("click", () => showPage(tab.dataset.page)));
+const usage = createUsageView({ call });
 $("install-hooks").addEventListener("click", async () => {
   try {
     await call("install_claude_hooks");
@@ -248,6 +299,7 @@ if (isTauri) {
     settings = payload;
     render();
   });
+  listen("settings-page", ({ payload }) => showPage(payload));
 }
 
 call("get_settings").then((loaded) => {
@@ -257,3 +309,4 @@ call("get_settings").then((loaded) => {
 refreshHooks();
 call("get_autostart").then((on) => ($("autostart").checked = on));
 renderHistory();
+showPage(location.hash.slice(1));
