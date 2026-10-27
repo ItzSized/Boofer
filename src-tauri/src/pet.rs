@@ -27,8 +27,6 @@ pub struct PetState {
     pub hidden: AtomicBool,
     /// A permission card is waiting: stay visible even outside the target app.
     pub attention: AtomicBool,
-    /// An AI agent is actively thinking or running tools: stay visible so the user sees live progress.
-    pub working: AtomicBool,
     /// The window in front is one of the editors: no need for a Windows notification.
     pub editor_in_front: AtomicBool,
 }
@@ -39,7 +37,6 @@ impl Default for PetState {
             glide: AtomicBool::new(false),
             hidden: AtomicBool::new(false),
             attention: AtomicBool::new(false),
-            working: AtomicBool::new(false),
             editor_in_front: AtomicBool::new(false),
         }
     }
@@ -102,8 +99,7 @@ pub fn start(window: WebviewWindow) {
                 || follow_windows
                 || !os::supports_window_tracking()
                 || target.is_some()
-                || state.attention.load(Relaxed)
-                || state.working.load(Relaxed);
+                || state.attention.load(Relaxed);
             let visible = shown && !state.hidden.load(Relaxed);
 
             // Title of the window in front: names the project, hence the session to show.

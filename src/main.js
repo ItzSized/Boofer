@@ -101,7 +101,6 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   }
 
   let lastState = State.IDLE;
-  let lastWorking = false;
   bus.on("change", (event) => {
     ({ current, sessions } = event);
     render();
@@ -110,11 +109,6 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   function render() {
     const selected = selectedSession();
     const state = card.isOpen() ? State.ATTENTION : (selected?.state ?? State.IDLE);
-    const working = state !== State.IDLE;
-    if (isTauri && working !== lastWorking) {
-      lastWorking = working;
-      invoke("set_working", { active: working });
-    }
     mascot.setState(state, card.isOpen() ? claudeCode.color : selected?.color);
     const context = contexts.get(selected?.key) ?? null;
     bubble.render(selected, context);
