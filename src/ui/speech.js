@@ -6,6 +6,9 @@ const LINES = {
   pat: ["Hihi !", "Encore !", "♥", "Ça chatouille !", "Boo ♥"],
   sleep: ["Zzz…", "Petite sieste…", "*bâille*"],
   wake: ["Hein ? Je dormais pas !", "Mmh… déjà ?", "Ah, te revoilà !"],
+  relieved: ["Ahh, ça va mieux 😮‍💨", "Tête toute légère !", "Plus de place !"],
+  tired: ["J'ai la tête pleine…", "Ouf, beaucoup d'infos…"],
+  follow: ["Je te suis ! 🐾", "On y va ?", "Attends-moi !"],
 };
 const SHOW_MS = 2600;
 const MIN_GAP_MS = 1200;
@@ -20,20 +23,28 @@ export function createSpeech(el, { enabled }) {
   let lastAt = 0;
   let lastLine = "";
 
+  function show(text, ms, long = false) {
+    el.classList.toggle("long", long);
+    lastLine = text;
+    lastAt = Date.now();
+    el.textContent = text;
+    el.classList.remove("show");
+    void el.offsetWidth; // restart the pop animation
+    el.classList.add("show");
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => el.classList.remove("show"), ms);
+  }
+
   return {
     say(kind) {
       const lines = LINES[kind];
       if (!lines || !enabled() || Date.now() - lastAt < MIN_GAP_MS) return;
       const choices = lines.length > 1 ? lines.filter((line) => line !== lastLine) : lines;
-      lastLine = choices[Math.floor(Math.random() * choices.length)];
-      lastAt = Date.now();
-
-      el.textContent = lastLine;
-      el.classList.remove("show");
-      void el.offsetWidth; // restart the pop animation
-      el.classList.add("show");
-      clearTimeout(hideTimer);
-      hideTimer = setTimeout(() => el.classList.remove("show"), SHOW_MS);
+      show(choices[Math.floor(Math.random() * choices.length)], SHOW_MS);
+    },
+    /** Something specific to tell (limits, day summary, level up): stays longer. */
+    tell(text, ms = 6000) {
+      if (enabled()) show(text, ms, text.length > 26);
     },
   };
 }

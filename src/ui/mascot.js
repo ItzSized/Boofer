@@ -45,6 +45,9 @@ const svg = (gradientId) => `
       d="M20 62 C20 32 38 14 60 14 C82 14 100 32 100 62 V106
          q-6.67 10 -13.33 0 t-13.33 0 t-13.33 0 t-13.33 0 t-13.33 0 t-13.35 0 Z" />
 
+    <ellipse class="halo" cx="60" cy="5" rx="19" ry="4.5" />
+    <path class="sweat" d="M95 38 q5 8 0 11 q-5 -3 0 -11 z" />
+
     <g class="cheeks">
       <ellipse cx="37" cy="76" rx="6" ry="3.5" />
       <ellipse cx="83" cy="76" rx="6" ry="3.5" />
