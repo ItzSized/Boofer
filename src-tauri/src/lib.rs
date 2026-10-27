@@ -1,10 +1,14 @@
+mod antigravity;
 mod autostart;
 mod permission;
 mod pet;
 mod settings;
+mod usage;
 
-use std::io::Read;
+use std::io::{Read, Write};
+use std::net::{SocketAddr, TcpStream};
 use std::sync::atomic::Ordering::Relaxed;
+use std::time::Duration;
 use tauri::menu::{CheckMenuItem, Menu, MenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{AppHandle, Emitter, Manager, Wry};
@@ -13,30 +17,91 @@ use pet::PetState;
 use settings::SettingsState;
 
 /// Local port that agents (Claude Code hooks, scripts, other CLIs) POST to.
+/// Also acts as our single-instance lock across the OS.
 const EVENT_PORT: u16 = 47823;
 const MAX_BODY_BYTES: u64 = 1 << 20;
 
 /// Forwarded as-is to the frontend: the JS adapter registered for `source`
 /// is responsible for turning `payload` into a normalized state.
 #[derive(Clone, serde::Serialize)]
-struct RawAgentEvent {
-    source: String,
-    payload: serde_json::Value,
+pub(crate) struct RawAgentEvent {
+    pub(crate) source: String,
+    pub(crate) payload: serde_json::Value,
+}
+
+/// When this executable was built (its modification time, in seconds).
+fn build_stamp() -> u64 {
+    std::env::current_exe()
+        .and_then(std::fs::metadata)
+        .and_then(|m| m.modified())
+        .ok()
+        .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+        .map_or(0, |d| d.as_secs())
+}
+
+/// Ensures only one instance of Booffer can run at a time.
+/// - If the same or a newer build is already running, sends `POST /show` to unhide it and exits `0`.
+/// - If an older build is holding port 47823 (it answers `/show` with an older stamp, or
+///   without one), replaces it: launching a fresh build always gets you the fresh build.
+fn acquire_single_instance_server() -> Option<tiny_http::Server> {
+    if let Ok(server) = tiny_http::Server::http(("127.0.0.1", EVENT_PORT)) {
+        return Some(server);
+    }
+
+    let addr = SocketAddr::from(([127, 0, 0, 1], EVENT_PORT));
+    if let Ok(mut stream) = TcpStream::connect_timeout(&addr, Duration::from_millis(400)) {
+        let _ = stream.set_read_timeout(Some(Duration::from_millis(400)));
+        let _ = stream.set_write_timeout(Some(Duration::from_millis(400)));
+        let _ = stream.write_all(b"POST /show HTTP/1.1\r\nHost: 127.0.0.1:47823\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+        let mut resp = Vec::new();
+        let _ = stream.take(4096).read_to_end(&mut resp);
+        let resp = String::from_utf8_lossy(&resp);
+        let running = resp.split("build=").nth(1).and_then(|b| b.trim().parse::<u64>().ok()).unwrap_or(0);
+        if resp.contains(" 200 ") && running >= build_stamp() {
+            // Existing instance woke up and unhid itself; do not open a second one.
+            std::process::exit(0);
+        }
+    }
+
+    // Older instance: stop it so this updated build can take over.
+    #[cfg(windows)]
+    {
+        let my_pid = std::process::id();
+        let _ = std::process::Command::new("taskkill")
+            .args(["/F", "/FI", &format!("PID ne {my_pid}"), "/IM", "booffer.exe"])
+            .output();
+        let _ = std::process::Command::new("taskkill")
+            .args(["/F", "/FI", &format!("PID ne {my_pid}"), "/IM", "Booffer.exe"])
+            .output();
+        std::thread::sleep(Duration::from_millis(350));
+    }
+
+    match tiny_http::Server::http(("127.0.0.1", EVENT_PORT)) {
+        Ok(server) => Some(server),
+        Err(_) => std::process::exit(0),
+    }
 }
 
 /// `POST http://127.0.0.1:47823/event/<source>` with a JSON body: fire-and-forget status.
 /// `POST http://127.0.0.1:47823/permission`: Claude Code waits for the user's answer.
-fn start_event_server(app: AppHandle) {
+/// `POST http://127.0.0.1:47823/show`: wakes and unhides the running single instance.
+fn start_event_server(app: AppHandle, server: tiny_http::Server) {
     std::thread::spawn(move || {
-        let server = match tiny_http::Server::http(("127.0.0.1", EVENT_PORT)) {
-            Ok(server) => server,
-            Err(err) => {
-                eprintln!("[booffer] event server failed to start: {err}");
-                return;
-            }
-        };
-
         for mut request in server.incoming_requests() {
+            let is_post = *request.method() == tiny_http::Method::Post;
+
+            if is_post && request.url() == "/show" {
+                app.state::<PetState>().hidden.store(false, Relaxed);
+                if let Some(items) = app.try_state::<TrayItems>() {
+                    let _ = items.hidden.set_checked(false);
+                }
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.show();
+                }
+                let _ = request.respond(tiny_http::Response::from_string(format!("build={}", build_stamp())));
+                continue;
+            }
+
             let source = request
                 .url()
                 .strip_prefix("/event/")
@@ -50,7 +115,6 @@ fn start_event_server(app: AppHandle) {
                 .read_to_string(&mut body)
                 .is_ok();
 
-            let is_post = *request.method() == tiny_http::Method::Post;
             let payload = serde_json::from_str(&body).unwrap_or(serde_json::Value::Null);
 
             if is_post && read_ok && request.url() == "/permission" {
@@ -100,19 +164,22 @@ fn set_follow(app: AppHandle, enabled: bool) -> Result<(), String> {
     settings::update(&app, |s| s.follow = enabled)
 }
 
+/// `page`: "models" opens the usage view, anything else the settings.
 #[tauri::command]
-async fn open_settings(app: AppHandle) -> Result<(), String> {
-    show_settings(&app)
+async fn open_settings(app: AppHandle, page: Option<String>) -> Result<(), String> {
+    show_settings(&app, page.as_deref().unwrap_or("settings"))
 }
 
-fn show_settings(app: &AppHandle) -> Result<(), String> {
+fn show_settings(app: &AppHandle, page: &str) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("settings") {
         let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();
+        let _ = window.emit("settings-page", page);
         return Ok(());
     }
-    tauri::WebviewWindowBuilder::new(app, "settings", tauri::WebviewUrl::App("settings.html".into()))
+    let url = format!("settings.html#{page}");
+    tauri::WebviewWindowBuilder::new(app, "settings", tauri::WebviewUrl::App(url.into()))
         .title("Réglages · Booffer")
         .inner_size(500.0, 720.0)
         .min_inner_size(420.0, 480.0)
@@ -134,6 +201,12 @@ fn set_attention(app: AppHandle, active: bool) {
     app.state::<PetState>().attention.store(active, Relaxed);
 }
 
+/// Keeps the ghost visible while an AI session is actively thinking or running tools.
+#[tauri::command]
+fn set_working(app: AppHandle, active: bool) {
+    app.state::<PetState>().working.store(active, Relaxed);
+}
+
 #[tauri::command]
 fn resolve_permission(app: AppHandle, id: u64, decision: Option<serde_json::Value>) {
     permission::resolve(&app, id, decision);
@@ -151,8 +224,9 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
     let dnd = CheckMenuItem::with_id(app, "dnd", "Ne pas déranger", true, dnd_on, None::<&str>)?;
     let hidden = CheckMenuItem::with_id(app, "hidden", "Masquer", true, false, None::<&str>)?;
     let settings_item = MenuItem::with_id(app, "settings", "Réglages…", true, None::<&str>)?;
+    let models_item = MenuItem::with_id(app, "models", "Usage des modèles…", true, None::<&str>)?;
     let quit_item = MenuItem::with_id(app, "quit", "Quitter Booffer", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&settings_item, &follow, &dnd, &hidden, &quit_item])?;
+    let menu = Menu::with_items(app, &[&settings_item, &models_item, &follow, &dnd, &hidden, &quit_item])?;
 
     TrayIconBuilder::new()
         .icon(app.default_window_icon().cloned().expect("bundle icon"))
@@ -162,7 +236,10 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
             let state = app.state::<PetState>();
             match event.id.as_ref() {
                 "settings" => {
-                    let _ = show_settings(app);
+                    let _ = show_settings(app, "settings");
+                }
+                "models" => {
+                    let _ = show_settings(app, "models");
                 }
                 "follow" => {
                     let _ = set_follow(app.clone(), !state.follow.load(Relaxed));
@@ -183,30 +260,45 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let Some(event_server) = acquire_single_instance_server() else {
+        return;
+    };
+    let server_cell = std::sync::Mutex::new(Some(event_server));
+
     tauri::Builder::default()
         .manage(PetState::default())
+        .manage(antigravity::AntigravityState::default())
         .manage(permission::Permissions::default())
+        .manage(usage::UsageCache::default())
         .invoke_handler(tauri::generate_handler![
             settings::get_settings,
             settings::set_settings,
-            settings::claude_hooks_installed,
+            settings::claude_hooks_status,
             settings::install_claude_hooks,
             autostart::get_autostart,
             autostart::set_autostart,
+            usage::model_usage,
+            usage::claude_context,
+            antigravity::sync_antigravity,
             open_settings,
             set_follow,
             set_hidden,
             set_attention,
+            set_working,
             resolve_permission,
             quit
         ])
-        .setup(|app| {
+        .setup(move |app| {
             let loaded = settings::load(app.handle());
             let initial = loaded.current.lock().unwrap().clone();
             app.manage(loaded);
             settings::apply(app.handle(), &initial);
             build_tray(app.handle())?;
-            start_event_server(app.handle().clone());
+            if let Some(server) = server_cell.lock().unwrap().take() {
+                start_event_server(app.handle().clone(), server);
+            }
+            antigravity::start_watcher(app.handle().clone());
+            std::thread::spawn(settings::upgrade_claude_hooks);
             permission::start_reaper(app.handle().clone());
             if let Some(window) = app.get_webview_window("main") {
                 pet::start(window);

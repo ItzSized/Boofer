@@ -1,12 +1,12 @@
 # Booffer 👻
 
-Un petit fantôme qui vit sur ton écran pendant que tes agents IA codent. Il te montre en direct où en est Claude Code, te laisse approuver ses demandes sans changer de fenêtre, et fait *ding* quand c'est fini.
+Un petit fantôme qui vit sur ton écran pendant que tes agents IA codent. Il te montre en direct où en sont **Antigravity** (Gemini 3.1 Pro, Gemini 4 Argon, Flash…) et **Claude Code**, te laisse approuver les demandes sans changer de fenêtre, et fait *ding* quand c'est fini.
 
 > Projet indépendant, non affilié à Anthropic. « Claude » et « Claude Code » sont des marques d'Anthropic.
 
 ## Ce qu'il fait
 
-- **Statut en direct** : le projet, ta demande, l'action en cours (« Modifie pet.js », « Lance : npm run build »), le temps écoulé, le temps restant estimé, le nombre d'actions, les fichiers modifiés, les échecs et les sous-agents actifs.
+- **Statut en direct** : le projet, ta demande, l'action en cours (« Modifie pet.js », « Lance : npm run build »), le temps écoulé, le temps restant (estimé à partir des tâches déjà finies, lissé pour ne pas sauter dans tous les sens), le nombre d'actions, les fichiers modifiés, les échecs et les sous-agents actifs.
 - **Progression totale et par étape** : quand Claude tient une liste de tâches, Booffer affiche « Étape 2/5 · Écrit les tests — 70 % » et un total (« Total 42 % »). Sans liste, une estimation du total. Le total ne recule jamais et n'atteint 100 % qu'à la fin.
 - **Ping de fin** : le fantôme saute et la bulle affiche « Claudio a fini ! · Terminé en 45 s ».
 - **Approbations** : quand Claude Code demande une permission, une carte affiche la commande ou le fichier avec **Autoriser / Toujours / Refuser**. Sans réponse en 55 s, ou si tu cliques « Répondre dans Claude Code », Claude Code te demande normalement.
@@ -16,6 +16,8 @@ Un petit fantôme qui vit sur ton écran pendant que tes agents IA codent. Il te
 - **Réglages** (icône de la barre système ou clic droit → Réglages) : thème clair / sombre / auto, sur ton éditeur seulement ou partout sur le bureau, éditeurs suivis, lancement au démarrage de Windows, suivi de la souris, délai avant de s'endormir, sons et volume, taille, approbations, et un bouton pour connecter Claude Code.
 - **Ne pas déranger** : plus de sons ni de cartes de permission, en un clic depuis la barre système.
 - **Petites phrases** : « Coucou ! », « Tadaa ! ✨ », « Psst… il a besoin de toi », et des réactions quand tu le caresses ou le réveilles.
+- **Usage des modèles** (barre système → « Usage des modèles… », ou clic sur la petite carte sous le fantôme) : quelles IA tu utilises vraiment (Claude Opus 5.5, Gemini 3.1 Pro, Gemini 4 Argon, GPT-6…), leur part, leur activité sur 14 jours et les limites de ton abonnement Codex. Seuls les modèles trouvés sur ton PC apparaissent, et tout est lu localement.
+- **Compactage et contexte** : une jauge « 🧠 Contexte 64 % » prévient avant que Claude Code compacte, et pendant un compactage le fantôme se serre comme un accordéon avec un % et le temps restant (d'après la durée de tes compactages précédents).
 - **Historique** : les tâches terminées du jour, le temps de travail des agents et les fichiers modifiés, dans les réglages.
 - **Discret** : les clics passent à travers les zones vides, et il se ferme avec le bouton ×, le clic droit ou l'icône de la barre système.
 
@@ -40,7 +42,7 @@ Pour développer : `npm run tauri dev`. Pour travailler l'interface dans un navi
 
 ## Brancher Claude Code
 
-Le plus simple : **Réglages → Claude Code → Connecter**. Booffer ajoute ses hooks à `~/.claude/settings.json` en gardant tes réglages (une copie `settings.json.booffer-backup` est faite). Relance ensuite Claude Code.
+Le plus simple : **Réglages → Claude Code → Connecter**. Booffer ajoute ses hooks à `~/.claude/settings.json` en gardant tes réglages (une copie `settings.json.booffer-backup` est faite). Relance ensuite Claude Code. Si tu avais connecté une ancienne version, Booffer ajoute tout seul les nouveaux hooks (compactage) au démarrage.
 
 À la main : copie le bloc `hooks` de [hooks/claude-code-settings.example.json](hooks/claude-code-settings.example.json) dans `~/.claude/settings.json` (fusionne-le avec tes réglages existants). Ouvre ensuite `/hooks` dans Claude Code, ou relance-le.
 

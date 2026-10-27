@@ -60,6 +60,10 @@ const svg = (gradientId) => `
       <path d="M41 64 Q47 55 53 64" />
       <path d="M67 64 Q73 55 79 64" />
     </g>
+    <g class="eyes-squeeze">
+      <path d="M42 57 L52 62 L42 67" />
+      <path d="M78 57 L68 62 L78 67" />
+    </g>
     <g class="eyes-sleep">
       <path d="M41 62 Q47 67 53 62" />
       <path d="M67 62 Q73 67 79 62" />

@@ -17,6 +17,10 @@ const EDIT_TOOLS = new Set(["Edit", "MultiEdit", "Write", "NotebookEdit"]);
  * + estimated progress of the current task) / tasks; the current task's progress
  * is estimated from the actions since it started. Without a list: an estimate
  * from the number of actions this turn.
+ *
+ * Compaction: PreCompact → "compacting" until SessionStart (source "compact"),
+ * or until tools run again.
+ * A /compact typed by the user ends as "done"; an automatic one mid-task goes back to work.
  */
 export class ClaudeCodeAdapter extends AgentAdapter {
   source = "claude-code";
@@ -38,6 +42,7 @@ export class ClaudeCodeAdapter extends AgentAdapter {
       }
       case "PreToolUse": {
         const turn = this.#turn(id);
+        turn.compact = null; // an automatic compaction is over once tools run again
         turn.steps++;
         if (p.tool_name === "TodoWrite" && Array.isArray(p.tool_input?.todos)) {
           turn.todos = p.tool_input.todos;
@@ -67,6 +72,25 @@ export class ClaudeCodeAdapter extends AgentAdapter {
         // "Waiting for your input" arrives a minute after Stop: not worth a ping.
         if (p.notification_type === "idle_prompt" || /waiting for your input/i.test(p.message ?? "")) return null;
         return out(this.#turn(id), { state: State.ATTENTION, label: "A besoin de toi !" });
+      }
+      case "PreCompact": {
+        const turn = this.#turn(id);
+        // /compact typed by the user (it may come with its own UserPromptSubmit): never mid-task.
+        if (p.trigger !== "auto") turn.compactOnly = true;
+        turn.compact = { startedAt: Date.now(), trigger: p.trigger === "auto" ? "auto" : "manual" };
+        return out(turn, { state: State.COMPACTING, label: "Compacte le contexte…", progress: turn.progress });
+      }
+      case "SessionStart": {
+        const turn = this.#turns.get(id);
+        if (p.source !== "compact" || !turn?.compact) return null;
+        const took = duration(Date.now() - turn.compact.startedAt);
+        turn.compact = null;
+        if (turn.compactOnly) {
+          this.#turns.delete(id);
+          return out(turn, { state: State.DONE, headline: "Contexte compacté !", label: `Compacté en ${took}` });
+        }
+        turn.label = `Contexte compacté en ${took}, reprend…`;
+        return out(turn, { state: State.THINKING, label: turn.label, progress: this.#progress(turn) });
       }
       case "Stop": {
         const turn = this.#turn(id);
@@ -125,6 +149,8 @@ export class ClaudeCodeAdapter extends AgentAdapter {
     return {
       prompt: turn.prompt,
       startedAt: turn.startedAt,
+      compact: turn.compact ?? null,
+      compactOnly: Boolean(turn.compactOnly),
       steps: turn.steps,
       files: turn.files.size,
       errors: turn.errors,
