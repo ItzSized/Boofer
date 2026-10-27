@@ -1,5 +1,5 @@
 //! The ghost's "body": lives on top of the target apps (one spot per window) or
-//! anywhere on the desktop, optionally follows the mouse, and tells the
+//! anywhere on the desktop, can follow you from window to window or glide to the mouse, and tells the
 //! frontend which window is in front.
 
 use std::collections::HashMap;
@@ -22,7 +22,8 @@ const ANCHOR: (f64, f64) = (0.5, 0.52);
 const DEFAULT_MARGIN: (f64, f64) = (24.0, 16.0);
 
 pub struct PetState {
-    pub follow: AtomicBool,
+    /// Glide toward the mouse cursor (settings → glide).
+    pub glide: AtomicBool,
     pub hidden: AtomicBool,
     /// A permission card is waiting: stay visible even outside the target app.
     pub attention: AtomicBool,
@@ -35,7 +36,7 @@ pub struct PetState {
 impl Default for PetState {
     fn default() -> Self {
         Self {
-            follow: AtomicBool::new(false),
+            glide: AtomicBool::new(false),
             hidden: AtomicBool::new(false),
             attention: AtomicBool::new(false),
             working: AtomicBool::new(false),
@@ -96,7 +97,7 @@ pub fn start(window: WebviewWindow) {
             let state = window.state::<PetState>();
             foreground.poll(&targets, follow_windows);
             state.editor_in_front.store(foreground.editor.is_some(), Relaxed);
-            let target = if everywhere { None } else { foreground.target() };
+            let target = if everywhere && !follow_windows { None } else { foreground.target() };
             let shown = everywhere
                 || follow_windows
                 || !os::supports_window_tracking()
@@ -136,7 +137,7 @@ pub fn start(window: WebviewWindow) {
             }
 
             if visible && !dragging && !arrived {
-                if state.follow.load(Relaxed) && dist > HOVER_RADIUS {
+                if state.glide.load(Relaxed) && dist > HOVER_RADIUS {
                     if dist > FAR {
                         moving = true;
                     } else if dist < NEAR {

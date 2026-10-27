@@ -15,11 +15,13 @@ pub const BASE_WINDOW: (f64, f64) = (248.0, 440.0);
 #[serde(default, rename_all = "camelCase")]
 pub struct Settings {
     /// "editor": only on top of `target_apps` windows. "everywhere": always, anywhere on the desktop.
-    /// "follow": on top of whatever window is in front, and moves with you from app to app.
     pub display: String,
     /// Substrings of executable names, lowercase ("antigravity", "code", "cursor"…).
     pub target_apps: Vec<String>,
+    /// « Suis-moi » : hops onto whatever window is in front, from app to app.
     pub follow: bool,
+    /// Glides toward the mouse cursor when it goes far.
+    pub glide: bool,
     pub sounds: bool,
     pub volume: f64,
     pub size: f64,
@@ -41,9 +43,10 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            display: "follow".into(),
+            display: "editor".into(),
             target_apps: vec!["antigravity".into(), "agy".into(), "code".into(), "cursor".into()],
             follow: false,
+            glide: false,
             sounds: true,
             volume: 0.8,
             size: 1.0,
@@ -60,12 +63,13 @@ impl Default for Settings {
 }
 
 impl Settings {
+    /// "follow" was a display mode in 0.1 builds: it is now the « Suis-moi » switch.
     pub fn everywhere(&self) -> bool {
-        self.display == "everywhere"
+        self.display == "everywhere" || self.display == "follow"
     }
 
     pub fn follows_windows(&self) -> bool {
-        self.display == "follow"
+        self.follow || self.display == "follow"
     }
 }
 
@@ -110,9 +114,9 @@ pub fn update(app: &AppHandle, change: impl FnOnce(&mut Settings)) -> Result<(),
     store(app, settings)
 }
 
-/// Side effects that live in Rust: follow flag, window size, tray checkmarks.
+/// Side effects that live in Rust: mouse gliding, window size, tray checkmarks.
 pub fn apply(app: &AppHandle, settings: &Settings) {
-    app.state::<PetState>().follow.store(settings.follow, Relaxed);
+    app.state::<PetState>().glide.store(settings.glide, Relaxed);
     crate::sync_tray(app, settings);
     if let Some(window) = app.get_webview_window("main") {
         let size = settings.size.clamp(0.6, 1.6);
@@ -135,7 +139,7 @@ pub fn set_settings(app: AppHandle, settings: Settings) -> Result<(), String> {
 const HOOKS_TEMPLATE: &str = include_str!("../../hooks/claude-code-settings.example.json");
 const HOOK_MARKER: &str = "127.0.0.1:47823";
 
-fn claude_settings_path() -> Option<PathBuf> {
+pub(crate) fn claude_settings_path() -> Option<PathBuf> {
     std::env::var_os("USERPROFILE")
         .or_else(|| std::env::var_os("HOME"))
         .map(|home| PathBuf::from(home).join(".claude").join("settings.json"))
