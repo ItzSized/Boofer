@@ -1,5 +1,6 @@
 mod antigravity;
 mod autostart;
+mod codex;
 mod permission;
 mod pet;
 mod settings;
@@ -12,6 +13,8 @@ use std::time::Duration;
 use tauri::menu::{CheckMenuItem, Menu, MenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{AppHandle, Emitter, Manager, Wry};
+use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
+use tauri_plugin_notification::NotificationExt;
 
 use pet::PetState;
 use settings::SettingsState;
@@ -207,6 +210,71 @@ fn set_working(app: AppHandle, active: bool) {
     app.state::<PetState>().working.store(active, Relaxed);
 }
 
+/// Windows notification for a finished task, unless the user is already looking
+/// at their editor (the ghost told them) or asked not to be disturbed.
+#[tauri::command]
+fn notify(app: AppHandle, title: String, body: String, force: Option<bool>) {
+    let (enabled, dnd) = {
+        let settings = app.state::<SettingsState>();
+        let s = settings.current.lock().unwrap();
+        (s.notifications, s.dnd)
+    };
+    let editor_in_front = app.state::<PetState>().editor_in_front.load(Relaxed);
+    if enabled && !dnd && (force.unwrap_or(false) || !editor_in_front) {
+        let _ = app.notification().builder().title(title).body(body).show();
+    }
+}
+
+/// Brings the window of a session's project to the front (click on the bubble).
+#[tauri::command]
+fn focus_project(project: String) -> bool {
+    !project.trim().is_empty() && pet::focus_window_titled(&project)
+}
+
+/// Opens a page of the project on GitHub in the browser (only those).
+#[tauri::command]
+fn open_url(url: String) -> Result<(), String> {
+    if !url.starts_with("https://github.com/ItzSized/Boofer") {
+        return Err("lien non autorisé".into());
+    }
+    #[cfg(windows)]
+    let result = std::process::Command::new("explorer").arg(&url).spawn();
+    #[cfg(target_os = "macos")]
+    let result = std::process::Command::new("open").arg(&url).spawn();
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let result = std::process::Command::new("xdg-open").arg(&url).spawn();
+    result.map(|_| ()).map_err(|e| e.to_string())
+}
+
+/// Ctrl+Alt+B: show / hide the ghost. Ctrl+Alt+M: usage of the models.
+fn shortcuts() -> tauri::plugin::TauriPlugin<Wry> {
+    let toggle = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyB);
+    let models = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyM);
+    tauri_plugin_global_shortcut::Builder::new()
+        .with_handler(move |app, shortcut, event| {
+            if event.state() != ShortcutState::Pressed {
+                return;
+            }
+            if shortcut == &toggle {
+                let hidden = app.state::<PetState>().hidden.load(Relaxed);
+                set_hidden(app.clone(), !hidden);
+            } else if shortcut == &models {
+                let _ = show_settings(app, "models");
+            }
+        })
+        .build()
+}
+
+fn register_shortcuts(app: &AppHandle) {
+    for shortcut in [
+        Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyB),
+        Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyM),
+    ] {
+        // Another app may own it already: Booffer works without.
+        let _ = app.global_shortcut().register(shortcut);
+    }
+}
+
 #[tauri::command]
 fn resolve_permission(app: AppHandle, id: u64, decision: Option<serde_json::Value>) {
     permission::resolve(&app, id, decision);
@@ -266,6 +334,8 @@ pub fn run() {
     let server_cell = std::sync::Mutex::new(Some(event_server));
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_notification::init())
+        .plugin(shortcuts())
         .manage(PetState::default())
         .manage(antigravity::AntigravityState::default())
         .manage(permission::Permissions::default())
@@ -285,6 +355,9 @@ pub fn run() {
             set_hidden,
             set_attention,
             set_working,
+            notify,
+            focus_project,
+            open_url,
             resolve_permission,
             quit
         ])
@@ -298,6 +371,8 @@ pub fn run() {
                 start_event_server(app.handle().clone(), server);
             }
             antigravity::start_watcher(app.handle().clone());
+            codex::start_watcher(app.handle().clone());
+            register_shortcuts(app.handle());
             std::thread::spawn(settings::upgrade_claude_hooks);
             permission::start_reaper(app.handle().clone());
             if let Some(window) = app.get_webview_window("main") {
