@@ -6,6 +6,16 @@ export function duration(ms) {
   return `${m} min ${String(s % 60).padStart(2, "0")}`;
 }
 
+/** Version strings: is `a` newer than `b`? ("0.2.0" vs "0.1.0") */
+export function isNewer(a, b) {
+  const pa = a.split(".").map(Number);
+  const pb = b.split(".").map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0);
+  }
+  return false;
+}
+
 /** Rough remaining time: « ≈ 40 s », « ≈ 3 min ». */
 export function approx(ms) {
   const s = Math.max(5, Math.round(ms / 1000));

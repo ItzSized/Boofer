@@ -8,3 +8,4 @@ src-tauri/gen/
 public/downloads/*.exe
 website/public/downloads/*.exe
 settings.json
+src-tauri/.cargo/

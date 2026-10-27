@@ -12,9 +12,19 @@
     <header
       class="flex items-center gap-4 rounded-2xl bg-gradient-to-br from-violet-100 dark:from-violet-950 to-white dark:to-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
       <div id="hero" data-state="idle" class="mascot hero shrink-0"></div>
-      <div>
+      <div class="min-w-0 flex-1">
         <h1 class="text-lg font-bold">Réglages de Booffer</h1>
         <p class="text-xs text-zinc-500 dark:text-zinc-400">Tout s'applique tout de suite, et reste enregistré.</p>
+        <div id="level" class="mt-2 text-xs" title="1 tâche finie = 1 XP">
+          <div class="flex items-baseline justify-between gap-2">
+            <span><strong id="level-num"></strong> · <span id="level-title"></span></span>
+            <span id="level-xp" class="tabular-nums text-zinc-500 dark:text-zinc-400"></span>
+          </div>
+          <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-white/70 dark:bg-zinc-800">
+            <div id="level-bar" class="h-full rounded-full bg-violet-500"></div>
+          </div>
+          <p id="level-next" class="mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400"></p>
+        </div>
       </div>
     </header>
 
@@ -50,7 +60,12 @@
 
     <section class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
       <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Où vit Booffer</h2>
-      <div class="grid grid-cols-2 gap-2">
+      <div class="grid grid-cols-3 gap-2">
+        <button data-display="follow"
+          class="display-card rounded-xl p-3 text-left ring-1 ring-black/10 dark:ring-white/15">
+          <p class="text-sm font-semibold">🐾 Me suit partout</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Se pose sur la fenêtre où tu es, quelle que soit l'appli.</p>
+        </button>
         <button data-display="editor"
           class="display-card rounded-xl p-3 text-left ring-1 ring-black/10 dark:ring-white/15">
           <p class="text-sm font-semibold">💻 Sur mon éditeur</p>
@@ -59,7 +74,7 @@
         <button data-display="everywhere"
           class="display-card rounded-xl p-3 text-left ring-1 ring-black/10 dark:ring-white/15">
           <p class="text-sm font-semibold">🖥️ Partout</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Toujours sur le bureau, où tu le poses.</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Reste sur le bureau, là où tu le poses.</p>
         </button>
       </div>
       <div id="editors-block" class="mt-3">
@@ -111,6 +126,20 @@
             lui-même.</p>
         </div>
         <label class="toggle"><input id="dnd-toggle" type="checkbox" /><span></span></label>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">🔔 Notifications Windows</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Quand une tâche finit et que tu n'es pas sur ton éditeur.</p>
+        </div>
+        <label class="toggle"><input id="notifications" type="checkbox" /><span></span></label>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">⌨️ Raccourcis</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd> afficher / cacher ·
+            <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> usage des modèles</p>
+        </div>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
@@ -244,7 +273,10 @@
       </p>
     </div>
 
-    <footer class="pb-2 text-center text-[11px] text-zinc-400">Booffer 0.1.0 · github.com/ItzSized/Boofer</footer>
+    <footer class="pb-2 text-center text-[11px] text-zinc-400">
+      Booffer <span id="version">0.1.0</span> · <button id="repo-link" class="hover:text-violet-500 hover:underline">github.com/ItzSized/Boofer</button>
+      <span id="update" class="hidden"> · <button id="update-link" class="font-semibold text-violet-500 hover:underline"></button></span>
+    </footer>
   </main>
   <script type="module" src="/src/settings.js"></script>
 </body>
