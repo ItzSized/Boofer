@@ -6,6 +6,7 @@ import { clearHistory, loadHistory, todayStats } from "./core/history.js";
 import { setTheme } from "./core/theme.js";
 import { createMascot } from "./ui/mascot.js";
 import { createUsageView } from "./ui/usage-view.js";
+import { createTokensView } from "./ui/tokens-view.js";
 import { PERKS, levelFor, loadXp } from "./core/level.js";
 import { isNewer } from "./core/format.js";
 import "./style.css";
@@ -48,7 +49,7 @@ const SLEEP_CHOICES = [
 // In a plain browser (npm run dev), fake the Rust side so the page can be designed.
 const isTauri = "__TAURI_INTERNALS__" in window;
 const DEV_SETTINGS = {
-  display: "follow", notifications: true, targetApps: ["antigravity"], follow: false, sounds: true, volume: 0.8,
+  display: "editor", notifications: true, targetApps: ["antigravity"], follow: false, glide: false, sounds: true, volume: 0.8,
   size: 1, skin: "classique", accessory: "aucun", sleepAfter: 45, approvals: true, theme: "auto", dnd: false, speech: true,
 };
 const todayIso = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
@@ -56,6 +57,9 @@ const DEV_ANSWERS = {
   get_settings: () => ({ ...DEV_SETTINGS }),
   claude_hooks_status: () => "outdated",
   get_autostart: () => false,
+  get_token_savers: () => ({ compactWindow: 200_000, concise: false, claudeCli: true }),
+  set_compact_window: () => {},
+  set_concise: () => {},
   model_usage: () => new Promise((resolve) => setTimeout(() => resolve(DEV_USAGE()), 600)),
 };
 function DEV_USAGE() {
@@ -141,9 +145,12 @@ function render() {
     card.classList.toggle("selected", card.dataset.display === settings.display);
   });
   $("editors-block").classList.toggle("opacity-40", settings.display !== "editor");
+  // Old "follow" display mode: shown as « Partout » + « Suis-moi ».
+  if (settings.display === "follow") document.querySelector('[data-display="everywhere"]').classList.add("selected");
   renderEditors();
 
-  $("follow").checked = settings.follow;
+  $("follow").checked = settings.follow || settings.display === "follow";
+  $("glide").checked = settings.glide;
   $("sleep").value = String(settings.sleepAfter);
   $("sounds").checked = settings.sounds;
   $("volume").value = settings.volume;
@@ -243,7 +250,10 @@ $("custom-editor").addEventListener("keydown", (e) => {
   e.target.value = "";
   if (!settings.targetApps.includes(id)) save({ targetApps: [...settings.targetApps, id] });
 });
-$("follow").addEventListener("change", (e) => save({ follow: e.target.checked }));
+$("follow").addEventListener("change", (e) =>
+  save({ follow: e.target.checked, ...(settings.display === "follow" ? { display: "everywhere" } : {}) }),
+);
+$("glide").addEventListener("change", (e) => save({ glide: e.target.checked }));
 $("sleep").addEventListener("change", (e) => save({ sleepAfter: Number(e.target.value) }));
 $("sounds").addEventListener("change", (e) => save({ sounds: e.target.checked }));
 $("volume").addEventListener("change", (e) => save({ volume: Number(e.target.value) }));
@@ -315,15 +325,16 @@ setInterval(() => {
 // Two pages: settings, and the usage of each model (tray → « Usage des modèles… »).
 let page = "settings";
 function showPage(next) {
-  page = next === "models" ? "models" : "settings";
+  page = ["models", "tokens"].includes(next) ? next : "settings";
   document.querySelectorAll("[data-page]").forEach((tab) => tab.classList.toggle("selected", tab.dataset.page === page));
-  $("page-settings").classList.toggle("hidden", page !== "settings");
-  $("page-models").classList.toggle("hidden", page !== "models");
+  for (const name of ["settings", "models", "tokens"]) $(`page-${name}`).classList.toggle("hidden", page !== name);
   if (page === "models") usage.refresh();
+  if (page === "tokens") tokens.refresh();
   window.history.replaceState(null, "", `#${page}`);
 }
 document.querySelectorAll("[data-page]").forEach((tab) => tab.addEventListener("click", () => showPage(tab.dataset.page)));
 const usage = createUsageView({ call });
+const tokens = createTokensView({ call, isTauri });
 $("install-hooks").addEventListener("click", async () => {
   try {
     await call("install_claude_hooks");

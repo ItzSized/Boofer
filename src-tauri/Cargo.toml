@@ -20,6 +20,7 @@ zstd = "0.14.3"
 rusqlite = { version = "0.41.0", features = ["bundled"] }
 tauri-plugin-notification = "2"
 tauri-plugin-global-shortcut = "2"
+tauri-plugin-clipboard-manager = "2"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = [

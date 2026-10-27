@@ -4,6 +4,7 @@ mod codex;
 mod permission;
 mod pet;
 mod settings;
+mod tokens;
 mod usage;
 
 use std::io::{Read, Write};
@@ -161,14 +162,19 @@ struct TrayItems {
 /// Keeps the tray checkmarks in line with the settings (they can change from any window).
 pub(crate) fn sync_tray(app: &AppHandle, settings: &settings::Settings) {
     if let Some(items) = app.try_state::<TrayItems>() {
-        let _ = items.follow.set_checked(settings.follow);
+        let _ = items.follow.set_checked(settings.follows_windows());
         let _ = items.dnd.set_checked(settings.dnd);
     }
 }
 
 #[tauri::command]
 fn set_follow(app: AppHandle, enabled: bool) -> Result<(), String> {
-    settings::update(&app, |s| s.follow = enabled)
+    settings::update(&app, |s| {
+        s.follow = enabled;
+        if s.display == "follow" {
+            s.display = "everywhere".into(); // old builds: the mode becomes the switch
+        }
+    })
 }
 
 /// `page`: "models" opens the usage view, anything else the settings.
@@ -251,9 +257,11 @@ fn open_url(url: String) -> Result<(), String> {
 }
 
 /// Ctrl+Alt+B: show / hide the ghost. Ctrl+Alt+M: usage of the models.
+/// Ctrl+Alt+P: compress the prompt in the clipboard (the ghost window does it, see main.js).
 fn shortcuts() -> tauri::plugin::TauriPlugin<Wry> {
     let toggle = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyB);
     let models = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyM);
+    let compress = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyP);
     tauri_plugin_global_shortcut::Builder::new()
         .with_handler(move |app, shortcut, event| {
             if event.state() != ShortcutState::Pressed {
@@ -264,6 +272,10 @@ fn shortcuts() -> tauri::plugin::TauriPlugin<Wry> {
                 set_hidden(app.clone(), !hidden);
             } else if shortcut == &models {
                 let _ = show_settings(app, "models");
+            } else if shortcut == &compress {
+                if let Some(text) = tokens::read_clipboard(app) {
+                    let _ = app.emit_to("main", "compress-clipboard", text);
+                }
             }
         })
         .build()
@@ -273,6 +285,7 @@ fn register_shortcuts(app: &AppHandle) {
     for shortcut in [
         Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyB),
         Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyM),
+        Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyP),
     ] {
         // Another app may own it already: Booffer works without.
         let _ = app.global_shortcut().register(shortcut);
@@ -290,8 +303,8 @@ fn quit(app: AppHandle) {
 }
 
 fn build_tray(app: &AppHandle) -> tauri::Result<()> {
-    let following = app.state::<PetState>().follow.load(Relaxed);
-    let follow = CheckMenuItem::with_id(app, "follow", "Me suivre", true, following, None::<&str>)?;
+    let following = app.state::<SettingsState>().current.lock().unwrap().follows_windows();
+    let follow = CheckMenuItem::with_id(app, "follow", "Suis-moi (de fenêtre en fenêtre)", true, following, None::<&str>)?;
     let dnd_on = app.state::<SettingsState>().current.lock().unwrap().dnd;
     let dnd = CheckMenuItem::with_id(app, "dnd", "Ne pas déranger", true, dnd_on, None::<&str>)?;
     let hidden = CheckMenuItem::with_id(app, "hidden", "Masquer", true, false, None::<&str>)?;
@@ -314,7 +327,8 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
                     let _ = show_settings(app, "models");
                 }
                 "follow" => {
-                    let _ = set_follow(app.clone(), !state.follow.load(Relaxed));
+                    let following = app.state::<SettingsState>().current.lock().unwrap().follows_windows();
+                    let _ = set_follow(app.clone(), !following);
                 }
                 "dnd" => {
                     let _ = settings::update(app, |s| s.dnd = !s.dnd);
@@ -339,6 +353,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(shortcuts())
         .manage(PetState::default())
         .manage(antigravity::AntigravityState::default())
@@ -361,6 +376,11 @@ pub fn run() {
             set_working,
             notify,
             focus_project,
+            tokens::get_token_savers,
+            tokens::set_compact_window,
+            tokens::set_concise,
+            tokens::compress_with_claude,
+            tokens::write_clipboard,
             open_url,
             resolve_permission,
             quit

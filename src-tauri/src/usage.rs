@@ -261,7 +261,9 @@ fn read_context(path: &Path) -> Option<ContextInfo> {
         let usage = &message["usage"];
         let n = |key: &str| usage[key].as_u64().unwrap_or(0);
         let tokens = n("input_tokens") + n("cache_creation_input_tokens") + n("cache_read_input_tokens") + n("output_tokens");
-        return Some(ContextInfo { model: model.to_string(), tokens, window: context_window(model, tokens), compact_ms: None });
+        // « Compacter plus tôt » (autoCompactWindow) makes the usable window smaller.
+        let window = context_window(model, tokens).min(crate::tokens::compact_window().unwrap_or(u64::MAX));
+        return Some(ContextInfo { model: model.to_string(), tokens, window, compact_ms: None });
     }
     None
 }

@@ -31,8 +31,9 @@ export class ClaudeCodeAdapter extends AgentAdapter {
 
   normalize(p) {
     const id = p?.session_id;
-    if (!id) return null;
-    const project = basename(p.cwd);
+    const project = basename(p?.cwd);
+    // Booffer's own prompt compression (settings → ✂️ Tokens) runs Claude there.
+    if (!id || project === "booffer-compress") return null;
     const out = (turn, rest) => ({ id, project, details: this.#details(turn), ...rest });
 
     switch (p.hook_event_name) {
