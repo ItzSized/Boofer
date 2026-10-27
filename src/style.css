@@ -548,6 +548,79 @@ body {
   animation: heart-float 1.2s ease-out both;
 }
 
+/* Session tabs: a tiny ghost per session, bobbing while it works. */
+.mini-busy .mini-ghost {
+  animation: hop 0.9s ease-in-out infinite;
+}
+
+/* ---------- Levels (core/level.js): the ghost grows with you ---------- */
+
+.halo,
+.sweat {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.halo {
+  fill: none;
+  stroke: #facc15;
+  stroke-width: 3;
+  animation: halo 3s ease-in-out infinite;
+}
+
+.mascot:is([data-tier="glow"], [data-tier="halo"]) .body {
+  filter: drop-shadow(0 0 5px color-mix(in oklab, var(--agent) 55%, white));
+}
+
+.mascot[data-tier="gold"] .body {
+  filter: drop-shadow(0 0 7px #fcd34d);
+}
+
+.mascot:is([data-tier="halo"], [data-tier="gold"]) .halo {
+  opacity: 1;
+}
+
+/* An accessory on the head: the halo would sit inside it. */
+.mascot:is([data-accessory="chapeau"], [data-accessory="couronne"], [data-accessory="casque"], [data-accessory="pousse"]) .halo {
+  opacity: 0 !important;
+}
+
+@keyframes halo {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -2px;
+  }
+}
+
+/* Tired: the context is almost full. Heavy eyelids and a drop of sweat. */
+.mascot.tired .eyes-open {
+  animation: none;
+  scale: 1 0.55;
+}
+
+.mascot.tired .sweat {
+  opacity: 1;
+  fill: #7dd3fc;
+  animation: sweat 2s ease-in infinite;
+}
+
+@keyframes sweat {
+  0% {
+    translate: 0 -2px;
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    translate: 0 8px;
+    opacity: 0;
+  }
+}
+
 /* Speech bubble: pops in, little tail pointing at the ghost. */
 .speech {
   opacity: 0;
@@ -558,6 +631,16 @@ body {
 .speech.show {
   opacity: 1;
   scale: 1;
+}
+
+/* Longer messages (limits, day summary): wrap instead of overflowing the window. */
+.speech.long {
+  width: 210px;
+  white-space: normal;
+  text-align: center;
+  border-radius: 14px;
+  line-height: 1.35;
+  top: -18px;
 }
 
 .speech::after {
@@ -946,4 +1029,9 @@ body {
     translate: calc(-50% + var(--dx)) -55px;
     scale: 0.9;
   }
+}
+/* The bubble of a running session: click it to jump to that window. */
+#bubble.clickable {
+  pointer-events: auto;
+  cursor: pointer;
 }

@@ -1,6 +1,12 @@
-import { State } from "../core/states.js";
+import { ACTIVE_STATES, State } from "../core/states.js";
 
-/** One pill per session, shown when two or more agents are running. Click to switch. */
+/** A tiny ghost per session, in its color. */
+const MINI_GHOST = `<svg viewBox="18 12 84 100" class="mini-ghost size-3.5 shrink-0" aria-hidden="true">
+  <path d="M20 62 C20 32 38 14 60 14 C82 14 100 32 100 62 V106 q-6.67 10 -13.33 0 t-13.33 0 t-13.33 0 t-13.33 0 t-13.33 0 t-13.35 0 Z" />
+  <ellipse cx="47" cy="62" rx="6" ry="8" fill="#2b2240" /><ellipse cx="73" cy="62" rx="6" ry="8" fill="#2b2240" />
+</svg>`;
+
+/** One little ghost per session, shown when two or more agents are running. Click to switch. */
 export function createTabs(el, { onSelect }) {
   el.className = "mt-1 hidden w-[232px] flex-wrap justify-center gap-1";
 
@@ -28,8 +34,9 @@ export function createTabs(el, { onSelect }) {
             (selected ? "font-semibold text-zinc-800 dark:text-zinc-100 ring-2 ring-zinc-700 dark:ring-zinc-200" : "text-zinc-500 dark:text-zinc-400 ring-1 ring-black/10 dark:ring-white/15 hover:text-zinc-800 dark:hover:text-zinc-100");
 
           const dot = document.createElement("span");
-          dot.className = "size-1.5 shrink-0 rounded-full";
-          dot.style.background = s.state === State.IDLE ? "#d4d4d8" : s.color;
+          dot.className = `flex ${ACTIVE_STATES.has(s.state) ? "mini-busy" : ""}`;
+          dot.innerHTML = MINI_GHOST;
+          dot.style.fill = s.state === State.IDLE ? "#d4d4d8" : s.color;
 
           const name = document.createElement("span");
           name.className = "truncate";
