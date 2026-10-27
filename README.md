@@ -1,6 +1,6 @@
 # Booffer 👻
 
-Un petit fantôme qui vit sur ton écran pendant que tes agents IA codent. Il te montre en direct où en sont **Antigravity** (Gemini 3.1 Pro, Gemini 4 Argon, Flash…) et **Claude Code**, te laisse approuver les demandes sans changer de fenêtre, et fait *ding* quand c'est fini.
+Un petit fantôme qui vit sur ton écran pendant que tes agents IA codent. Il te montre en direct où en sont **Antigravity** (Gemini 3.1 Pro, Gemini 4 Argon, Flash…), **Claude Code** et **Codex**, te laisse approuver les demandes sans changer de fenêtre, et fait *ding* quand c'est fini.
 
 > Projet indépendant, non affilié à Anthropic. « Claude » et « Claude Code » sont des marques d'Anthropic.
 
@@ -18,6 +18,13 @@ Un petit fantôme qui vit sur ton écran pendant que tes agents IA codent. Il te
 - **Petites phrases** : « Coucou ! », « Tadaa ! ✨ », « Psst… il a besoin de toi », et des réactions quand tu le caresses ou le réveilles.
 - **Usage des modèles** (barre système → « Usage des modèles… », ou clic sur la petite carte sous le fantôme) : quelles IA tu utilises vraiment (Claude Opus 5.5, Gemini 3.1 Pro, Gemini 4 Argon, GPT-6…), leur part, leur activité sur 14 jours et les limites de ton abonnement Codex. Seuls les modèles trouvés sur ton PC apparaissent, et tout est lu localement.
 - **Compactage et contexte** : une jauge « 🧠 Contexte 64 % » prévient avant que Claude Code compacte, et pendant un compactage le fantôme se serre comme un accordéon avec un % et le temps restant (d'après la durée de tes compactages précédents).
+- **Me suit partout** : il se pose sur la fenêtre où tu es, quelle que soit l'appli, et te suit d'une fenêtre à l'autre (ou reste sur ton éditeur, ou sur le bureau : au choix dans les réglages).
+- **Clic sur la bulle** : ramène au premier plan la fenêtre du projet en cours.
+- **Notifications Windows** quand une tâche finit et que tu n'es pas sur ton éditeur, et une alerte quand une limite d'abonnement dépasse 80 %.
+- **Raccourcis** : Ctrl+Alt+B pour l'afficher ou le cacher, Ctrl+Alt+M pour l'usage des modèles.
+- **Il grandit avec toi** : chaque tâche finie donne de l'XP. Niveau 3 une lueur, niveau 5 une auréole, niveau 8 une aura dorée. Il a l'air fatigué quand le contexte est presque plein, et soulagé après un compactage.
+- **Une session = un mini-fantôme** à sa couleur, qui sautille tant qu'elle travaille.
+- **Résumé du jour** vers 18 h (ou clic droit → Ma journée), et un message quand une nouvelle version sort sur GitHub.
 - **Historique** : les tâches terminées du jour, le temps de travail des agents et les fichiers modifiés, dans les réglages.
 - **Discret** : les clics passent à travers les zones vides, et il se ferme avec le bouton ×, le clic droit ou l'icône de la barre système.
 

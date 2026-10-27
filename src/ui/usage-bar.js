@@ -7,7 +7,7 @@ const SHOWN = 3;
  * Small card under the ghost: today's top models (falls back to the last 7 days).
  * Clicking it opens the full « 📊 Modèles » page of the settings window.
  */
-export function createUsageBar(el, { isTauri, invoke }) {
+export function createUsageBar(el, { isTauri, invoke, onData = () => {} }) {
   el.className =
     "pointer-events-auto mt-1.5 w-[224px] cursor-pointer rounded-2xl bg-white/95 px-3 py-2 shadow-md ring-1 ring-black/5 " +
     "transition hover:ring-violet-400 dark:bg-zinc-900/95 dark:ring-white/10";
@@ -66,18 +66,21 @@ export function createUsageBar(el, { isTauri, invoke }) {
         { tool: "Claude Code", model: "claude-opus-5-5", day: localDay(0), calls: 31, input: 95_000, output: 9_200 },
         { tool: "Antigravity", model: "Gemini 4 Argon (f3.8)", day: localDay(0), calls: 12, input: 180_000, output: 14_000 },
       ];
-      return render();
+      render();
+      return onData({ rows, limits: [] });
     }
     try {
-      rows = (await invoke("model_usage", { tzOffsetMinutes: new Date().getTimezoneOffset() })).rows;
+      const usage = await invoke("model_usage", { tzOffsetMinutes: new Date().getTimezoneOffset() });
+      rows = usage.rows;
       render();
+      onData(usage);
     } catch {
       // try again at the next refresh
     }
   }
 
   el.classList.add("hidden");
-  refresh();
+  queueMicrotask(refresh); // after the caller has finished setting up
   setInterval(refresh, REFRESH_MS);
 
   return {

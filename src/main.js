@@ -2,7 +2,10 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { adapterBySource } from "./agents/index.js";
 import { EventBus } from "./core/event-bus.js";
-import { recordFinished } from "./core/history.js";
+import { loadHistory, recordFinished, todayStats } from "./core/history.js";
+import { gainXp, levelFor, loadXp } from "./core/level.js";
+import { describeModel, localDay, summarize } from "./core/models.js";
+import { duration, isNewer } from "./core/format.js";
 import { State } from "./core/states.js";
 import { setTheme } from "./core/theme.js";
 import { Tracker } from "./core/tracker.js";
@@ -40,7 +43,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   const mascotEl = document.getElementById("mascot");
   const mascot = createMascot(mascotEl);
   const bubble = createBubble(document.getElementById("bubble"));
-  const usageBar = createUsageBar(document.getElementById("usage-bar"), { isTauri, invoke });
+  const usageBar = createUsageBar(document.getElementById("usage-bar"), { isTauri, invoke, onData: (usage) => onUsage(usage) });
   const app = document.getElementById("app");
   const speech = createSpeech(document.getElementById("speech"), { enabled: () => settings.speech !== false });
 
@@ -55,6 +58,13 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
       if (isTauri) invoke("set_attention", { active: open });
       render(); // switches the ghost to "attention", which plays the ping
     },
+  });
+
+  let settingsLoaded = false;
+  const bubbleEl = document.getElementById("bubble");
+  bubbleEl.addEventListener("click", () => {
+    const selected = selectedSession();
+    if (isTauri && selected?.project) invoke("focus_project", { project: selected.project });
   });
 
   // Which session the ghost shows, in order: one that just finished (for a few
@@ -105,7 +115,13 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
       invoke("set_working", { active: working });
     }
     mascot.setState(state, card.isOpen() ? claudeCode.color : selected?.color);
-    bubble.render(selected, contexts.get(selected?.key) ?? null);
+    const context = contexts.get(selected?.key) ?? null;
+    bubble.render(selected, context);
+    // Clicking the bubble brings that session's window to the front.
+    bubbleEl.classList.toggle("clickable", Boolean(isTauri && selected?.project && state !== State.IDLE));
+    const tired = Boolean(context?.tokens && context.tokens / context.window >= 0.8 && state !== State.COMPACTING);
+    if (tired && !mascotEl.classList.contains("tired")) speech.say("tired");
+    mascotEl.classList.toggle("tired", tired);
     usageBar.setActiveSession(selected);
     tabs.render(sessions, selected?.key);
 
@@ -118,6 +134,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
         playError();
         speech.say("error");
       }
+      if (lastState === State.COMPACTING && state !== State.DONE) speech.say("relieved");
     }
     lastState = state;
   }
@@ -132,8 +149,14 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     setTimeout(render, 8100);
     mascot.celebrate();
     playDone();
-    speech.say("done");
-    if (!session.details?.compactOnly) recordFinished(session);
+    const compactOnly = session.details?.compactOnly;
+    speech.say(compactOnly ? "relieved" : "done");
+    if (isTauri) invoke("notify", { title: session.headline ?? `${session.project || session.agent} a fini !`, body: notifyBody(session) });
+    if (compactOnly) return;
+    recordFinished(session);
+    const levelUp = gainXp();
+    showLevel();
+    if (levelUp) setTimeout(() => speech.tell(`Niveau ${levelUp.level} ! ${levelUp.title} 🎉`), 2800);
   });
 
   function onWindowTitle(title) {
@@ -236,6 +259,8 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   let settings = { follow: false, sleepAfter: 45, size: 1, sounds: true, volume: 0.8, skin: "classique", accessory: "aucun", theme: "auto", dnd: false, speech: true };
 
   function applySettings(next) {
+    if (settingsLoaded && settings.display !== "follow" && next.display === "follow") speech.say("follow");
+    settingsLoaded = true;
     settings = next;
     configureSound({ sounds: settings.sounds && !settings.dnd, volume: settings.volume });
     document.getElementById("dnd").classList.toggle("hidden", !settings.dnd);
@@ -245,10 +270,93 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     mascotEl.dataset.accessory = settings.accessory;
   }
 
+  // ---------- Extras: notifications, levels, limits, day summary, updates ----------
+
+  function notifyBody(session) {
+    const d = session.details ?? {};
+    const model = d.model ? ` · ${describeModel(d.model).name}` : "";
+    return [session.label + model, d.prompt ? `« ${d.prompt} »` : ""].filter(Boolean).join("\n");
+  }
+
+  function showLevel() {
+    const { level } = levelFor(loadXp());
+    mascotEl.dataset.tier = level >= 8 ? "gold" : level >= 5 ? "halo" : level >= 3 ? "glow" : "";
+  }
+  showLevel();
+
+  // Warn once when a plan limit is almost used up (per limit window).
+  let latestUsage = { rows: [], limits: [] };
+  function onUsage(usage) {
+    latestUsage = usage;
+    const now = Date.now();
+    for (const limit of usage.limits ?? []) {
+      if (!(limit.resetsAt > now) || limit.usedPercent < 80) continue;
+      if (!once(`booffer.limit.${limit.tool}.${limit.windowMinutes}.${limit.resetsAt}`)) continue;
+      const span = limit.windowMinutes >= 1440 ? "de la semaine" : `de ${Math.round(limit.windowMinutes / 60)} h`;
+      const text = `${limit.tool} : ${Math.round(limit.usedPercent)} % de ta limite ${span}, recharge dans ${roughly(limit.resetsAt - now)}`;
+      speech.tell(`⚠️ ${text}`, 8000);
+      if (isTauri) invoke("notify", { title: "Limite bientôt atteinte", body: text, force: true });
+    }
+  }
+
+  function roughly(ms) {
+    const min = Math.round(ms / 60_000);
+    if (min < 60) return `${Math.max(1, min)} min`;
+    if (min < 48 * 60) return `${Math.round(min / 60)} h`;
+    return `${Math.round(min / 1440)} j`;
+  }
+
+  function once(key) {
+    try {
+      if (localStorage.getItem(key)) return false;
+      localStorage.setItem(key, "1");
+    } catch {
+      // without storage, say it every time rather than never
+    }
+    return true;
+  }
+
+  function daySummary() {
+    const stats = todayStats(loadHistory());
+    const top = summarize(latestUsage.rows, localDay(0))[0];
+    const parts = [
+      `${stats.tasks} tâche${stats.tasks > 1 ? "s" : ""}`,
+      stats.ms ? duration(stats.ms) : "",
+      top ? `surtout ${top.name}` : "",
+    ].filter(Boolean);
+    speech.tell(`📅 Aujourd'hui : ${parts.join(" · ")}`, 7000);
+  }
+
+  // The day summary pops once, at the first calm moment after 18 h.
+  setInterval(() => {
+    const calm = !sessions.some((s) => s.state !== State.IDLE) && !card.isOpen();
+    if (calm && new Date().getHours() >= 18 && todayStats(loadHistory()).tasks > 0 && once(`booffer.summary.${localDay(0)}`)) {
+      daySummary();
+    }
+  }, 60_000);
+
+  // A new release on GitHub? Checked once a day.
+  async function checkUpdate() {
+    if (!isTauri || !once(`booffer.update.${localDay(0)}`)) return;
+    try {
+      const [{ getVersion }, res] = await Promise.all([
+        import("@tauri-apps/api/app"),
+        fetch("https://api.github.com/repos/ItzSized/Boofer/releases/latest"),
+      ]);
+      if (!res.ok) return;
+      const latest = String((await res.json()).tag_name ?? "").replace(/^v/, "");
+      if (latest && isNewer(latest, await getVersion())) speech.tell(`✨ Booffer ${latest} est dispo ! Voir les réglages`, 8000);
+    } catch {
+      // offline: try again tomorrow
+    }
+  }
+  setTimeout(checkUpdate, 20_000);
+
   const menu = createMenu(document.getElementById("menu"), [
     { label: "✨ Tester l'animation", action: () => runDemo("Booffer", 0, "antigravity", "Gemini 3.1 Pro") },
     { label: "👻 Tester 2 sessions", action: () => (runDemo("site-web", 0, "antigravity", "Gemini 3.1 Pro"), runDemo("api", 2500, "claude-api")) },
     { label: "🧹 Tester un compactage", action: () => runCompactDemo() },
+    { label: "📅 Ma journée", action: () => daySummary() },
     { label: "🔐 Tester une demande", action: () => card.add(TEST_REQUEST()) },
     ...(isTauri
       ? [
@@ -279,7 +387,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     closeBtn: document.getElementById("close"),
     fx: document.getElementById("fx"),
     targets: () =>
-      [menu.isOpen() && menu.el, card.isOpen() && card.el, tabs.isOpen() && tabs.el, usageBar.el].filter(Boolean),
+      [menu.isOpen() && menu.el, card.isOpen() && card.el, tabs.isOpen() && tabs.el, usageBar.el, bubbleEl.classList.contains("clickable") && bubbleEl].filter(Boolean),
     isTauri,
     onClose: quit,
     onWindowTitle,

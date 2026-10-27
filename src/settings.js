@@ -6,6 +6,8 @@ import { clearHistory, loadHistory, todayStats } from "./core/history.js";
 import { setTheme } from "./core/theme.js";
 import { createMascot } from "./ui/mascot.js";
 import { createUsageView } from "./ui/usage-view.js";
+import { PERKS, levelFor, loadXp } from "./core/level.js";
+import { isNewer } from "./core/format.js";
 import "./style.css";
 import "./settings.css";
 
@@ -46,7 +48,7 @@ const SLEEP_CHOICES = [
 // In a plain browser (npm run dev), fake the Rust side so the page can be designed.
 const isTauri = "__TAURI_INTERNALS__" in window;
 const DEV_SETTINGS = {
-  display: "editor", targetApps: ["antigravity"], follow: false, sounds: true, volume: 0.8,
+  display: "follow", notifications: true, targetApps: ["antigravity"], follow: false, sounds: true, volume: 0.8,
   size: 1, skin: "classique", accessory: "aucun", sleepAfter: 45, approvals: true, theme: "auto", dnd: false, speech: true,
 };
 const todayIso = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
@@ -138,7 +140,7 @@ function render() {
   document.querySelectorAll(".display-card").forEach((card) => {
     card.classList.toggle("selected", card.dataset.display === settings.display);
   });
-  $("editors-block").classList.toggle("opacity-40", settings.display === "everywhere");
+  $("editors-block").classList.toggle("opacity-40", settings.display !== "editor");
   renderEditors();
 
   $("follow").checked = settings.follow;
@@ -149,6 +151,7 @@ function render() {
   $("approvals").checked = settings.approvals;
   $("dnd-toggle").checked = settings.dnd;
   $("speech-toggle").checked = settings.speech;
+  $("notifications").checked = settings.notifications !== false;
 }
 
 function renderEditors() {
@@ -254,6 +257,7 @@ $("autostart").addEventListener("change", async (e) => {
   e.target.checked = await call("get_autostart");
 });
 $("dnd-toggle").addEventListener("change", (e) => save({ dnd: e.target.checked }));
+$("notifications").addEventListener("change", (e) => save({ notifications: e.target.checked }));
 $("speech-toggle").addEventListener("change", (e) => save({ speech: e.target.checked }));
 $("approvals").addEventListener("change", (e) => save({ approvals: e.target.checked }));
 $("clear-history").addEventListener("click", () => {
@@ -261,7 +265,44 @@ $("clear-history").addEventListener("click", () => {
   renderHistory();
 });
 // The ghost window writes the history: refresh when it changes or when we come back.
-window.addEventListener("storage", renderHistory);
+window.addEventListener("storage", () => {
+  renderHistory();
+  renderLevel();
+});
+
+// The ghost grows with every finished task (core/level.js).
+function renderLevel() {
+  const lvl = levelFor(loadXp());
+  $("level-num").textContent = `Niveau ${lvl.level}`;
+  $("level-title").textContent = lvl.title;
+  $("level-xp").textContent = lvl.to ? `${lvl.xp} / ${lvl.to} XP` : `${lvl.xp} XP`;
+  $("level-bar").style.width = `${Math.round(lvl.progress * 100)}%`;
+  const perk = Object.entries(PERKS).find(([level]) => Number(level) > lvl.level);
+  $("level-next").textContent = perk ? `Niveau ${perk[0]} : ${perk[1]}` : "Tout est débloqué ✨";
+  hero.dataset.tier = lvl.level >= 8 ? "gold" : lvl.level >= 5 ? "halo" : lvl.level >= 3 ? "glow" : "";
+}
+renderLevel();
+
+// GitHub links open in the browser; a newer release shows up next to the version.
+const REPO = "https://github.com/ItzSized/Boofer";
+const openUrl = (url) => (isTauri ? call("open_url", { url }) : window.open(url, "_blank"));
+$("repo-link").addEventListener("click", () => openUrl(REPO));
+$("update-link").addEventListener("click", () => openUrl(`${REPO}/releases/latest`));
+(async () => {
+  try {
+    const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : "0.1.0";
+    $("version").textContent = current;
+    const res = await fetch("https://api.github.com/repos/ItzSized/Boofer/releases/latest");
+    if (!res.ok) return;
+    const latest = String((await res.json()).tag_name ?? "").replace(/^v/, "");
+    if (latest && isNewer(latest, current)) {
+      $("update-link").textContent = `✨ Mettre à jour vers ${latest}`;
+      $("update").classList.remove("hidden");
+    }
+  } catch {
+    // offline
+  }
+})();
 window.addEventListener("focus", () => {
   renderHistory();
   if (page === "models") usage.refresh();
