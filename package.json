@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "tauri": "tauri",
+    "release": "node scripts/release.mjs",
     "demo:api": "node examples/claude-api-demo.mjs",
     "site:dev": "vite --config website/vite.config.js",
     "site:build": "vite build --config website/vite.config.js",
