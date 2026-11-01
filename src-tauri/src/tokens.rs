@@ -5,11 +5,11 @@
 //! - prompt compression with Claude Haiku (the local, free one is in src/core/compress.js).
 
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tauri::AppHandle;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 
-use crate::settings::claude_settings_path;
+use crate::settings::{claude_settings_path, read_user_file};
 
 const CONCISE_START: &str = "<!-- booffer:concise -->";
 const CONCISE_END: &str = "<!-- /booffer:concise -->";
@@ -39,9 +39,9 @@ fn claude_md() -> Option<PathBuf> {
 
 fn read_settings() -> Result<serde_json::Value, String> {
     let path = claude_settings_path().ok_or("dossier utilisateur introuvable")?;
-    match std::fs::read_to_string(&path) {
-        Ok(text) => serde_json::from_str(&text).map_err(|e| format!("~/.claude/settings.json illisible : {e}")),
-        Err(_) => Ok(serde_json::json!({})),
+    match read_user_file(&path, "~/.claude/settings.json")? {
+        Some(text) => serde_json::from_str(&text).map_err(|e| format!("~/.claude/settings.json illisible : {e}")),
+        None => Ok(serde_json::json!({})),
     }
 }
 
@@ -78,8 +78,11 @@ pub fn set_compact_window(tokens: Option<u64>) -> Result<(), String> {
 
 #[tauri::command]
 pub fn set_concise(enabled: bool) -> Result<(), String> {
-    let path = claude_md().ok_or("dossier utilisateur introuvable")?;
-    let text = std::fs::read_to_string(&path).unwrap_or_default();
+    set_concise_at(&claude_md().ok_or("dossier utilisateur introuvable")?, enabled)
+}
+
+fn set_concise_at(path: &Path, enabled: bool) -> Result<(), String> {
+    let text = read_user_file(path, "~/.claude/CLAUDE.md")?.unwrap_or_default();
     let without = match (text.find(CONCISE_START), text.find(CONCISE_END)) {
         (Some(start), Some(end)) if end > start => {
             format!("{}{}", &text[..start], &text[end + CONCISE_END.len()..]).trim().to_string()
@@ -165,4 +168,43 @@ pub fn read_clipboard_text(app: AppHandle) -> String {
 
 pub fn read_clipboard(app: &AppHandle) -> Option<String> {
     app.clipboard().read_text().ok().filter(|t| !t.trim().is_empty())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::settings::tests::{TempDir, ANSI};
+
+    #[test]
+    fn leaves_an_unreadable_claude_md_alone() {
+        let dir = TempDir::new("concise-unreadable");
+        let path = dir.0.join("CLAUDE.md");
+        std::fs::write(&path, ANSI).unwrap();
+        assert!(set_concise_at(&path, true).is_err());
+        assert_eq!(std::fs::read(&path).unwrap(), ANSI);
+        assert!(set_concise_at(&path, false).is_err());
+        assert_eq!(std::fs::read(&path).unwrap(), ANSI);
+    }
+
+    #[test]
+    fn adds_and_removes_only_its_block() {
+        let dir = TempDir::new("concise");
+        let path = dir.0.join("CLAUDE.md");
+        std::fs::write(&path, "# Mes règles\n- Réponds en français.\n").unwrap();
+        set_concise_at(&path, true).unwrap();
+        let on = std::fs::read_to_string(&path).unwrap();
+        assert!(on.starts_with("# Mes règles\n- Réponds en français.") && on.contains(CONCISE_START));
+        set_concise_at(&path, false).unwrap();
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "# Mes règles\n- Réponds en français.\n");
+    }
+
+    #[test]
+    fn creates_then_removes_its_own_claude_md() {
+        let dir = TempDir::new("concise-missing");
+        let path = dir.0.join("CLAUDE.md");
+        set_concise_at(&path, true).unwrap();
+        assert!(std::fs::read_to_string(&path).unwrap().contains(CONCISE_START));
+        set_concise_at(&path, false).unwrap();
+        assert!(!path.exists());
+    }
 }
