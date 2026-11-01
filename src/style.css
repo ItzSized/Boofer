@@ -1035,3 +1035,87 @@ body {
   pointer-events: auto;
   cursor: pointer;
 }
+
+/* ---------- « Stop ! » : a dangerous command waits for the user (ui/guard-card.js) ---------- */
+
+.brows,
+.arms-crossed,
+.stop-sign {
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.brows path {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.arms-crossed ellipse {
+  fill: var(--body-bottom);
+  stroke: var(--ink);
+  stroke-opacity: 0.22;
+  stroke-width: 1.5;
+}
+
+.stop-sign polygon {
+  fill: #e11d48;
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+
+.stop-sign text {
+  font: 800 6.5px ui-rounded, system-ui, sans-serif;
+  fill: #fff;
+}
+
+.mascot.stop {
+  --body-bottom: color-mix(in oklab, #f43f5e 45%, var(--skin-bottom));
+}
+
+.mascot.stop .brows,
+.mascot.stop .arms-crossed,
+.mascot.stop .stop-sign,
+.mascot.stop .mouth-frown {
+  opacity: 1;
+}
+
+.mascot.stop .arm,
+.mascot.stop .alert,
+.mascot.stop .mouth-o,
+.mascot.stop .mouth-smile,
+.mascot.stop .mouth-grin,
+.mascot.stop .think-dots,
+.mascot.stop .cheeks {
+  opacity: 0;
+}
+
+.mascot.stop .ghost {
+  animation: stop-no 1.8s ease-in-out infinite;
+}
+
+.mascot.stop .stop-sign {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: stop-pop 1.8s ease-in-out infinite;
+}
+
+/* Shakes its head « non non » then holds still, arms crossed. */
+@keyframes stop-no {
+  0%, 45%, 100% { rotate: 0deg; }
+  10% { rotate: -5deg; }
+  20% { rotate: 5deg; }
+  30% { rotate: -4deg; }
+  38% { rotate: 3deg; }
+}
+
+@keyframes stop-pop {
+  0%, 100% { scale: 1; }
+  50% { scale: 1.18; }
+}
+
+/* The « Stop ! » card. */
+#guard-card .guard-timer {
+  transition: width 1s linear;
+}

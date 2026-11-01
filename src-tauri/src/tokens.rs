@@ -157,6 +157,12 @@ pub fn write_clipboard(app: AppHandle, text: String) -> Result<(), String> {
     app.clipboard().write_text(text).map_err(|e| e.to_string())
 }
 
+/// The ghost menu's « Reprompt » reads the clipboard like Ctrl+Alt+P does.
+#[tauri::command]
+pub fn read_clipboard_text(app: AppHandle) -> String {
+    read_clipboard(&app).unwrap_or_default()
+}
+
 pub fn read_clipboard(app: &AppHandle) -> Option<String> {
     app.clipboard().read_text().ok().filter(|t| !t.trim().is_empty())
 }

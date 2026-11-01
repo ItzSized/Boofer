@@ -21,7 +21,7 @@ const CONTEXT_WARN = 0.8;
  * While the context is being compacted, the step row becomes « 🧹 Compactage » with
  * its own progress, based on how long compactions usually take.
  */
-export function createBubble(el) {
+export function createBubble(el, { eta = new EtaEstimator() } = {}) {
   el.className =
     "pointer-events-none mt-1 w-[224px] rounded-2xl bg-white/95 dark:bg-zinc-900/95 px-3 py-1.5 shadow-md ring-1 ring-black/5 dark:ring-white/10 " +
     "transition duration-300 opacity-0 translate-y-1";
@@ -64,7 +64,6 @@ export function createBubble(el) {
     ),
   );
 
-  const eta = new EtaEstimator();
 
   return {
     /** @param context { tokens, window, model, compactMs } of a Claude Code session, if known */

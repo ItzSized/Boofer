@@ -9,6 +9,7 @@ const LINES = {
   relieved: ["Ahh, ça va mieux 😮‍💨", "Tête toute légère !", "Plus de place !"],
   tired: ["J'ai la tête pleine…", "Ouf, beaucoup d'infos…"],
   follow: ["Je te suis ! 🐾", "On y va ?", "Attends-moi !"],
+  stop: ["Stop ! ✋", "Hop hop hop ! ✋", "Pas si vite ! 🛑"],
 };
 const SHOW_MS = 2600;
 const MIN_GAP_MS = 1200;

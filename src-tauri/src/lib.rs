@@ -1,6 +1,8 @@
 mod antigravity;
+mod apps;
 mod autostart;
 mod codex;
+mod guard;
 mod permission;
 mod pet;
 mod settings;
@@ -92,6 +94,7 @@ fn acquire_single_instance_server() -> Option<tiny_http::Server> {
 
 /// `POST http://127.0.0.1:47823/event/<source>` with a JSON body: fire-and-forget status.
 /// `POST http://127.0.0.1:47823/permission`: Claude Code waits for the user's answer.
+/// `POST http://127.0.0.1:47823/guard`: a command about to run; dangerous ones wait for « Stop ! ».
 /// `POST http://127.0.0.1:47823/show`: wakes and unhides the running single instance.
 fn start_event_server(app: AppHandle, server: tiny_http::Server) {
     std::thread::spawn(move || {
@@ -124,6 +127,27 @@ fn start_event_server(app: AppHandle, server: tiny_http::Server) {
                 .is_ok();
 
             let payload = serde_json::from_str(&body).unwrap_or(serde_json::Value::Null);
+
+            if is_post && read_ok && request.url() == "/guard" {
+                let enabled = app.state::<SettingsState>().current.lock().unwrap().guard;
+                match guard::command_of(&payload).and_then(guard::check) {
+                    Some(danger) if enabled => {
+                        // A safety stop: shown even when the ghost is hidden or away from the editor.
+                        app.state::<PetState>().hidden.store(false, Relaxed);
+                        if let Some(items) = app.try_state::<TrayItems>() {
+                            let _ = items.hidden.set_checked(false);
+                        }
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                        }
+                        guard::ask(&app, request, danger, payload);
+                    }
+                    _ => {
+                        let _ = request.respond(tiny_http::Response::empty(204));
+                    }
+                }
+                continue;
+            }
 
             if is_post && read_ok && request.url() == "/permission" {
                 // Hidden, approvals off or "ne pas déranger": don't make Claude Code wait for a card.
@@ -292,6 +316,11 @@ fn resolve_permission(app: AppHandle, id: u64, decision: Option<serde_json::Valu
 }
 
 #[tauri::command]
+fn resolve_guard(app: AppHandle, id: u64, allow: bool) {
+    guard::resolve(&app, id, allow);
+}
+
+#[tauri::command]
 fn quit(app: AppHandle) {
     app.exit(0);
 }
@@ -352,6 +381,7 @@ pub fn run() {
         .manage(PetState::default())
         .manage(antigravity::AntigravityState::default())
         .manage(permission::Permissions::default())
+        .manage(guard::Guards::default())
         .manage(usage::UsageCache::default())
         .invoke_handler(tauri::generate_handler![
             settings::get_settings,
@@ -374,8 +404,11 @@ pub fn run() {
             tokens::set_concise,
             tokens::compress_with_claude,
             tokens::write_clipboard,
+            tokens::read_clipboard_text,
             open_url,
             resolve_permission,
+            resolve_guard,
+            apps::running_apps,
             quit
         ])
         .setup(move |app| {
@@ -392,6 +425,7 @@ pub fn run() {
             register_shortcuts(app.handle());
             std::thread::spawn(settings::upgrade_claude_hooks);
             permission::start_reaper(app.handle().clone());
+            guard::start_reaper(app.handle().clone());
             if let Some(window) = app.get_webview_window("main") {
                 pet::start(window);
             }

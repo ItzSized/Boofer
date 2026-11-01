@@ -1,12 +1,14 @@
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { emit, listen } from "@tauri-apps/api/event";
 import { adapterBySource } from "./agents/index.js";
 import { EventBus } from "./core/event-bus.js";
 import { loadHistory, recordFinished, todayStats } from "./core/history.js";
 import { gainXp, levelFor, loadXp } from "./core/level.js";
-import { describeModel, localDay, summarize } from "./core/models.js";
+import { compact, describeModel, localDay, summarize } from "./core/models.js";
+import { dailyBudgets } from "./core/budget.js";
 import { duration, isNewer } from "./core/format.js";
-import { compressWithStats } from "./core/compress.js";
+import { compressWithStats, estimateTokens } from "./core/compress.js";
+import { EtaEstimator } from "./core/eta.js";
 import { State } from "./core/states.js";
 import { setTheme } from "./core/theme.js";
 import { Tracker } from "./core/tracker.js";
@@ -14,6 +16,7 @@ import { configureSound, playAttention, playDone, playError } from "./audio/chim
 import { createBubble } from "./ui/bubble.js";
 import { createMascot } from "./ui/mascot.js";
 import { createMenu } from "./ui/menu.js";
+import { createGuardCard } from "./ui/guard-card.js";
 import { createPermissionCard } from "./ui/permission-card.js";
 import { createPet } from "./ui/pet.js";
 import { createSpeech } from "./ui/speech.js";
@@ -43,8 +46,14 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   const tracker = new Tracker(bus);
   const mascotEl = document.getElementById("mascot");
   const mascot = createMascot(mascotEl);
-  const bubble = createBubble(document.getElementById("bubble"));
-  const usageBar = createUsageBar(document.getElementById("usage-bar"), { isTauri, invoke, onData: (usage) => onUsage(usage) });
+  const eta = new EtaEstimator(); // shared by the bubble and the « 🟢 En direct » page
+  const bubble = createBubble(document.getElementById("bubble"), { eta });
+  const usageBar = createUsageBar(document.getElementById("usage-bar"), {
+    isTauri,
+    invoke,
+    limits: () => settings.dailyLimits ?? {},
+    onData: (usage) => onUsage(usage),
+  });
   const app = document.getElementById("app");
   const speech = createSpeech(document.getElementById("speech"), { enabled: () => settings.speech !== false });
 
@@ -54,12 +63,26 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     color: claudeCode.color,
     // Negative ids are local test requests (menu → "Tester une demande").
     resolve: (id, decision) => id >= 0 && invoke("resolve_permission", { id, decision }),
+    onChange: () => onCardsChange(),
+  });
+
+  // « Stop ! » before a dangerous command (src-tauri/src/guard.rs): arms crossed until the user picks.
+  const guard = createGuardCard(document.getElementById("guard"), {
+    agentName: claudeCode.name,
+    resolve: (id, allow) => id >= 0 && invoke("resolve_guard", { id, allow }),
     onChange(open) {
-      app.classList.toggle("asking", open);
-      if (isTauri) invoke("set_attention", { active: open });
-      render(); // switches the ghost to "attention", which plays the ping
+      if (open && !mascotEl.classList.contains("stop")) speech.say("stop");
+      mascotEl.classList.toggle("stop", open);
+      onCardsChange();
     },
   });
+
+  const asking = () => card.isOpen() || guard.isOpen();
+  function onCardsChange() {
+    app.classList.toggle("asking", asking());
+    if (isTauri) invoke("set_attention", { active: asking() });
+    render(); // switches the ghost to "attention", which plays the ping
+  }
 
   let settingsLoaded = false;
   const bubbleEl = document.getElementById("bubble");
@@ -108,8 +131,8 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
 
   function render() {
     const selected = selectedSession();
-    const state = card.isOpen() ? State.ATTENTION : (selected?.state ?? State.IDLE);
-    mascot.setState(state, card.isOpen() ? claudeCode.color : selected?.color);
+    const state = asking() ? State.ATTENTION : (selected?.state ?? State.IDLE);
+    mascot.setState(state, asking() ? claudeCode.color : selected?.color);
     const context = contexts.get(selected?.key) ?? null;
     bubble.render(selected, context);
     // Clicking the bubble brings that session's window to the front.
@@ -204,6 +227,31 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     }
   }
 
+  /** Every session, for the « 🟢 En direct » page of the settings window. */
+  function liveSnapshot() {
+    const now = Date.now();
+    return sessions.map((s) => {
+      const d = s.details ?? {};
+      const active = s.state !== State.IDLE && s.state !== State.DONE;
+      return {
+        key: s.key,
+        agent: s.agent,
+        color: s.color,
+        project: s.project,
+        state: s.state,
+        label: s.label,
+        model: d.model ? describeModel(d.model).name : null,
+        prompt: d.prompt ?? null,
+        elapsedMs: active && d.startedAt ? now - d.startedAt : 0,
+        etaMs: active ? eta.remaining(s) : null,
+        steps: d.steps ?? 0,
+        files: d.files ?? 0,
+        progress: s.progress,
+        context: contexts.get(s.key) ?? null,
+      };
+    });
+  }
+
   // Fake session to check animations and sounds without a real agent.
   async function runDemo(project = "démo", delay = 0, source = "generic", model = null) {
     const id = `demo-${project}-${Date.now()}`;
@@ -248,6 +296,12 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     },
   });
 
+  const TEST_GUARD = () => ({
+    id: -Date.now(),
+    danger: "supprimer définitivement des dossiers entiers (sans passer par la corbeille)",
+    payload: { session_id: "test", cwd: "C:/Users/me/projet", tool_name: "Bash", tool_input: { command: "rm -rf src build", description: "Nettoie le projet" } },
+  });
+
   const quit = () => (isTauri ? invoke("quit") : window.close());
 
   // Settings live in Rust (settings.json); every window gets "settings-changed".
@@ -263,6 +317,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     document.documentElement.style.zoom = String(settings.size); // the window is resized to match
     mascotEl.dataset.skin = settings.skin;
     mascotEl.dataset.accessory = settings.accessory;
+    usageBar.rerender();
   }
 
   // ---------- Extras: notifications, levels, limits, day summary, updates ----------
@@ -291,6 +346,16 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
       const text = `${limit.tool} : ${Math.round(limit.usedPercent)} % de ta limite ${span}, recharge dans ${roughly(limit.resetsAt - now)}`;
       speech.tell(`⚠️ ${text}`, 8000);
       if (isTauri) invoke("notify", { title: "Limite bientôt atteinte", body: text, force: true });
+    }
+    // The user's own daily limits (settings → 📊 Modèles): at 80 % and when over, once a day each.
+    for (const b of dailyBudgets(usage.rows, settings.dailyLimits)) {
+      const step = b.pct >= 1 ? 100 : b.pct >= 0.8 ? 80 : 0;
+      if (!step || !once(`booffer.budget.${b.family}.${step}.${localDay(0)}`)) continue;
+      const text = step === 100
+        ? `${b.name} : limite du jour dépassée (${compact(b.used)} / ${compact(b.limit)} tokens)`
+        : `${b.name} : ${Math.round(b.pct * 100)} % de ta limite du jour${b.delta > 5 ? `, en avance de ${b.delta} %` : ""}`;
+      speech.tell(`${step === 100 ? "⛔" : "⚠️"} ${text}`, 8000);
+      if (isTauri) invoke("notify", { title: step === 100 ? "Limite du jour dépassée" : "Limite du jour bientôt atteinte", body: text, force: true });
     }
   }
 
@@ -324,7 +389,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
 
   // The day summary pops once, at the first calm moment after 18 h.
   setInterval(() => {
-    const calm = !sessions.some((s) => s.state !== State.IDLE) && !card.isOpen();
+    const calm = !sessions.some((s) => s.state !== State.IDLE) && !asking();
     if (calm && new Date().getHours() >= 18 && todayStats(loadHistory()).tasks > 0 && once(`booffer.summary.${localDay(0)}`)) {
       daySummary();
     }
@@ -347,6 +412,26 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   }
   setTimeout(checkUpdate, 20_000);
 
+  // Reprompt: the clipboard's prompt, rewritten for the AI only (local, or Claude Haiku if chosen).
+  async function reprompt(text) {
+    if (!text?.trim()) return speech.tell("📋 Copie d'abord ton prompt, puis Ctrl+Alt+P", 4000);
+    const before = estimateTokens(text);
+    let result = null;
+    if (settings.repromptAi) {
+      speech.tell("🔁 Je reformule avec Haiku…", 15000);
+      result = await invoke("compress_with_claude", { text }).catch(() => null);
+    }
+    result ||= compressWithStats(text).text;
+    await invoke("write_clipboard", { text: result });
+    const after = estimateTokens(result);
+    const saved = Math.max(0, Math.round((1 - after / before) * 100));
+    speech.tell(`🔁 Reprompt prêt : −${saved} % (${before} → ${after} tokens). Colle-le !`, 5000);
+  }
+
+  async function repromptClipboard() {
+    reprompt(await invoke("read_clipboard_text").catch(() => ""));
+  }
+
   // Booffer can't type in Claude Code: it copies /compact and brings its window up.
   async function compactNow() {
     const project = selectedSession()?.project;
@@ -363,10 +448,13 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     ...(isTauri
       ? [
         { label: "🧹 Compacter maintenant", action: () => compactNow() },
+        { label: "🔁 Reprompt (presse-papier)", action: () => repromptClipboard() },
         { label: "✂️ Économiser des tokens", action: () => invoke("open_settings", { page: "tokens" }) },
+        { label: "🟢 Agents en direct", action: () => invoke("open_settings", { page: "live" }) },
       ]
       : []),
     { label: "🔐 Tester une demande", action: () => card.add(TEST_REQUEST()) },
+    { label: "🛑 Tester le stop", action: () => guard.add(TEST_GUARD()) },
     ...(isTauri
       ? [
         { label: "⚙️ Réglages", action: () => invoke("open_settings") },
@@ -396,7 +484,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     closeBtn: document.getElementById("close"),
     fx: document.getElementById("fx"),
     targets: () =>
-      [menu.isOpen() && menu.el, card.isOpen() && card.el, tabs.isOpen() && tabs.el, usageBar.el, bubbleEl.classList.contains("clickable") && bubbleEl].filter(Boolean),
+      [menu.isOpen() && menu.el, card.isOpen() && card.el, guard.isOpen() && guard.el, tabs.isOpen() && tabs.el, usageBar.el, bubbleEl.classList.contains("clickable") && bubbleEl].filter(Boolean),
     isTauri,
     onClose: quit,
     onWindowTitle,
@@ -410,13 +498,12 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     });
     listen("permission-request", ({ payload }) => card.add(payload));
     listen("permission-expired", ({ payload }) => card.expire(payload));
+    listen("guard-request", ({ payload }) => guard.add(payload));
+    listen("live-request", () => emit("live-sessions", liveSnapshot()));
+    listen("guard-expired", ({ payload }) => guard.expire(payload));
     listen("settings-changed", ({ payload }) => applySettings(payload));
-    // Ctrl+Alt+P: the prompt in the clipboard comes back compressed.
-    listen("compress-clipboard", async ({ payload }) => {
-      const r = compressWithStats(payload);
-      await invoke("write_clipboard", { text: r.text });
-      speech.tell(`✂️ Prompt compressé : −${Math.round(r.saved * 100)} % (${r.before} → ${r.after} tokens). Colle-le !`, 5000);
-    });
+    // Ctrl+Alt+P: the prompt in the clipboard comes back rewritten for the AI.
+    listen("compress-clipboard", ({ payload }) => reprompt(payload));
     invoke("get_settings").then((loaded) => {
       applySettings(loaded);
       setTimeout(() => speech.say("hello"), 900);

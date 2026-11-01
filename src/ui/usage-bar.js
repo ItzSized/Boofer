@@ -1,13 +1,15 @@
 import { compact, describeModel, familyColor, localDay, summarize } from "../core/models.js";
+import { dailyBudgets, paceLabel } from "../core/budget.js";
 
 const REFRESH_MS = 30_000;
 const SHOWN = 3;
 
 /**
  * Small card under the ghost: today's top models (falls back to the last 7 days).
+ * With daily limits set, one line per AI: « 🎯 Claude 62 % · ⚡ en avance de 12 % ».
  * Clicking it opens the full « 📊 Modèles » page of the settings window.
  */
-export function createUsageBar(el, { isTauri, invoke, onData = () => {} }) {
+export function createUsageBar(el, { isTauri, invoke, limits = () => ({}), onData = () => {} }) {
   el.className =
     "pointer-events-auto mt-1.5 w-[224px] cursor-pointer rounded-2xl bg-white/95 px-3 py-2 shadow-md ring-1 ring-black/5 " +
     "transition hover:ring-violet-400 dark:bg-zinc-900/95 dark:ring-white/10";
@@ -18,7 +20,9 @@ export function createUsageBar(el, { isTauri, invoke, onData = () => {} }) {
       <span data-period></span>
       <span class="ml-auto">tout voir ›</span>
     </div>
-    <div data-rows class="mt-1 space-y-1"></div>`;
+    <div data-rows class="mt-1 space-y-1"></div>
+    <div data-budgets class="mt-1.5 hidden space-y-0.5 border-t border-zinc-100 pt-1 dark:border-zinc-800"></div>`;
+  const budgetsEl = el.querySelector("[data-budgets]");
   const periodEl = el.querySelector("[data-period]");
   const rowsEl = el.querySelector("[data-rows]");
 
@@ -57,6 +61,22 @@ export function createUsageBar(el, { isTauri, invoke, onData = () => {} }) {
         </div>`;
       })
       .join("");
+
+    const budgets = dailyBudgets(rows, limits());
+    budgetsEl.classList.toggle("hidden", budgets.length === 0);
+    budgetsEl.innerHTML = budgets
+      .map((b) => {
+        const pct = Math.round(b.pct * 100);
+        const pace = paceLabel(b.delta);
+        const tone = pct >= 100 ? "text-rose-500" : pace.tone === "ahead" ? "text-amber-600 dark:text-amber-400" : "text-zinc-500 dark:text-zinc-400";
+        return `<div class="flex items-center gap-1.5 text-[10px] leading-3.5">
+          <span class="size-1.5 shrink-0 rounded-full" style="background:${familyColor(b.family)}"></span>
+          <span class="font-medium text-zinc-700 dark:text-zinc-200">${b.name}</span>
+          <span class="tabular-nums font-semibold ${pct >= 80 ? "text-rose-500" : "text-zinc-600 dark:text-zinc-300"}">${pct} %</span>
+          <span class="ml-auto truncate ${tone}">${pct >= 100 ? "⛔ limite dépassée" : pace.text}</span>
+        </div>`;
+      })
+      .join("");
   }
 
   async function refresh() {
@@ -86,6 +106,8 @@ export function createUsageBar(el, { isTauri, invoke, onData = () => {} }) {
   return {
     el,
     refresh,
+    /** The limits changed in the settings. */
+    rerender: () => rows && render(),
     /** Highlights the model the selected session is using. */
     setActiveSession(session) {
       const next = session?.details?.model ? describeModel(session.details.model).name : null;
