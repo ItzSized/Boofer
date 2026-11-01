@@ -13,6 +13,16 @@
     ],
     "PreToolUse": [
       {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 60,
+            "command": "curl -sf -m 58 -X POST -H \"Content-Type: application/json\" --data-binary @- http://127.0.0.1:47823/guard 2>/dev/null || true"
+          }
+        ]
+      },
+      {
         "matcher": "*",
         "hooks": [
           {

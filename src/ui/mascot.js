@@ -107,6 +107,21 @@ const svg = (gradientId) => `
     <ellipse class="mouth mouth-o" cx="60" cy="78" rx="3" ry="3.5" />
     <path class="mouth mouth-grin" d="M53 75 Q60 87 67 75 Z" />
     <path class="mouth mouth-frown" d="M55 80 Q60 75 65 80" />
+
+    <!-- « Stop ! » (dangerous command): frowning, arms crossed. -->
+    <g class="brows">
+      <path d="M40 49 L53 54" />
+      <path d="M80 49 L67 54" />
+    </g>
+    <g class="arms-crossed">
+      <ellipse cx="60" cy="93" rx="6.5" ry="20" transform="rotate(62 60 93)" />
+      <ellipse cx="60" cy="93" rx="6.5" ry="20" transform="rotate(-62 60 93)" />
+    </g>
+  </g>
+
+  <g class="stop-sign">
+    <polygon points="97,-9 105,-9 111,-3 111,5 105,11 97,11 91,5 91,-3" />
+    <text x="101" y="3.6" text-anchor="middle">STOP</text>
   </g>
 </svg>`;
 

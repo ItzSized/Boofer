@@ -1,4 +1,14 @@
 import { FAMILIES, compact, describeModel, familyColor, localDay, summarize } from "../core/models.js";
+import { PACE_HELP, dailyBudgets, paceLabel, windowDelta } from "../core/budget.js";
+
+/** Daily token limits offered (0 = none). Claude's count includes cache reads, so it climbs fast. */
+const BUDGETS = [0, 1e6, 5e6, 10e6, 25e6, 50e6, 100e6, 250e6, 500e6, 1e9];
+const BUDGET_FAMILIES = ["anthropic", "google", "openai"];
+const PACE_TONE = {
+  ahead: "text-amber-600 dark:text-amber-400",
+  behind: "text-emerald-600 dark:text-emerald-400",
+  even: "text-zinc-500 dark:text-zinc-400",
+};
 
 const RANGES = { today: 0, "7d": 6, "30d": 29, all: null };
 const RANGE_KEY = "booffer.usageRange";
@@ -27,7 +37,7 @@ function timeLeft(ms) {
  * « 📊 Modèles » page of the settings window: which AI models were used, how much,
  * and the plan limits we know of. Only models found in the local files are listed.
  */
-export function createUsageView({ call }) {
+export function createUsageView({ call, settings, save }) {
   const $ = (id) => document.getElementById(id);
   let data = null;
   let loading = false;
@@ -92,6 +102,51 @@ export function createUsageView({ call }) {
 
     renderModels(models, calls);
     renderLimits(data.limits ?? []);
+    renderBudgets();
+  }
+
+  // One row per AI: limit picker, today's usage against it, and the pace.
+  function renderBudgets() {
+    const limits = settings()?.dailyLimits ?? {};
+    const budgets = dailyBudgets(data?.rows, limits);
+    $("budget-rows").innerHTML = BUDGET_FAMILIES.map((family) => {
+      const limit = limits[family] ?? 0;
+      const b = budgets.find((x) => x.family === family);
+      const week = (data?.rows ?? [])
+        .filter((r) => r.day >= localDay(7) && r.day < localDay(0) && describeModel(r.model).family === family)
+        .reduce((sum, r) => sum + r.input + r.output, 0);
+      const options = BUDGETS.map(
+        (n) => `<option value="${n}" ${n === limit ? "selected" : ""}>${n ? `${compact(n)} / jour` : "Pas de limite"}</option>`,
+      ).join("");
+      const pct = b ? Math.round(b.pct * 100) : 0;
+      const pace = b ? paceLabel(b.delta) : null;
+      const bar = pct >= 100 ? "bg-rose-500" : pct >= 80 ? "bg-amber-500" : "";
+      return `<div>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="size-2.5 shrink-0 rounded-full" style="background:${familyColor(family)}"></span>
+          <span class="font-semibold">${FAMILIES[family].name}</span>
+          <span class="truncate text-[11px] text-zinc-400">moy. ${compact(Math.round(week / 7))} / jour</span>
+          <select data-budget="${family}" class="ml-auto rounded-lg bg-zinc-100 px-1.5 py-0.5 text-xs outline-none dark:bg-zinc-800">${options}</select>
+        </div>
+        ${b ? `
+        <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+          <div class="h-full rounded-full ${bar}" style="width:${Math.min(100, pct)}%;${bar ? "" : `background:${familyColor(family)}`}"></div>
+        </div>
+        <div class="mt-0.5 flex items-baseline justify-between gap-2 text-[11px]">
+          <span class="tabular-nums text-zinc-500 dark:text-zinc-400">${compact(b.used)} / ${compact(b.limit)} · <strong>${pct} %</strong>${pct >= 100 ? " · ⛔ dépassée" : ""}</span>
+          <span class="font-semibold ${PACE_TONE[pace.tone]}" title="${esc(PACE_HELP)}">${pace.text}</span>
+        </div>` : ""}
+      </div>`;
+    }).join("");
+    document.querySelectorAll("[data-budget]").forEach((select) =>
+      select.addEventListener("change", () => {
+        const next = { ...(settings()?.dailyLimits ?? {}) };
+        const value = Number(select.value);
+        if (value) next[select.dataset.budget] = value;
+        else delete next[select.dataset.budget];
+        save({ dailyLimits: next });
+      }),
+    );
   }
 
   function renderModels(models, total) {
@@ -149,6 +204,7 @@ export function createUsageView({ call }) {
         const used = reset ? Math.min(100, Math.round(l.usedPercent)) : 0; // window over: back to zero
         const window = l.windowMinutes >= 1440 ? "semaine" : `${Math.round(l.windowMinutes / 60)} h`;
         const status = used >= 90 ? "⛔ presque tout utilisé" : used >= 70 ? "⚠️ attention" : "";
+        const pace = reset ? paceLabel(windowDelta(l, now)) : null;
         const bar = used >= 90 ? "bg-rose-500" : used >= 70 ? "bg-amber-500" : "bg-emerald-500";
         return `<div>
           <div class="flex items-baseline justify-between gap-2 text-xs">
@@ -158,13 +214,18 @@ export function createUsageView({ call }) {
           <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
             <div class="h-full rounded-full ${bar}" style="width:${used}%"></div>
           </div>
-          <p class="mt-0.5 text-[11px] text-zinc-400">${reset ? `Se recharge dans ${timeLeft(l.resetsAt - now)}` : "Rechargée depuis ta dernière session"}</p>
+          <div class="mt-0.5 flex items-baseline justify-between gap-2 text-[11px]">
+            <span class="text-zinc-400">${reset ? `Se recharge dans ${timeLeft(l.resetsAt - now)}` : "Rechargée depuis ta dernière session"}</span>
+            ${pace ? `<span class="font-semibold ${PACE_TONE[pace.tone]}" title="En avance = tu consommes plus vite que le temps qui passe jusqu'à la recharge.">${pace.text}</span>` : ""}
+          </div>
         </div>`;
       })
       .join("");
   }
 
   return {
+    /** Settings changed (e.g. a limit picked): redraw without re-reading the files. */
+    rerender: () => data && render(),
     async refresh() {
       if (loading) return;
       loading = true;

@@ -38,6 +38,12 @@ pub struct Settings {
     pub speech: bool,
     /// Windows notification when a task ends while the editor isn't in front.
     pub notifications: bool,
+    /// « Stop ! » : dangerous commands from Claude Code wait for a confirmation.
+    pub guard: bool,
+    /// Daily token budget per model family ("anthropic", "google", "openai"); absent = no limit.
+    pub daily_limits: std::collections::BTreeMap<String, u64>,
+    /// Ctrl+Alt+P rewrites the prompt with Claude Haiku instead of the local compressor.
+    pub reprompt_ai: bool,
 }
 
 impl Default for Settings {
@@ -58,6 +64,9 @@ impl Default for Settings {
             dnd: false,
             speech: true,
             notifications: true,
+            guard: true,
+            daily_limits: Default::default(),
+            reprompt_ai: false,
         }
     }
 }
@@ -156,13 +165,31 @@ pub fn claude_hooks_status() -> &'static str {
         return "missing";
     };
     let Ok(template) = serde_json::from_str::<serde_json::Value>(HOOKS_TEMPLATE) else { return "ok" };
-    let ours = |event: &str| root["hooks"][event].to_string().contains(HOOK_MARKER);
-    let events: Vec<&String> = template["hooks"].as_object().map(|o| o.keys().collect()).unwrap_or_default();
-    match events.iter().filter(|e| ours(e)).count() {
-        0 => "missing",
-        n if n < events.len() => "outdated",
+    let entries: Vec<(&String, &serde_json::Value)> = template["hooks"]
+        .as_object()
+        .into_iter()
+        .flatten()
+        .flat_map(|(event, list)| list.as_array().into_iter().flatten().map(move |entry| (event, entry)))
+        .collect();
+    let installed = entries.iter().filter(|(event, entry)| has_entry(&root["hooks"][event.as_str()], entry)).count();
+    match installed {
+        0 if !root["hooks"].to_string().contains(HOOK_MARKER) => "missing",
+        n if n < entries.len() => "outdated",
         _ => "ok",
     }
+}
+
+/// Booffer's endpoint in a hook entry: "/event/claude-code", "/permission", "/guard".
+fn endpoint(entry: &serde_json::Value) -> Option<String> {
+    let text = entry.to_string();
+    let start = text.find(HOOK_MARKER)? + HOOK_MARKER.len();
+    Some(text[start..].chars().take_while(|c| !c.is_whitespace() && *c != '"' && *c != '\\').collect())
+}
+
+/// Whether `list` (one event's hooks) already holds Booffer's entry for the same endpoint.
+fn has_entry(list: &serde_json::Value, entry: &serde_json::Value) -> bool {
+    let Some(wanted) = endpoint(entry) else { return true };
+    list.as_array().into_iter().flatten().any(|e| endpoint(e).as_deref() == Some(wanted.as_str()))
 }
 
 /// Booffer hooks from an older version: add the new events (the user already said yes once).
@@ -193,10 +220,12 @@ pub fn install_claude_hooks() -> Result<(), String> {
 
     for (event, entries) in template["hooks"].as_object().into_iter().flatten() {
         let list = hooks.entry(event.clone()).or_insert_with(|| serde_json::json!([]));
-        let Some(list) = list.as_array_mut() else { continue };
-        let already = list.iter().any(|entry| entry.to_string().contains(HOOK_MARKER));
-        if !already {
-            list.extend(entries.as_array().into_iter().flatten().cloned());
+        for entry in entries.as_array().into_iter().flatten() {
+            if !has_entry(list, entry) {
+                if let Some(list) = list.as_array_mut() {
+                    list.push(entry.clone());
+                }
+            }
         }
     }
 
@@ -208,4 +237,21 @@ pub fn install_claude_hooks() -> Result<(), String> {
     }
     let text = serde_json::to_string_pretty(&root).map_err(|e| e.to_string())?;
     std::fs::write(&path, text + "\n").map_err(|e| e.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn finds_the_guard_entry_missing_next_to_the_event_hook() {
+        let template: serde_json::Value = serde_json::from_str(HOOKS_TEMPLATE).unwrap();
+        let entries = template["hooks"]["PreToolUse"].as_array().unwrap();
+        let (guard, event) = (&entries[0], &entries[1]);
+        assert_eq!(endpoint(guard).as_deref(), Some("/guard"));
+        assert_eq!(endpoint(event).as_deref(), Some("/event/claude-code"));
+        let old_install = serde_json::json!([event]);
+        assert!(has_entry(&old_install, event));
+        assert!(!has_entry(&old_install, guard));
+    }
 }

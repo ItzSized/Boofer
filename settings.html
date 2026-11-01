@@ -31,6 +31,7 @@
     <nav class="flex gap-1 rounded-2xl bg-white p-1 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
       <button data-page="settings" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold">⚙️ Réglages</button>
       <button data-page="models" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold">📊 Modèles</button>
+      <button data-page="live" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold">🟢 Direct</button>
       <button data-page="tokens" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold">✂️ Tokens</button>
     </nav>
 
@@ -141,7 +142,7 @@
         <div>
           <p class="text-sm font-medium">⌨️ Raccourcis</p>
           <p class="text-xs text-zinc-500 dark:text-zinc-400"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd> afficher / cacher ·
-            <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> usage des modèles</p>
+            <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> usage des modèles · <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> reprompt</p>
         </div>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
@@ -187,6 +188,15 @@
             carte.</p>
         </div>
         <label class="toggle"><input id="approvals" type="checkbox" /><span></span></label>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">🛑 Bloquer les commandes dangereuses</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Avant un <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">rm -rf</code>,
+            un <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">git push --force</code>, un formatage… Booffer croise les bras et te demande
+            de confirmer. Sans réponse en 55 s, c'est bloqué. Marche même en mode auto de Claude Code.</p>
+        </div>
+        <label class="toggle"><input id="guard-toggle" type="checkbox" /><span></span></label>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
@@ -260,6 +270,15 @@
         </div>
       </section>
 
+      <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
+        <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">🎯 Ma limite par jour</h2>
+        <p class="mt-0.5 text-[11px] text-zinc-400">
+          Un plafond de tokens par IA : Booffer te prévient à 80 % et à 100 %, et te dit si tu es en avance ou en retard
+          sur ton rythme (limite répartie de 8 h à minuit).
+        </p>
+        <div id="budget-rows" class="mt-3 space-y-3"></div>
+      </section>
+
       <section id="usage-limits-block" class="hidden rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
         <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Limites de ton abonnement</h2>
         <div id="usage-limits" class="space-y-2.5"></div>
@@ -273,6 +292,23 @@
       <p class="px-2 text-center text-[11px] leading-relaxed text-zinc-400">
         Lu directement dans les fichiers de tes outils, rien ne quitte ton PC.<br />
         Une « réponse » = un message de l'IA. Les tokens d'Antigravity sont approximatifs.
+      </p>
+    </div>
+
+    <div id="page-live" class="hidden space-y-4">
+      <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
+        <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Applis d'IA ouvertes</h2>
+        <div id="live-apps" class="flex flex-wrap gap-1.5"></div>
+      </section>
+      <section class="rounded-2xl bg-white px-4 pt-3 pb-1 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
+        <div class="flex items-baseline justify-between gap-2">
+          <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Agents en direct</h2>
+          <span id="live-summary" class="text-[11px] text-zinc-400"></span>
+        </div>
+        <ul id="live-sessions" class="divide-y divide-zinc-100 dark:divide-zinc-800"></ul>
+      </section>
+      <p class="px-2 text-center text-[11px] leading-relaxed text-zinc-400">
+        Mis à jour en continu. Le contexte (🧠) est connu pour Claude Code ; le temps restant vient de tes tâches passées.
       </p>
     </div>
 
@@ -304,10 +340,10 @@
       </section>
 
       <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
-        <h2 class="text-sm font-bold">✂️ Compresser un prompt</h2>
+        <h2 class="text-sm font-bold">🔁 Reprompt</h2>
         <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-          Écris ta demande normalement : Booffer la réécrit en « langage IA » (télégraphique, sans politesse ni mots inutiles).
-          Pas joli pour un humain, mais l'IA comprend pareil.
+          Écris ta demande normalement : Booffer la réécrit rien que pour l'IA, en « langage IA » (télégraphique, sans politesse
+          ni mots inutiles). Pas joli pour un humain, mais l'IA comprend pareil, va plus vite et lit moins de tokens.
         </p>
         <textarea id="prompt-in" rows="4" placeholder="Ex. : Salut ! Est-ce que tu peux stp corriger le bug du fichier pet.rs et ensuite lancer les tests ?"
           class="mt-2 w-full resize-y rounded-lg bg-zinc-100 px-3 py-2 text-xs outline-none ring-violet-400 focus:ring-2 dark:bg-zinc-800"></textarea>
@@ -318,8 +354,15 @@
         <textarea id="prompt-out" rows="3" readonly placeholder="Version compressée"
           class="mt-1 w-full resize-y rounded-lg bg-violet-50 px-3 py-2 font-mono text-xs outline-none dark:bg-violet-950/40"></textarea>
         <div class="mt-1 flex items-center justify-between gap-2">
-          <p class="text-[11px] text-zinc-400">Astuce : copie un prompt puis <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd>, il est compressé dans le presse-papier.</p>
+          <p class="text-[11px] text-zinc-400">Partout : copie ton prompt, <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd>, puis colle la version IA.</p>
           <button id="prompt-copy" disabled class="shrink-0 rounded-lg bg-violet-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-600 disabled:opacity-40">📋 Copier</button>
+        </div>
+        <div id="reprompt-ai-row" class="mt-3 flex items-center justify-between gap-4 rounded-xl bg-zinc-50 px-3 py-2 dark:bg-zinc-800/60">
+          <div>
+            <p class="text-xs font-medium">✨ <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> avec Haiku</p>
+            <p class="text-[11px] text-zinc-500 dark:text-zinc-400">Réécriture plus maline (≈ 5 s) au lieu de la compression locale instantanée.</p>
+          </div>
+          <label class="toggle"><input id="reprompt-ai" type="checkbox" /><span></span></label>
         </div>
         <p class="mt-2 text-[11px] leading-relaxed text-zinc-400">
           Compression locale : gratuite et instantanée. Haiku : plus malin (peut passer en anglais, plus court), mais lancé avec ton compte Claude Code, donc ça coûte un tout petit peu.
