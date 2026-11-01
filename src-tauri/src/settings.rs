@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
 use std::sync::Mutex;
-use tauri::{AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition};
+use tauri::{AppHandle, Emitter, LogicalSize, Manager};
 
 use crate::pet::PetState;
 
@@ -128,25 +128,10 @@ pub fn apply(app: &AppHandle, settings: &Settings) {
     app.state::<PetState>().glide.store(settings.glide, Relaxed);
     crate::sync_tray(app, settings);
     if let Some(window) = app.get_webview_window("main") {
-        resize(&window, settings.size.clamp(0.6, 1.6));
+        // pet.rs keeps the ghost's feet in place when the size changes.
+        let size = settings.size.clamp(0.6, 1.6);
+        let _ = window.set_size(LogicalSize::new(BASE_WINDOW.0 * size, BASE_WINDOW.1 * size));
     }
-}
-
-/// The ghost stands at the bottom of its window: the window grows or shrinks around its feet
-/// (bottom center), so the ghost stays where it was instead of sliding down off the screen.
-fn resize(window: &tauri::WebviewWindow, size: f64) {
-    let wanted = LogicalSize::new(BASE_WINDOW.0 * size, BASE_WINDOW.1 * size);
-    let (Ok(pos), Ok(old), Ok(scale)) = (window.outer_position(), window.outer_size(), window.scale_factor()) else {
-        let _ = window.set_size(wanted);
-        return;
-    };
-    let new = wanted.to_physical::<f64>(scale);
-    let (dw, dh) = (old.width as f64 - new.width, old.height as f64 - new.height);
-    if dw.abs() < 2.0 && dh.abs() < 2.0 {
-        return; // same size (any other setting changed)
-    }
-    let _ = window.set_position(PhysicalPosition::new(pos.x + (dw / 2.0).round() as i32, pos.y + dh.round() as i32));
-    let _ = window.set_size(wanted);
 }
 
 #[tauri::command]
