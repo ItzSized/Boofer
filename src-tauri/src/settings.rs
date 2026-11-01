@@ -1,6 +1,7 @@
 //! User settings: stored as JSON in the app config folder, shared with every window.
 
 use serde::{Deserialize, Serialize};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
 use std::sync::Mutex;
@@ -159,6 +160,21 @@ pub(crate) fn read_user_file(path: &Path, name: &str) -> Result<Option<String>, 
     }
 }
 
+/// Replaces a file of the user's in one step: written next to it, then renamed over it, so a
+/// crash or a full disk never leaves it cut in half. A link (dotfiles) stays a link: the file
+/// it points to is the one replaced.
+pub(crate) fn write_user_file(path: &Path, text: &str) -> Result<(), String> {
+    let target = std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
+    let mut tmp = target.clone().into_os_string();
+    tmp.push(".booffer-tmp");
+    let tmp = PathBuf::from(tmp);
+    std::fs::write(&tmp, text).map_err(|e| e.to_string())?;
+    std::fs::rename(&tmp, &target).map_err(|e| {
+        let _ = std::fs::remove_file(&tmp);
+        e.to_string()
+    })
+}
+
 pub(crate) fn claude_settings_path() -> Option<PathBuf> {
     std::env::var_os("USERPROFILE")
         .or_else(|| std::env::var_os("HOME"))
@@ -243,19 +259,27 @@ fn install_hooks_at(path: &Path) -> Result<(), String> {
         }
     }
 
-    if let Some(text) = existing {
+    if let Some(text) = &existing {
         // Only once: an upgrade (new hooks) must not replace the original with a copy holding ours.
         let backup = path.with_extension("json.booffer-backup");
-        if !backup.exists() {
-            std::fs::write(&backup, text)
-                .map_err(|e| format!("copie de sauvegarde impossible, rien n'a été modifié : {e}"))?;
+        let failed = |e: std::io::Error| format!("copie de sauvegarde impossible, rien n'a été modifié : {e}");
+        match std::fs::OpenOptions::new().write(true).create_new(true).open(&backup) {
+            Ok(mut file) => {
+                if let Err(e) = file.write_all(text.as_bytes()) {
+                    drop(file); // closed first: Windows won't delete an open file
+                    let _ = std::fs::remove_file(&backup);
+                    return Err(failed(e));
+                }
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {}
+            Err(e) => return Err(failed(e)),
         }
     }
     if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
     }
     let text = serde_json::to_string_pretty(&root).map_err(|e| e.to_string())?;
-    std::fs::write(path, text + "\n").map_err(|e| e.to_string())
+    write_user_file(path, &(text + "\n"))
 }
 
 #[cfg(test)]
@@ -318,6 +342,7 @@ pub(crate) mod tests {
         install_hooks_at(&path).unwrap();
         assert!(std::fs::read_to_string(&path).unwrap().contains(HOOK_MARKER));
         assert!(!path.with_extension("json.booffer-backup").exists());
+        assert!(!dir.0.join("settings.json.booffer-tmp").exists());
     }
 
     #[test]
