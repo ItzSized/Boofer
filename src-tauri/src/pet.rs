@@ -166,8 +166,10 @@ pub fn start(window: WebviewWindow) {
                 if let Ok(Some(monitor)) = window.monitor_from_point(cx, cy) {
                     let (area, s) = (monitor.work_area(), monitor.scale_factor());
                     let (left, top) = (area.position.x as f64, area.position.y as f64);
-                    nx = (left + area.size.width as f64 - w - DEFAULT_MARGIN.0 * s).max(left);
-                    ny = (top + area.size.height as f64 - h - DEFAULT_MARGIN.1 * s).max(top);
+                    // Our size once there: Windows keeps the logical size on a screen with another scale.
+                    let (sw, sh) = (w / scale * s, h / scale * s);
+                    nx = (left + area.size.width as f64 - sw - DEFAULT_MARGIN.0 * s).max(left);
+                    ny = (top + area.size.height as f64 - sh - DEFAULT_MARGIN.1 * s).max(top);
                 }
             }
             if let Some((hwnd, r)) = target {
