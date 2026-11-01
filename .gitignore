@@ -5,6 +5,7 @@ src-tauri/gen/
 .env
 /\!_EXE_ET_INSTALLEUR/
 /*.exe
+/*.msi
 public/downloads/*.exe
 website/public/downloads/*.exe
 settings.json
