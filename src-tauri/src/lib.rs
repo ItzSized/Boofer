@@ -14,7 +14,7 @@ use std::net::{SocketAddr, TcpStream};
 use std::sync::atomic::Ordering::Relaxed;
 use std::time::Duration;
 use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu};
-use tauri::tray::{TrayIcon, TrayIconBuilder};
+use tauri::tray::TrayIconBuilder;
 use tauri::{AppHandle, Emitter, Manager, Wry};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 use tauri_plugin_notification::NotificationExt;
@@ -183,9 +183,10 @@ struct TrayItems {
     dnd: Submenu<Wry>,
     dnd_off: MenuItem<Wry>,
     hidden: CheckMenuItem<Wry>,
-    /// Its tooltip shows the status of the session the ghost shows (set_tray_status).
-    icon: TrayIcon<Wry>,
 }
+
+/// The tray icon, found by id: a copy kept in TrayItems would leave it in the tray after « Quitter ».
+const TRAY_ID: &str = "booffer";
 
 const DND: &str = "Ne pas déranger";
 const DND_ON: &str = "Ne pas déranger (activé)";
@@ -243,8 +244,16 @@ fn set_hidden(app: AppHandle, hidden: bool) {
 /// Tray icon tooltip: what the ghost is showing, readable even when it is hidden.
 #[tauri::command]
 fn set_tray_status(app: AppHandle, text: String) {
-    if let Some(items) = app.try_state::<TrayItems>() {
-        let _ = items.icon.set_tooltip(Some(text));
+    // Windows keeps 127 UTF-16 units, and an empty tooltip shows nothing.
+    let mut tip = String::new();
+    for c in text.trim().chars() {
+        if tip.encode_utf16().count() + c.len_utf16() > 127 {
+            break;
+        }
+        tip.push(c);
+    }
+    if let Some(tray) = app.tray_by_id(TRAY_ID) {
+        let _ = tray.set_tooltip(Some(if tip.is_empty() { "Booffer".to_string() } else { tip }));
     }
 }
 
@@ -367,7 +376,7 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
     let quit_item = MenuItem::with_id(app, "quit", "Quitter Booffer", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&settings_item, &models_item, &follow, &dnd, &recall, &hidden, &quit_item])?;
 
-    let icon = TrayIconBuilder::new()
+    TrayIconBuilder::with_id(TRAY_ID)
         .icon(app.default_window_icon().cloned().expect("bundle icon"))
         .tooltip("Booffer")
         .menu(&menu)
@@ -401,7 +410,7 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
         })
         .build(app)?;
 
-    app.manage(TrayItems { follow, dnd, dnd_off, hidden, icon });
+    app.manage(TrayItems { follow, dnd, dnd_off, hidden });
     Ok(())
 }
 
