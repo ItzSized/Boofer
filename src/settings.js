@@ -37,6 +37,8 @@ const EDITORS = [
   { id: "code", name: "VS Code" },
   { id: "cursor", name: "Cursor" },
   { id: "windsurf", name: "Windsurf" },
+  // Claude Code and Codex in Windows Terminal (WindowsTerminal.exe).
+  { id: "windowsterminal", name: "Terminal" },
 ];
 const SLEEP_CHOICES = [
   [30, "30 s"],
