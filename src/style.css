@@ -8,6 +8,14 @@ body {
   background: transparent;
 }
 
+/* The window is 248 × 440 px times the size setting (BASE_WINDOW in settings.rs) and main.js
+   zooms the page by that same size, so the app is laid out at size 1: with 100vw × 100vh the
+   zoom would count twice (the ghost was cut off at 140 %, its head at 70 %). */
+#app {
+  width: 248px;
+  height: 440px;
+}
+
 .mascot {
   --agent: #a78bfa;
   /* Skin (see "Skins" below): body gradient, face color, eye highlight, cheeks. */

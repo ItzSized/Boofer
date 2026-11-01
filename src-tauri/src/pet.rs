@@ -84,11 +84,16 @@ pub fn start(window: WebviewWindow) {
             if config.version.load(Relaxed) != settings_version {
                 settings_version = config.version.load(Relaxed);
                 let current = config.current.lock().unwrap();
-                everywhere = current.everywhere();
-                follow_windows = current.follows_windows();
-                targets = current.target_apps.iter().map(|t| t.trim().to_lowercase()).collect();
-                foreground = ForegroundTracker::default();
-                placed_on = None;
+                let next: Vec<String> = current.target_apps.iter().map(|t| t.trim().to_lowercase()).collect();
+                // Only where the ghost lives matters here. The other settings (size, sounds…) are
+                // changed while a window of ours is in front: starting over would hide the ghost.
+                if (current.everywhere(), current.follows_windows(), &next) != (everywhere, follow_windows, &targets) {
+                    everywhere = current.everywhere();
+                    follow_windows = current.follows_windows();
+                    targets = next;
+                    foreground.retarget(&targets, follow_windows);
+                    placed_on = None;
+                }
             }
 
             let state = window.state::<PetState>();
@@ -203,10 +208,26 @@ impl ForegroundTracker {
             return;
         }
         self.hwnd = hwnd;
-        let pid = os::window_pid(hwnd);
-        if pid == std::process::id() {
+        if os::window_pid(hwnd) == std::process::id() {
             return;
         }
+        self.classify(hwnd, targets, any_window);
+    }
+
+    /// New targets or mode: judges the last window that isn't ours again right away, since
+    /// ours (the settings window, the menu) is usually the one in front when they change.
+    fn retarget(&mut self, targets: &[String], any_window: bool) {
+        self.hwnd = 0;
+        self.editor = None;
+        self.target = None;
+        if let Some(hwnd) = self.other {
+            self.classify(hwnd, targets, any_window);
+        }
+    }
+
+    /// `hwnd` is the last window in front that isn't ours: is it one the ghost sits on?
+    fn classify(&mut self, hwnd: usize, targets: &[String], any_window: bool) {
+        let pid = os::window_pid(hwnd);
         self.other = Some(hwnd);
         let win_title = os::window_title(hwnd).to_lowercase();
         let is_target = os::process_name(pid).is_some_and(|path| {
