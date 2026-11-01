@@ -1,8 +1,9 @@
 /**
  * Right-click menu. `label` can be a function so toggles show their current value.
  * Hidden: the window is frameless and skips the taskbar, so this + the tray is how you quit.
+ * `onToggle` runs when it opens or closes (the window must then catch clicks there, or not).
  */
-export function createMenu(el, items) {
+export function createMenu(el, items, { onToggle = () => {} } = {}) {
   el.className =
     "absolute top-2 hidden min-w-36 flex-col overflow-hidden rounded-xl bg-white/95 dark:bg-zinc-900/95 py-1 text-xs shadow-lg ring-1 ring-black/10 dark:ring-white/15";
 
@@ -15,7 +16,7 @@ export function createMenu(el, items) {
       .join("");
   };
 
-  const hide = () => el.classList.replace("flex", "hidden");
+  const hide = () => el.classList.replace("flex", "hidden") && onToggle();
   el.addEventListener("click", (e) => {
     const i = e.target.closest("button")?.dataset.i;
     hide();
@@ -30,6 +31,7 @@ export function createMenu(el, items) {
     show() {
       render();
       el.classList.replace("hidden", "flex");
+      onToggle();
     },
   };
 }

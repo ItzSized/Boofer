@@ -85,6 +85,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   }
 
   let settingsLoaded = false;
+  let pet = null; // eyes, pats and click-through (created last, see createPet below)
   const bubbleEl = document.getElementById("bubble");
   bubbleEl.addEventListener("click", () => {
     const selected = selectedSession();
@@ -155,6 +156,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
       if (lastState === State.COMPACTING && state !== State.DONE) speech.say("relieved");
     }
     lastState = state;
+    pet?.refresh(); // cards, tabs or the bubble may have appeared or gone under the cursor
   }
 
   // Keeps the ⏱ timer in the bubble ticking.
@@ -471,13 +473,13 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
       ]
       : []),
     { label: "👋 Quitter", action: quit },
-  ]);
+  ], { onToggle: () => pet?.refresh() });
   document.addEventListener("contextmenu", (e) => {
     e.preventDefault();
     menu.show();
   });
 
-  createPet({
+  pet = createPet({
     app,
     mascot,
     mascotEl,
