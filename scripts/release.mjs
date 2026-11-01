@@ -1,6 +1,8 @@
-// npm run release: builds Booffer, then puts the fresh exe and installer at the root of
-// the project and in !_EXE_ET_INSTALLEUR, so the copy you double-click is always the latest.
-// `npm run release -- --copy` skips the build and only copies the last one.
+// npm run release: builds Booffer, then puts the fresh exe at the root of the project and in
+// !_EXE_ET_INSTALLEUR, so the copy you double-click is always the latest, and relaunches it.
+// Fast by default: exe only, incremental compile (the installers are built by GitHub on push).
+//   npm run release -- --installer   also builds the .msi / setup.exe locally
+//   npm run release -- --copy        skips the build and only copies the last one
 import { execSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -9,8 +11,14 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const destinations = [root, path.join(root, "!_EXE_ET_INSTALLEUR")];
 
+const withInstaller = process.argv.includes("--installer");
 if (!process.argv.includes("--copy")) {
-  execSync("npm run tauri build", { cwd: root, stdio: "inherit" });
+  execSync(`npm run tauri build${withInstaller ? "" : " -- --no-bundle"}`, {
+    cwd: root,
+    stdio: "inherit",
+    // Only rebuilds what changed; same optimizations otherwise.
+    env: { ...process.env, CARGO_PROFILE_RELEASE_INCREMENTAL: "true" },
+  });
 }
 
 // Same lookup as cargo: CARGO_TARGET_DIR, then src-tauri/.cargo/config.toml, then src-tauri/target.
@@ -25,11 +33,12 @@ function targetDir() {
 }
 
 const release = path.join(targetDir(), "release");
-const nsis = path.join(release, "bundle/nsis");
-const installer = fs.readdirSync(nsis).filter((f) => f.endsWith("-setup.exe"))
-  .map((f) => path.join(nsis, f))
-  .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)[0];
-const files = [[path.join(release, "booffer.exe"), "Booffer.exe"], [installer, path.basename(installer)]];
+const bundles = [path.join(release, "bundle/nsis"), path.join(release, "bundle/msi")];
+const installers = withInstaller
+  ? bundles.filter((dir) => fs.existsSync(dir)).flatMap((dir) =>
+    fs.readdirSync(dir).filter((f) => /(-setup\.exe|\.msi)$/.test(f)).map((f) => path.join(dir, f)))
+  : [];
+const files = [[path.join(release, "booffer.exe"), "Booffer.exe"], ...installers.map((f) => [f, path.basename(f)])];
 
 // A running exe can't be overwritten on Windows, but it can be renamed out of the way.
 function copy(from, to) {
@@ -50,7 +59,7 @@ function copy(from, to) {
 for (const dir of destinations) {
   fs.mkdirSync(dir, { recursive: true });
   for (const [from, name] of files) copy(from, path.join(dir, name));
-  console.log(`✔ ${path.relative(root, dir) || "."} ← Booffer.exe, ${path.basename(installer)}`);
+  console.log(`✔ ${path.relative(root, dir) || "."} ← ${files.map(([, name]) => name).join(", ")}`);
 }
 
 // The new exe closes any older Booffer still running when it starts.

@@ -35,13 +35,12 @@
   "bundle": {
     "active": true,
     "targets": [
-      "nsis",
-      "dmg",
-      "app",
-      "deb",
-      "rpm",
-      "appimage"
+      "msi",
+      "nsis"
     ],
+    "windows": {
+      "webviewInstallMode": { "type": "downloadBootstrapper" }
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

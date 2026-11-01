@@ -4,6 +4,16 @@ Un petit fantôme qui vit sur ton écran pendant que tes agents IA codent. Il te
 
 > Projet indépendant, non affilié à Anthropic. « Claude » et « Claude Code » sont des marques d'Anthropic.
 
+## Télécharger (Windows 10 / 11)
+
+👉 **[Dernière version](https://github.com/ItzSized/Boofer/releases/latest)**, rien à compiler, au choix :
+
+- **`Booffer_…_x64_en-US.msi`** : installeur classique (recommandé)
+- **`Booffer_…_x64-setup.exe`** : installeur léger
+- **`Booffer.exe`** : version portable, double-clic et c'est parti
+
+Rien d'autre à installer : les installeurs ajoutent WebView2 s'il manque (déjà là sur Windows 10/11), et il n'y a besoin ni de Node ni de Rust. Pour Claude Code : **Réglages → Claude Code → Connecter**. Antigravity et Codex sont détectés tout seuls.
+
 ## Ce qu'il fait
 
 - **Statut en direct** : le projet, ta demande, l'action en cours (« Modifie pet.js », « Lance : npm run build »), le temps écoulé, le temps restant (estimé à partir des tâches déjà finies, lissé pour ne pas sauter dans tous les sens), le nombre d'actions, les fichiers modifiés, les échecs et les sous-agents actifs.
@@ -20,6 +30,10 @@ Un petit fantôme qui vit sur ton écran pendant que tes agents IA codent. Il te
 - **Compactage et contexte** : une jauge « 🧠 Contexte 64 % » prévient avant que Claude Code compacte, et pendant un compactage le fantôme se serre comme un accordéon avec un % et le temps restant (d'après la durée de tes compactages précédents).
 - **Suis-moi** (clic droit, barre système ou réglages) : il saute sur la fenêtre où tu es, quelle que soit l'appli. Coupé, il reste sur ton éditeur ou là où tu l'as posé sur le bureau.
 - **Économiser des tokens** (Réglages → ✂️ Tokens) : compacter Claude Code plus tôt (contexte plus petit, chaque message coûte moins), réponses courtes, et un compresseur de prompt en « langage IA » (local et gratuit, ou reformulé par Claude Haiku). Raccourci : copie un prompt puis Ctrl+Alt+P.
+- **Stop aux commandes dangereuses** : avant un `rm -rf`, un `git push --force`, un `git reset --hard` ou un formatage, le fantôme croise les bras et demande « Es-tu sûr de continuer ? ». Sans réponse en 55 s, c'est bloqué (Claude Code, même en mode auto).
+- **Limite par IA** (Réglages → 📊 Modèles) : un plafond de tokens par jour pour Claude, Gemini et GPT, une alerte à 80 % et à 100 %, et « ⚡ en avance / 🐢 en retard » sur ton rythme.
+- **En direct** (Réglages → 🟢 Direct) : les applis d'IA ouvertes et chaque agent qui tourne, avec son modèle, son contexte en tokens et le temps restant.
+- **Reprompt** (clic droit ou Ctrl+Alt+P) : le prompt copié est réécrit rien que pour l'IA, plus court, en local ou avec Claude Haiku.
 - **Clic sur la bulle** : ramène au premier plan la fenêtre du projet en cours.
 - **Notifications Windows** quand une tâche finit et que tu n'es pas sur ton éditeur, et une alerte quand une limite d'abonnement dépasse 80 %.
 - **Raccourcis** : Ctrl+Alt+B pour l'afficher ou le cacher, Ctrl+Alt+M pour l'usage des modèles.
@@ -29,7 +43,9 @@ Un petit fantôme qui vit sur ton écran pendant que tes agents IA codent. Il te
 - **Historique** : les tâches terminées du jour, le temps de travail des agents et les fichiers modifiés, dans les réglages.
 - **Discret** : les clics passent à travers les zones vides, et il se ferme avec le bouton ×, le clic droit ou l'icône de la barre système.
 
-## Installation (Windows)
+## Compiler soi-même (développeurs)
+
+Inutile pour utiliser Booffer : chaque push sur `main` reconstruit les installeurs et met à jour la release GitHub (`.github/workflows/release.yml`).
 
 ### Prérequis
 
@@ -41,12 +57,11 @@ Un petit fantôme qui vit sur ton écran pendant que tes agents IA codent. Il te
 
 ```bash
 npm install
-npm run tauri build
+npm run release               # exe seul, en ~1 min : copié à la racine du projet et relancé
+npm run release -- --installer  # + installeurs .msi et .exe
 ```
 
-L'installeur est créé dans `src-tauri/target/release/bundle/nsis/` et l'exe dans `src-tauri/target/release/booffer.exe`.
-
-Pour développer : `npm run tauri dev`. Pour travailler l'interface dans un navigateur, sans Rust : `npm run dev`, puis clic droit sur le fantôme pour lancer les démos.
+Pour développer sans recompiler : `npm run tauri dev` (l'interface se recharge toute seule à chaque modification). Pour travailler l'interface dans un navigateur, sans Rust : `npm run dev`, puis clic droit sur le fantôme pour lancer les démos.
 
 ## Brancher Claude Code
 
