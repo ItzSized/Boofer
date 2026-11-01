@@ -105,12 +105,14 @@ export function createPet({ app, mascot, mascotEl, closeBtn, fx, targets, isTaur
     playPat();
     onMoment("pat");
     const b = body();
+    // The rect is in window px, the hearts are placed inside the page zoomed by the size setting.
+    const zoom = Number(document.documentElement.style.zoom) || 1;
     for (let i = 0; i < 3; i++) {
       const heart = document.createElement("div");
       heart.className = "heart";
       heart.innerHTML = HEART;
-      heart.style.left = `${b.left + b.width * (0.3 + Math.random() * 0.4)}px`;
-      heart.style.top = `${b.top + 4}px`;
+      heart.style.left = `${(b.left + b.width * (0.3 + Math.random() * 0.4)) / zoom}px`;
+      heart.style.top = `${b.top / zoom + 4}px`;
       heart.style.setProperty("--dx", `${(Math.random() - 0.5) * 50}px`);
       heart.style.animationDelay = `${i * 110}ms`;
       fx.append(heart);
