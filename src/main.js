@@ -6,7 +6,7 @@ import { loadHistory, recordFinished, todayStats } from "./core/history.js";
 import { gainXp, levelFor, loadXp } from "./core/level.js";
 import { compact, describeModel, localDay, summarize } from "./core/models.js";
 import { dailyBudgets } from "./core/budget.js";
-import { clockTime, duration, isNewer } from "./core/format.js";
+import { approx, clockTime, duration, isNewer } from "./core/format.js";
 import { compressWithStats, estimateTokens } from "./core/compress.js";
 import { EtaEstimator } from "./core/eta.js";
 import { State } from "./core/states.js";
@@ -142,6 +142,11 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     mascotEl.classList.toggle("tired", tired);
     usageBar.setActiveSession(selected);
     tabs.render(sessions, selected?.key);
+    const status = trayStatus(selected, state);
+    if (isTauri && status !== trayText) {
+      trayText = status;
+      invoke("set_tray_status", { text: status });
+    }
 
     if (state !== lastState) {
       if (state === State.ATTENTION) {
@@ -155,6 +160,26 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
       if (lastState === State.COMPACTING && state !== State.DONE) speech.say("relieved");
     }
     lastState = state;
+  }
+
+  // The tray icon's tooltip says what the bubble says: readable when the ghost is hidden or elsewhere.
+  let trayText = "Booffer";
+  function trayStatus(selected, state) {
+    const parts = [settings.dnd ? "Booffer 🌙" : "Booffer"];
+    if (asking()) parts.push(guard.isOpen() ? "« Stop ! » : une commande attend ta réponse" : "Une demande attend ta réponse");
+    else if (selected && state !== State.IDLE) {
+      const pct = typeof selected.progress === "number" ? ` · ${Math.round(selected.progress * 100)} %` : "";
+      const left = state === State.DONE ? null : eta.remaining(selected);
+      const rest = left == null ? "" : left < 5000 ? " · presque fini" : ` · reste ${approx(left)}`;
+      parts.push(`${selected.project || selected.agent} : ${selected.label}${pct}${rest}`);
+    } else parts.push("rien en cours");
+    const busy = sessions.filter((s) => s.state !== State.IDLE).length;
+    if (busy > 1) parts.push(`${busy} sessions`);
+    // Windows cuts tooltips at 127 UTF-16 units: shorten by whole characters (emoji included).
+    const chars = [...parts.join(" · ")];
+    if (chars.join("").length <= 120) return chars.join("");
+    while (chars.join("").length > 119) chars.pop();
+    return `${chars.join("")}…`;
   }
 
   // Keeps the ⏱ timer in the bubble ticking.
@@ -320,6 +345,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     mascotEl.dataset.skin = settings.skin;
     mascotEl.dataset.accessory = settings.accessory;
     usageBar.rerender();
+    render(); // the tray tooltip shows « Ne pas déranger » too
   }
 
   // « Ne pas déranger » for a while ("30", "60", "morning"), with no end ("on"), or "off". The tray

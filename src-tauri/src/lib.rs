@@ -14,7 +14,7 @@ use std::net::{SocketAddr, TcpStream};
 use std::sync::atomic::Ordering::Relaxed;
 use std::time::Duration;
 use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu};
-use tauri::tray::TrayIconBuilder;
+use tauri::tray::{TrayIcon, TrayIconBuilder};
 use tauri::{AppHandle, Emitter, Manager, Wry};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 use tauri_plugin_notification::NotificationExt;
@@ -183,6 +183,8 @@ struct TrayItems {
     dnd: Submenu<Wry>,
     dnd_off: MenuItem<Wry>,
     hidden: CheckMenuItem<Wry>,
+    /// Its tooltip shows the status of the session the ghost shows (set_tray_status).
+    icon: TrayIcon<Wry>,
 }
 
 const DND: &str = "Ne pas déranger";
@@ -236,6 +238,14 @@ fn show_settings(app: &AppHandle, page: &str) -> Result<(), String> {
 fn set_hidden(app: AppHandle, hidden: bool) {
     app.state::<PetState>().hidden.store(hidden, Relaxed);
     let _ = app.state::<TrayItems>().hidden.set_checked(hidden);
+}
+
+/// Tray icon tooltip: what the ghost is showing, readable even when it is hidden.
+#[tauri::command]
+fn set_tray_status(app: AppHandle, text: String) {
+    if let Some(items) = app.try_state::<TrayItems>() {
+        let _ = items.icon.set_tooltip(Some(text));
+    }
 }
 
 /// Keeps the ghost visible while a permission card waits, even outside the target app.
@@ -357,7 +367,7 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
     let quit_item = MenuItem::with_id(app, "quit", "Quitter Booffer", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&settings_item, &models_item, &follow, &dnd, &recall, &hidden, &quit_item])?;
 
-    TrayIconBuilder::new()
+    let icon = TrayIconBuilder::new()
         .icon(app.default_window_icon().cloned().expect("bundle icon"))
         .tooltip("Booffer")
         .menu(&menu)
@@ -391,7 +401,7 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
         })
         .build(app)?;
 
-    app.manage(TrayItems { follow, dnd, dnd_off, hidden });
+    app.manage(TrayItems { follow, dnd, dnd_off, hidden, icon });
     Ok(())
 }
 
@@ -425,6 +435,7 @@ pub fn run() {
             set_follow,
             set_hidden,
             set_attention,
+            set_tray_status,
             notify,
             focus_project,
             tokens::get_token_savers,
