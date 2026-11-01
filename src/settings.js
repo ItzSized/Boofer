@@ -9,7 +9,7 @@ import { createUsageView } from "./ui/usage-view.js";
 import { createTokensView } from "./ui/tokens-view.js";
 import { createLiveView } from "./ui/live-view.js";
 import { PERKS, levelFor, loadXp } from "./core/level.js";
-import { isNewer } from "./core/format.js";
+import { clockTime, isNewer } from "./core/format.js";
 import "./style.css";
 import "./settings.css";
 
@@ -51,7 +51,7 @@ const SLEEP_CHOICES = [
 const isTauri = "__TAURI_INTERNALS__" in window;
 const DEV_SETTINGS = {
   display: "editor", notifications: true, targetApps: ["antigravity"], follow: false, glide: false, sounds: true, volume: 0.8,
-  size: 1, skin: "classique", accessory: "aucun", sleepAfter: 45, approvals: true, theme: "auto", dnd: false, speech: true,
+  size: 1, skin: "classique", accessory: "aucun", sleepAfter: 45, approvals: true, theme: "auto", dnd: false, dndUntil: 0, speech: true,
   guard: true, dailyLimits: { anthropic: 50_000_000 }, repromptAi: false,
 };
 const todayIso = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
@@ -162,6 +162,7 @@ function render() {
   $("guard-toggle").checked = settings.guard !== false;
   $("reprompt-ai").checked = Boolean(settings.repromptAi);
   $("dnd-toggle").checked = settings.dnd;
+  $("dnd-until").textContent = settings.dnd && settings.dndUntil ? ` Jusqu'à ${clockTime(settings.dndUntil)}.` : "";
   $("speech-toggle").checked = settings.speech;
   $("notifications").checked = settings.notifications !== false;
 }
@@ -271,7 +272,8 @@ $("autostart").addEventListener("change", async (e) => {
   }
   e.target.checked = await call("get_autostart");
 });
-$("dnd-toggle").addEventListener("change", (e) => save({ dnd: e.target.checked }));
+// Here it has no end: for a while, it's the tray or the ghost's menu (they set dndUntil).
+$("dnd-toggle").addEventListener("change", (e) => save({ dnd: e.target.checked, dndUntil: 0 }));
 $("notifications").addEventListener("change", (e) => save({ notifications: e.target.checked }));
 $("speech-toggle").addEventListener("change", (e) => save({ speech: e.target.checked }));
 $("approvals").addEventListener("change", (e) => save({ approvals: e.target.checked }));

@@ -1,5 +1,6 @@
 /**
- * Right-click menu. `label` can be a function so toggles show their current value.
+ * Right-click menu. `label` can be a function so toggles show their current value, and
+ * `visible` a function to show an item only when it applies.
  * Hidden: the window is frameless and skips the taskbar, so this + the tray is how you quit.
  */
 export function createMenu(el, items) {
@@ -9,6 +10,7 @@ export function createMenu(el, items) {
   const render = () => {
     el.innerHTML = items
       .map((item, i) => {
+        if (item.visible && !item.visible()) return "";
         const label = typeof item.label === "function" ? item.label() : item.label;
         return `<button data-i="${i}" class="px-3 py-1.5 text-left text-zinc-700 dark:text-zinc-200 hover:bg-violet-100 dark:hover:bg-violet-900/50">${label}</button>`;
       })
