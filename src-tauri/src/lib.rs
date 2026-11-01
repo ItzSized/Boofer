@@ -351,10 +351,11 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
         ],
     )?;
     let hidden = CheckMenuItem::with_id(app, "hidden", "Masquer", true, false, None::<&str>)?;
+    let recall = MenuItem::with_id(app, "recall", "Ramener le fantôme", true, None::<&str>)?;
     let settings_item = MenuItem::with_id(app, "settings", "Réglages…", true, None::<&str>)?;
     let models_item = MenuItem::with_id(app, "models", "Usage des modèles…", true, None::<&str>)?;
     let quit_item = MenuItem::with_id(app, "quit", "Quitter Booffer", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&settings_item, &models_item, &follow, &dnd, &hidden, &quit_item])?;
+    let menu = Menu::with_items(app, &[&settings_item, &models_item, &follow, &dnd, &recall, &hidden, &quit_item])?;
 
     TrayIconBuilder::new()
         .icon(app.default_window_icon().cloned().expect("bundle icon"))
@@ -374,6 +375,11 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
                     let _ = set_follow(app.clone(), !following);
                 }
                 "hidden" => set_hidden(app.clone(), !state.hidden.load(Relaxed)),
+                // Lost off screen, under the taskbar or behind a corner: shown again, back in its corner.
+                "recall" => {
+                    set_hidden(app.clone(), false);
+                    state.recall.store(true, Relaxed);
+                }
                 "quit" => app.exit(0),
                 // « 30 », « 60 », « morning », « on », « off »: the ghost window knows the local time
                 // (« demain matin ») and saves when it ends; it also turns it off then.
