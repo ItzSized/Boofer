@@ -175,7 +175,9 @@ pub fn start(window: WebviewWindow) {
                     vx: (step_x / scale) as i32,
                     title: title.clone(),
                 };
-                if last_tick.as_ref() != Some(&tick) {
+                // Unchanged ticks too, once a second: the page may have missed the last one
+                // (at startup it is not listening yet, and a still cursor sends nothing new).
+                if last_tick.as_ref() != Some(&tick) || frame % 60 == 0 {
                     let _ = window.emit("pet-tick", &tick);
                     last_tick = Some(tick);
                 }
