@@ -30,14 +30,20 @@ export function createPet({ app, mascot, mascotEl, closeBtn, fx, targets, isTaur
 
   // Transparent pixels still catch clicks on Windows: let them through
   // unless the cursor is over the ghost, the close button, the menu or the permission card.
+  // Away or hidden, the ghost is only faded out: then every click goes through.
   function setIgnore(value) {
     if (!win || value === ignoring) return;
     ignoring = value;
     win.setIgnoreCursorEvents(value);
   }
+  setIgnore(true); // until the first tick tells where the cursor is
 
   let title = null;
+  let lastTick = null;
   function onTick(t) {
+    lastTick = t;
+    // Before onWindowTitle: its render() replays this tick (refresh), which moves `last`.
+    const moved = Math.abs(t.x - last.x) + Math.abs(t.y - last.y) > 3;
     if (t.title !== undefined && t.title !== title) {
       title = t.title;
       onWindowTitle?.(title);
@@ -61,9 +67,9 @@ export function createPet({ app, mascot, mascotEl, closeBtn, fx, targets, isTaur
     const wasHovering = app.classList.contains("hovering");
     const hovering = visible && (inside(t, b, 8) || (wasHovering && inside(t, closeBtn.getBoundingClientRect(), 6)));
     app.classList.toggle("hovering", hovering);
-    setIgnore(!(hovering || targets().some((el) => inside(t, el.getBoundingClientRect(), 4))));
+    setIgnore(!visible || !(hovering || targets().some((el) => inside(t, el.getBoundingClientRect(), 4))));
 
-    if (Math.abs(t.x - last.x) + Math.abs(t.y - last.y) > 3) {
+    if (moved) {
       lastMoveAt = Date.now();
       wake();
     }
@@ -144,4 +150,9 @@ export function createPet({ app, mascot, mascotEl, closeBtn, fx, targets, isTaur
     // Plain browser (npm run dev): fake the ticks from regular mouse events.
     window.addEventListener("mousemove", (e) => onTick({ x: e.clientX, y: e.clientY, visible: true, moving: false, vx: 0 }));
   }
+
+  return {
+    /** A card, the menu or the bubble came or went under a still cursor: what catches clicks changed. */
+    refresh: () => lastTick && onTick(lastTick),
+  };
 }
