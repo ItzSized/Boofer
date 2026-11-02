@@ -6,7 +6,7 @@ const MINI_GHOST = `<svg viewBox="18 12 84 100" class="mini-ghost size-3.5 shrin
   <ellipse cx="47" cy="62" rx="6" ry="8" fill="#2b2240" /><ellipse cx="73" cy="62" rx="6" ry="8" fill="#2b2240" />
 </svg>`;
 
-/** One little ghost per session, shown when two or more agents are running. Click to switch. */
+/** One little ghost per session, shown when two or more agents are running. Click: shows it and opens its window. */
 export function createTabs(el, { onSelect }) {
   el.className = "mt-1 hidden w-[232px] flex-wrap justify-center gap-1";
 
@@ -28,6 +28,7 @@ export function createTabs(el, { onSelect }) {
         ...sessions.map((s) => {
           const button = document.createElement("button");
           button.dataset.key = s.key;
+          button.title = `Ouvrir la fenêtre de ${s.project || s.agent}`;
           const selected = s.key === selectedKey;
           button.className =
             "flex max-w-[112px] items-center gap-1 rounded-full bg-white/95 dark:bg-zinc-900/95 px-2 py-0.5 text-[10px] leading-4 shadow-sm " +

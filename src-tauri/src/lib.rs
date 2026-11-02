@@ -302,6 +302,12 @@ fn focus_project(project: String) -> bool {
     !project.trim().is_empty() && pet::focus_window_titled(&project)
 }
 
+/// Brings back a window Boofer found itself (the browser window of an AI chat, see web.rs).
+#[tauri::command]
+fn focus_window(hwnd: usize) -> bool {
+    pet::os::focus_window(hwnd)
+}
+
 /// Opens a page of the project on GitHub in the browser (only those).
 #[tauri::command]
 fn open_url(url: String) -> Result<(), String> {
@@ -470,6 +476,7 @@ pub fn run() {
             set_tray_status,
             notify,
             focus_project,
+            focus_window,
             tokens::get_token_savers,
             tokens::set_compact_window,
             tokens::set_concise,

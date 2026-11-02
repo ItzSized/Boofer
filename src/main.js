@@ -91,10 +91,16 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   let settingsLoaded = false;
   let pet = null; // eyes, pats and click-through (created last, see createPet below)
   const bubbleEl = document.getElementById("bubble");
-  bubbleEl.addEventListener("click", () => {
-    const selected = selectedSession();
-    if (isTauri && selected?.project) invoke("focus_project", { project: selected.project });
-  });
+  bubbleEl.addEventListener("click", () => focusSession(selectedSession()));
+
+  // Brings the session's window to the front: the browser window of an AI chat (found by
+  // web.rs, its id is « w<window> »), or the editor whose title shows the project.
+  function focusSession(session) {
+    if (!isTauri || !session) return;
+    const hwnd = session.key.match(/^web-[^:]+:w(\d+)$/)?.[1];
+    if (hwnd) invoke("focus_window", { hwnd: Number(hwnd) });
+    else if (session.project) invoke("focus_project", { project: session.project });
+  }
 
   // Which session the ghost shows, in order: one that just finished (for a few
   // seconds), the tab the user clicked, the one whose project is in the title of
@@ -109,6 +115,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     onSelect(key) {
       pinnedKey = key;
       render();
+      focusSession(sessions.find((s) => s.key === key));
     },
   });
 
@@ -141,7 +148,8 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     const context = contexts.get(selected?.key) ?? null;
     bubble.render(selected, context);
     // Clicking the bubble brings that session's window to the front.
-    bubbleEl.classList.toggle("clickable", Boolean(isTauri && selected?.project && state !== State.IDLE));
+    const reachable = selected && (selected.project || selected.key.startsWith("web-"));
+    bubbleEl.classList.toggle("clickable", Boolean(isTauri && reachable && state !== State.IDLE));
     const tired = Boolean(context?.tokens && context.tokens / context.window >= 0.8 && state !== State.COMPACTING);
     if (tired && !mascotEl.classList.contains("tired")) speech.say("tired");
     mascotEl.classList.toggle("tired", tired);

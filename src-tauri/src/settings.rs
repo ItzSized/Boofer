@@ -58,13 +58,15 @@ pub struct Settings {
     pub animations_off: Vec<String>,
     /// Downloads and installs a new release by itself (checked at launch and every few hours).
     pub auto_update: bool,
+    /// « ChatGPT, Gemini… (navigateur) » was added to the editors once (0.3.8); unchecking it sticks.
+    pub web_ai_added: bool,
 }
 
 impl Default for Settings {
     fn default() -> Self {
         Self {
             display: "editor".into(),
-            target_apps: vec!["antigravity".into(), "agy".into(), "code".into(), "cursor".into()],
+            target_apps: vec!["antigravity".into(), "agy".into(), "code".into(), "cursor".into(), "web-ai".into()],
             follow: false,
             glide: false,
             sounds: true,
@@ -86,6 +88,7 @@ impl Default for Settings {
             notify_when_silent: true,
             animations_off: Vec::new(),
             auto_update: true,
+            web_ai_added: true,
         }
     }
 }
@@ -112,10 +115,17 @@ fn file(app: &AppHandle) -> Option<PathBuf> {
 }
 
 pub fn load(app: &AppHandle) -> SettingsState {
-    let settings = file(app)
+    let mut settings: Settings = file(app)
         .and_then(|path| std::fs::read_to_string(path).ok())
         .and_then(|text| serde_json::from_str(&text).ok())
         .unwrap_or_default();
+    // The AI chats in the browser count as editors from 0.3.8 on: added once, for older settings.
+    if !settings.web_ai_added {
+        settings.web_ai_added = true;
+        if !settings.target_apps.iter().any(|t| t == "web-ai") {
+            settings.target_apps.push("web-ai".into());
+        }
+    }
     SettingsState { current: Mutex::new(settings), version: AtomicU64::new(0) }
 }
 

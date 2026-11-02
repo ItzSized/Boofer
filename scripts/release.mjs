@@ -13,7 +13,8 @@ const destinations = [root, path.join(root, "!_EXE_ET_INSTALLEUR")];
 
 const withInstaller = process.argv.includes("--installer");
 if (!process.argv.includes("--copy")) {
-  execSync(`npm run tauri build${withInstaller ? "" : " -- --no-bundle"}`, {
+  // The update signature needs the private key, which only GitHub has: local installers go without.
+  execSync(`npm run tauri build -- ${withInstaller ? "--config scripts/local-build.json" : "--no-bundle"}`, {
     cwd: root,
     stdio: "inherit",
     // Only rebuilds what changed; same optimizations otherwise.

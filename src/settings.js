@@ -403,7 +403,7 @@ async function installPending() {
 
 $("update-check").addEventListener("click", () => (pendingUpdate ? installPending() : checkForUpdate()));
 (async () => {
-  const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : "0.3.7";
+  const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : "0.3.8";
   $("version").textContent = current;
 })();
 window.addEventListener("focus", () => {

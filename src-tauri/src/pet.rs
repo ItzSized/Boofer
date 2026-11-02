@@ -327,7 +327,7 @@ pub(crate) mod os {
     use windows_sys::Win32::Foundation::LPARAM;
     use windows_sys::Win32::UI::WindowsAndMessaging::{
         EnumWindows, GetClassNameW, GetCursorPos, GetForegroundWindow, GetWindowRect, GetWindowTextLengthW, GetWindowTextW,
-        GetWindowThreadProcessId, IsIconic, IsWindowVisible, SetForegroundWindow, ShowWindow, SW_RESTORE,
+        GetWindowThreadProcessId, IsIconic, IsWindow, IsWindowVisible, SetForegroundWindow, ShowWindow, SW_RESTORE,
     };
 
     #[derive(Clone, Copy)]
@@ -415,14 +415,24 @@ pub(crate) mod os {
         }
         let mut search = Search { needle, found: 0 };
         unsafe { EnumWindows(Some(visit), &mut search as *mut Search as LPARAM) };
-        if search.found == 0 {
-            return false;
-        }
+        search.found != 0 && bring_to_front(search.found)
+    }
+
+    /// A window found earlier (a browser window read by web.rs): only an app window that
+    /// isn't ours, and still there.
+    pub fn focus_window(hwnd: usize) -> bool {
+        (unsafe { IsWindow(hwnd as HWND) } != 0)
+            && window_pid(hwnd) != std::process::id()
+            && is_app_window(hwnd)
+            && bring_to_front(hwnd)
+    }
+
+    fn bring_to_front(hwnd: usize) -> bool {
         unsafe {
-            if IsIconic(search.found as HWND) != 0 {
-                ShowWindow(search.found as HWND, SW_RESTORE);
+            if IsIconic(hwnd as HWND) != 0 {
+                ShowWindow(hwnd as HWND, SW_RESTORE);
             }
-            SetForegroundWindow(search.found as HWND) != 0
+            SetForegroundWindow(hwnd as HWND) != 0
         }
     }
 
@@ -496,4 +506,5 @@ mod os {
     pub fn top_level_windows() -> Vec<usize> { Vec::new() }
     pub fn is_app_window(_: usize) -> bool { false }
     pub fn focus_window_titled(_: &str) -> bool { false }
+    pub fn focus_window(_: usize) -> bool { false }
 }
