@@ -5,11 +5,11 @@
 //! - prompt compression with Claude Haiku (the local, free one is in src/core/compress.js).
 
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tauri::AppHandle;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 
-use crate::settings::claude_settings_path;
+use crate::settings::{claude_settings_path, read_user_file, write_user_file};
 
 const CONCISE_START: &str = "<!-- booffer:concise -->";
 const CONCISE_END: &str = "<!-- /booffer:concise -->";
@@ -38,10 +38,13 @@ fn claude_md() -> Option<PathBuf> {
 }
 
 fn read_settings() -> Result<serde_json::Value, String> {
-    let path = claude_settings_path().ok_or("dossier utilisateur introuvable")?;
-    match std::fs::read_to_string(&path) {
-        Ok(text) => serde_json::from_str(&text).map_err(|e| format!("~/.claude/settings.json illisible : {e}")),
-        Err(_) => Ok(serde_json::json!({})),
+    read_settings_at(&claude_settings_path().ok_or("dossier utilisateur introuvable")?)
+}
+
+fn read_settings_at(path: &Path) -> Result<serde_json::Value, String> {
+    match read_user_file(path, "~/.claude/settings.json")? {
+        Some(text) => serde_json::from_str(&text).map_err(|e| format!("~/.claude/settings.json illisible : {e}")),
+        None => Ok(serde_json::json!({})),
     }
 }
 
@@ -61,8 +64,11 @@ pub fn get_token_savers() -> TokenSavers {
 /// `tokens`: 100 000 to 1 000 000, or None to go back to Claude Code's default.
 #[tauri::command]
 pub fn set_compact_window(tokens: Option<u64>) -> Result<(), String> {
-    let path = claude_settings_path().ok_or("dossier utilisateur introuvable")?;
-    let mut root = read_settings()?;
+    set_compact_window_at(&claude_settings_path().ok_or("dossier utilisateur introuvable")?, tokens)
+}
+
+fn set_compact_window_at(path: &Path, tokens: Option<u64>) -> Result<(), String> {
+    let mut root = read_settings_at(path)?;
     let obj = root.as_object_mut().ok_or("~/.claude/settings.json n'est pas un objet JSON")?;
     match tokens {
         Some(t) => {
@@ -73,13 +79,16 @@ pub fn set_compact_window(tokens: Option<u64>) -> Result<(), String> {
         }
     }
     let text = serde_json::to_string_pretty(&root).map_err(|e| e.to_string())?;
-    std::fs::write(path, text + "\n").map_err(|e| e.to_string())
+    write_user_file(path, &(text + "\n"))
 }
 
 #[tauri::command]
 pub fn set_concise(enabled: bool) -> Result<(), String> {
-    let path = claude_md().ok_or("dossier utilisateur introuvable")?;
-    let text = std::fs::read_to_string(&path).unwrap_or_default();
+    set_concise_at(&claude_md().ok_or("dossier utilisateur introuvable")?, enabled)
+}
+
+fn set_concise_at(path: &Path, enabled: bool) -> Result<(), String> {
+    let text = read_user_file(path, "~/.claude/CLAUDE.md")?.unwrap_or_default();
     let without = match (text.find(CONCISE_START), text.find(CONCISE_END)) {
         (Some(start), Some(end)) if end > start => {
             format!("{}{}", &text[..start], &text[end + CONCISE_END.len()..]).trim().to_string()
@@ -93,10 +102,10 @@ pub fn set_concise(enabled: bool) -> Result<(), String> {
     };
     if next.is_empty() && !enabled {
         // We created the file: leave nothing behind.
-        let _ = std::fs::remove_file(&path);
+        let _ = std::fs::remove_file(path);
         return Ok(());
     }
-    std::fs::write(path, next + "\n").map_err(|e| e.to_string())
+    write_user_file(path, &(next + "\n"))
 }
 
 fn claude_command() -> std::process::Command {
@@ -165,4 +174,66 @@ pub fn read_clipboard_text(app: AppHandle) -> String {
 
 pub fn read_clipboard(app: &AppHandle) -> Option<String> {
     app.clipboard().read_text().ok().filter(|t| !t.trim().is_empty())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::settings::tests::{TempDir, ANSI};
+
+    #[test]
+    fn leaves_an_unreadable_claude_md_alone() {
+        let dir = TempDir::new("concise-unreadable");
+        let path = dir.0.join("CLAUDE.md");
+        std::fs::write(&path, ANSI).unwrap();
+        assert!(set_concise_at(&path, true).is_err());
+        assert_eq!(std::fs::read(&path).unwrap(), ANSI);
+        assert!(set_concise_at(&path, false).is_err());
+        assert_eq!(std::fs::read(&path).unwrap(), ANSI);
+    }
+
+    #[test]
+    fn adds_and_removes_only_its_block() {
+        let dir = TempDir::new("concise");
+        let path = dir.0.join("CLAUDE.md");
+        std::fs::write(&path, "# Mes règles\n- Réponds en français.\n").unwrap();
+        set_concise_at(&path, true).unwrap();
+        let on = std::fs::read_to_string(&path).unwrap();
+        assert!(on.starts_with("# Mes règles\n- Réponds en français.") && on.contains(CONCISE_START));
+        set_concise_at(&path, false).unwrap();
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "# Mes règles\n- Réponds en français.\n");
+    }
+
+    #[test]
+    fn compact_window_leaves_an_unreadable_settings_file_alone() {
+        let dir = TempDir::new("compact-unreadable");
+        let path = dir.0.join("settings.json");
+        std::fs::write(&path, ANSI).unwrap();
+        assert!(set_compact_window_at(&path, Some(200_000)).is_err());
+        assert_eq!(std::fs::read(&path).unwrap(), ANSI);
+    }
+
+    #[test]
+    fn compact_window_keeps_the_other_settings() {
+        let dir = TempDir::new("compact");
+        let path = dir.0.join("settings.json");
+        std::fs::write(&path, r#"{"model": "opus", "env": {"A": "1"}}"#).unwrap();
+        set_compact_window_at(&path, Some(200_000)).unwrap();
+        let set = read_settings_at(&path).unwrap();
+        assert_eq!((set["model"].as_str(), set["env"]["A"].as_str()), (Some("opus"), Some("1")));
+        assert_eq!(set["autoCompactWindow"], 200_000);
+        set_compact_window_at(&path, None).unwrap();
+        assert!(read_settings_at(&path).unwrap().get("autoCompactWindow").is_none());
+        assert!(!dir.0.join("settings.json.booffer-tmp").exists());
+    }
+
+    #[test]
+    fn creates_then_removes_its_own_claude_md() {
+        let dir = TempDir::new("concise-missing");
+        let path = dir.0.join("CLAUDE.md");
+        set_concise_at(&path, true).unwrap();
+        assert!(std::fs::read_to_string(&path).unwrap().contains(CONCISE_START));
+        set_concise_at(&path, false).unwrap();
+        assert!(!path.exists());
+    }
 }

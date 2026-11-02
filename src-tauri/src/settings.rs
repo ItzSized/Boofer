@@ -1,7 +1,8 @@
 //! User settings: stored as JSON in the app config folder, shared with every window.
 
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::io::Write;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, LogicalSize, Manager};
@@ -149,6 +150,32 @@ pub fn set_settings(app: AppHandle, settings: Settings) -> Result<(), String> {
 const HOOKS_TEMPLATE: &str = include_str!("../../hooks/claude-code-settings.example.json");
 const HOOK_MARKER: &str = "127.0.0.1:47823";
 
+/// A file of the user's that we are about to rewrite: `None` if it doesn't exist yet. Any other
+/// failure (locked, not UTF-8 like files saved by Windows PowerShell…) is an error, never an
+/// empty file: writing ours over it would erase what the user wrote.
+pub(crate) fn read_user_file(path: &Path, name: &str) -> Result<Option<String>, String> {
+    match std::fs::read_to_string(path) {
+        Ok(text) => Ok(Some(text)),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(e) => Err(format!("{name} illisible, rien n'a été modifié : {e}")),
+    }
+}
+
+/// Replaces a file of the user's in one step: written next to it, then renamed over it, so a
+/// crash or a full disk never leaves it cut in half. A link (dotfiles) stays a link: the file
+/// it points to is the one replaced.
+pub(crate) fn write_user_file(path: &Path, text: &str) -> Result<(), String> {
+    let target = std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
+    let mut tmp = target.clone().into_os_string();
+    tmp.push(".booffer-tmp");
+    let tmp = PathBuf::from(tmp);
+    std::fs::write(&tmp, text).map_err(|e| e.to_string())?;
+    std::fs::rename(&tmp, &target).map_err(|e| {
+        let _ = std::fs::remove_file(&tmp);
+        e.to_string()
+    })
+}
+
 pub(crate) fn claude_settings_path() -> Option<PathBuf> {
     std::env::var_os("USERPROFILE")
         .or_else(|| std::env::var_os("HOME"))
@@ -200,12 +227,15 @@ pub fn upgrade_claude_hooks() {
     }
 }
 
-/// Adds Booffer's hooks to ~/.claude/settings.json, keeping everything else.
-/// The previous file is kept next to it as settings.json.booffer-backup.
+/// Adds Booffer's hooks to ~/.claude/settings.json, keeping everything else. The file as it
+/// was before Booffer's first install is kept next to it as settings.json.booffer-backup.
 #[tauri::command]
 pub fn install_claude_hooks() -> Result<(), String> {
-    let path = claude_settings_path().ok_or("dossier utilisateur introuvable")?;
-    let existing = std::fs::read_to_string(&path).ok();
+    install_hooks_at(&claude_settings_path().ok_or("dossier utilisateur introuvable")?)
+}
+
+fn install_hooks_at(path: &Path) -> Result<(), String> {
+    let existing = read_user_file(path, "~/.claude/settings.json")?;
     let mut root: serde_json::Value = match &existing {
         Some(text) => serde_json::from_str(text).map_err(|e| format!("~/.claude/settings.json illisible : {e}"))?,
         None => serde_json::json!({}),
@@ -230,19 +260,91 @@ pub fn install_claude_hooks() -> Result<(), String> {
         }
     }
 
-    if let Some(text) = existing {
-        let _ = std::fs::write(path.with_extension("json.booffer-backup"), text);
+    if let Some(text) = &existing {
+        // Only once: an upgrade (new hooks) must not replace the original with a copy holding ours.
+        let backup = path.with_extension("json.booffer-backup");
+        let failed = |e: std::io::Error| format!("copie de sauvegarde impossible, rien n'a été modifié : {e}");
+        match std::fs::OpenOptions::new().write(true).create_new(true).open(&backup) {
+            Ok(mut file) => {
+                if let Err(e) = file.write_all(text.as_bytes()) {
+                    drop(file); // closed first: Windows won't delete an open file
+                    let _ = std::fs::remove_file(&backup);
+                    return Err(failed(e));
+                }
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {}
+            Err(e) => return Err(failed(e)),
+        }
     }
     if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
     }
     let text = serde_json::to_string_pretty(&root).map_err(|e| e.to_string())?;
-    std::fs::write(&path, text + "\n").map_err(|e| e.to_string())
+    write_user_file(path, &(text + "\n"))
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
+
+    /// A fresh folder in the temp dir, removed at the end of the test.
+    pub(crate) struct TempDir(pub PathBuf);
+
+    impl TempDir {
+        pub(crate) fn new(name: &str) -> Self {
+            let dir = std::env::temp_dir().join(format!("booffer-test-{}-{name}", std::process::id()));
+            let _ = std::fs::remove_dir_all(&dir);
+            std::fs::create_dir_all(&dir).unwrap();
+            TempDir(dir)
+        }
+    }
+
+    impl Drop for TempDir {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    /// "élève" in Windows-1252, as Windows PowerShell 5.1 writes files: not UTF-8.
+    pub(crate) const ANSI: &[u8] = b"{\"permissions\": {\"allow\": [\"Read(C:/Users/\xe9l\xe8ve/**)\"]}}";
+
+    #[test]
+    fn leaves_an_unreadable_settings_file_alone() {
+        let dir = TempDir::new("unreadable");
+        let path = dir.0.join("settings.json");
+        std::fs::write(&path, ANSI).unwrap();
+        assert!(install_hooks_at(&path).is_err());
+        assert_eq!(std::fs::read(&path).unwrap(), ANSI);
+        assert!(!path.with_extension("json.booffer-backup").exists());
+    }
+
+    #[test]
+    fn keeps_the_user_settings_and_the_first_backup() {
+        let dir = TempDir::new("backup");
+        let path = dir.0.join("settings.json");
+        let original = r#"{"model": "opus", "hooks": {"Stop": [{"hooks": [{"type": "command", "command": "mine"}]}]}}"#;
+        std::fs::write(&path, original).unwrap();
+        install_hooks_at(&path).unwrap();
+        let installed: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+        assert_eq!(installed["model"], "opus");
+        assert!(installed["hooks"]["Stop"].to_string().contains("mine"));
+        assert!(installed["hooks"].to_string().contains(HOOK_MARKER));
+        let backup = path.with_extension("json.booffer-backup");
+        assert_eq!(std::fs::read_to_string(&backup).unwrap(), original);
+        // An upgrade installs again: the backup still holds the file from before Booffer.
+        install_hooks_at(&path).unwrap();
+        assert_eq!(std::fs::read_to_string(&backup).unwrap(), original);
+    }
+
+    #[test]
+    fn creates_the_settings_file_when_there_is_none() {
+        let dir = TempDir::new("missing");
+        let path = dir.0.join("settings.json");
+        install_hooks_at(&path).unwrap();
+        assert!(std::fs::read_to_string(&path).unwrap().contains(HOOK_MARKER));
+        assert!(!path.with_extension("json.booffer-backup").exists());
+        assert!(!dir.0.join("settings.json.booffer-tmp").exists());
+    }
 
     #[test]
     fn finds_the_guard_entry_missing_next_to_the_event_hook() {
