@@ -3,6 +3,7 @@ import { dailyBudgets, paceLabel } from "../core/budget.js";
 import { withWebUsage } from "../core/web-usage.js";
 
 const REFRESH_MS = 30_000;
+const esc = (text) => String(text).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 const SHOWN = 3;
 
 /**
@@ -53,7 +54,7 @@ export function createUsageBar(el, { isTauri, invoke, limits = () => ({}), onDat
         return `<div>
           <div class="flex items-center gap-1.5 text-[10.5px] leading-3.5">
             <span class="size-2 shrink-0 rounded-full ${live ? "animate-pulse" : ""}" style="background:${color}"></span>
-            <span class="truncate font-medium text-zinc-700 dark:text-zinc-200">${m.name}</span>
+            <span class="truncate font-medium text-zinc-700 dark:text-zinc-200">${esc(m.name)}</span>
             <span class="ml-auto shrink-0 tabular-nums text-[9.5px] text-zinc-500 dark:text-zinc-400">${compact(m.calls)} rép.</span>
           </div>
           <div class="mt-0.5 h-1 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">

@@ -102,6 +102,13 @@ fn start_event_server(app: AppHandle, server: tiny_http::Server) {
         for mut request in server.incoming_requests() {
             let is_post = *request.method() == tiny_http::Method::Post;
 
+            // Hooks and scripts (curl) send no Origin; a web page always does. A site you visit
+            // must not be able to talk to Booffer behind your back (fake statuses, cards).
+            if request.headers().iter().any(|h| h.field.equiv("Origin")) {
+                let _ = request.respond(tiny_http::Response::empty(403));
+                continue;
+            }
+
             if is_post && request.url() == "/show" {
                 app.state::<PetState>().hidden.store(false, Relaxed);
                 if let Some(items) = app.try_state::<TrayItems>() {

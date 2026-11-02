@@ -313,7 +313,7 @@ $("repo-link").addEventListener("click", () => openUrl(REPO));
 $("update-link").addEventListener("click", () => openUrl(`${REPO}/releases/latest`));
 (async () => {
   try {
-    const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : "0.3.2";
+    const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : "0.3.3";
     $("version").textContent = current;
     const res = await fetch("https://api.github.com/repos/ItzSized/Boofer/releases/latest");
     if (!res.ok) return;
