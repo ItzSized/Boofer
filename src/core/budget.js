@@ -43,6 +43,26 @@ export function dailyBudgets(rows, limits, now = new Date()) {
     });
 }
 
+/** Tokens per day of this family over the 7 days before today (days without use count as 0). */
+export function dailyAverage(rows, family) {
+  const from = localDay(7);
+  const today = localDay(0);
+  const total = (rows ?? [])
+    .filter((r) => r.day >= from && r.day < today && describeModel(r.model).family === family)
+    .reduce((sum, r) => sum + r.input + r.output, 0);
+  return Math.round(total / 7);
+}
+
+/** { anthropic: 100 } (% of the average) → { anthropic: 68_800_000 } (tokens) for dailyBudgets. */
+export function limitsFromPercent(rows, percents) {
+  const limits = {};
+  for (const [family, pct] of Object.entries(percents ?? {})) {
+    const average = dailyAverage(rows, family);
+    if (pct > 0 && average > 0) limits[family] = Math.round((average * pct) / 100);
+  }
+  return limits;
+}
+
 /** Plan limit with a reset time → how far ahead of its window it is, in points. */
 export function windowDelta(limit, now = Date.now()) {
   if (!(limit.resetsAt > now) || !limit.windowMinutes) return null;

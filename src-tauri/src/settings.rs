@@ -44,7 +44,10 @@ pub struct Settings {
     /// « Stop ! » : dangerous commands from Claude Code wait for a confirmation.
     pub guard: bool,
     /// Daily token budget per model family ("anthropic", "google", "openai"); absent = no limit.
+    /// Replaced by `daily_limit_pct`, kept so older settings files still load.
     pub daily_limits: std::collections::BTreeMap<String, u64>,
+    /// Daily limit per family as a % of its average over the last 7 days (100 = « comme d'habitude »).
+    pub daily_limit_pct: std::collections::BTreeMap<String, u64>,
     /// Ctrl+Alt+P rewrites the prompt with Claude Haiku instead of the local compressor.
     pub reprompt_ai: bool,
 }
@@ -70,6 +73,7 @@ impl Default for Settings {
             notifications: true,
             guard: true,
             daily_limits: Default::default(),
+            daily_limit_pct: Default::default(),
             reprompt_ai: false,
         }
     }

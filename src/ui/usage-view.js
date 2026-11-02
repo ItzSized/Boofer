@@ -1,9 +1,9 @@
 import { FAMILIES, compact, describeModel, familyColor, localDay, summarize } from "../core/models.js";
-import { PACE_HELP, dailyBudgets, paceLabel, windowDelta } from "../core/budget.js";
+import { PACE_HELP, dailyAverage, dailyBudgets, limitsFromPercent, paceLabel, windowDelta } from "../core/budget.js";
 import { withWebUsage } from "../core/web-usage.js";
 
-/** Daily token limits offered (0 = none). Claude's count includes cache reads, so it climbs fast. */
-const BUDGETS = [0, 1e6, 5e6, 10e6, 25e6, 50e6, 100e6, 250e6, 500e6, 1e9];
+/** Daily limits offered, as a % of the user's average day (0 = none). */
+const BUDGETS = [0, 25, 50, 75, 100, 125, 150, 200];
 const BUDGET_FAMILIES = ["anthropic", "google", "openai"];
 const PACE_TONE = {
   ahead: "text-amber-600 dark:text-amber-400",
@@ -13,6 +13,10 @@ const PACE_TONE = {
 
 const RANGES = { today: 0, "7d": 6, "30d": 29, all: null };
 const RANGE_KEY = "booffer.usageRange";
+const TOOL_KEY = "booffer.usageTool";
+/** Tools read from files on the PC; anything else comes from the browser. */
+const APP_TOOLS = ["Claude Code", "Antigravity", "Codex"];
+const toolGroup = (tool) => (APP_TOOLS.includes(tool) ? tool : "Navigateur");
 const SPARK_DAYS = 14;
 
 const esc = (text) => String(text).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -43,6 +47,12 @@ export function createUsageView({ call, settings, save }) {
   let data = null;
   let loading = false;
   let range = "7d";
+  let tool = "all";
+  try {
+    tool = localStorage.getItem(TOOL_KEY) || "all";
+  } catch {
+    // per-viewer convenience only
+  }
   try {
     range = localStorage.getItem(RANGE_KEY) in RANGES ? localStorage.getItem(RANGE_KEY) : range;
   } catch {
@@ -60,6 +70,17 @@ export function createUsageView({ call, settings, save }) {
       render();
     }),
   );
+  $("usage-tools").addEventListener("click", (e) => {
+    const button = e.target.closest("[data-tool]");
+    if (!button) return;
+    tool = button.dataset.tool;
+    try {
+      localStorage.setItem(TOOL_KEY, tool);
+    } catch {
+      // ignore
+    }
+    render();
+  });
   // Colors depend on the theme.
   new MutationObserver(() => data && render()).observe(document.documentElement, { attributeFilter: ["data-theme"] });
 
@@ -69,8 +90,17 @@ export function createUsageView({ call, settings, save }) {
     $("usage-body").classList.toggle("hidden", !data);
     if (!data) return;
 
+    // « Tout » or one tool: the tiles, the share, the models and the plan limits follow.
+    const groups = [...new Set(data.rows.map((r) => toolGroup(r.tool)))].sort((a, b) => APP_TOOLS.indexOf(a) - APP_TOOLS.indexOf(b));
+    if (tool !== "all" && !groups.includes(tool)) tool = "all";
+    $("usage-tools").innerHTML = ["all", ...groups]
+      .map((g) => `<button data-tool="${esc(g)}" class="segment rounded-lg px-2 py-0.5 text-[11px] ring-1 ring-black/10 dark:ring-white/15 ${g === tool ? "selected" : ""}">${g === "all" ? "Tout" : esc(g)}</button>`)
+      .join("");
+    $("usage-tools").classList.toggle("hidden", groups.length < 2);
+    const rows = tool === "all" ? data.rows : data.rows.filter((r) => toolGroup(r.tool) === tool);
+
     const days = RANGES[range];
-    const models = summarize(data.rows, days === null ? "" : localDay(days));
+    const models = summarize(rows, days === null ? "" : localDay(days));
     const calls = models.reduce((sum, m) => sum + m.calls, 0);
     const tokens = models.reduce((sum, m) => sum + m.input + m.output, 0);
     $("usage-calls").textContent = compact(calls);
@@ -101,23 +131,21 @@ export function createUsageView({ call, settings, save }) {
       )
       .join("");
 
-    renderModels(models, calls);
-    renderLimits(data.limits ?? []);
+    renderModels(models, calls, rows);
+    renderLimits((data.limits ?? []).filter((l) => tool === "all" || toolGroup(l.tool) === tool));
     renderBudgets();
   }
 
   // One row per AI: limit picker, today's usage against it, and the pace.
   function renderBudgets() {
-    const limits = settings()?.dailyLimits ?? {};
-    const budgets = dailyBudgets(data?.rows, limits);
+    const percents = settings()?.dailyLimitPct ?? {};
+    const budgets = dailyBudgets(data?.rows, limitsFromPercent(data?.rows, percents));
     $("budget-rows").innerHTML = BUDGET_FAMILIES.map((family) => {
-      const limit = limits[family] ?? 0;
+      const chosen = percents[family] ?? 0;
       const b = budgets.find((x) => x.family === family);
-      const week = (data?.rows ?? [])
-        .filter((r) => r.day >= localDay(7) && r.day < localDay(0) && describeModel(r.model).family === family)
-        .reduce((sum, r) => sum + r.input + r.output, 0);
+      const average = dailyAverage(data?.rows, family);
       const options = BUDGETS.map(
-        (n) => `<option value="${n}" ${n === limit ? "selected" : ""}>${n ? `${compact(n)} / jour` : "Pas de limite"}</option>`,
+        (n) => `<option value="${n}" ${n === chosen ? "selected" : ""}>${n ? `${n} % de ma moyenne` : "Pas de limite"}</option>`,
       ).join("");
       const pct = b ? Math.round(b.pct * 100) : 0;
       const pace = b ? paceLabel(b.delta) : null;
@@ -126,8 +154,8 @@ export function createUsageView({ call, settings, save }) {
         <div class="flex items-center gap-2 text-xs">
           <span class="size-2.5 shrink-0 rounded-full" style="background:${familyColor(family)}"></span>
           <span class="font-semibold">${FAMILIES[family].name}</span>
-          <span class="truncate text-[11px] text-zinc-400">moy. ${compact(Math.round(week / 7))} / jour</span>
-          <select data-budget="${family}" class="ml-auto rounded-lg bg-zinc-100 px-1.5 py-0.5 text-xs outline-none dark:bg-zinc-800">${options}</select>
+          <span class="truncate text-[11px] text-zinc-400">moy. ${compact(average)} / jour</span>
+          <select data-budget="${family}" ${average ? "" : "disabled title=\"Pas encore assez d'historique sur 7 jours\""} class="ml-auto rounded-lg bg-zinc-100 px-1.5 py-0.5 text-xs outline-none disabled:opacity-40 dark:bg-zinc-800">${options}</select>
         </div>
         ${b ? `
         <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
@@ -141,16 +169,16 @@ export function createUsageView({ call, settings, save }) {
     }).join("");
     document.querySelectorAll("[data-budget]").forEach((select) =>
       select.addEventListener("change", () => {
-        const next = { ...(settings()?.dailyLimits ?? {}) };
+        const next = { ...(settings()?.dailyLimitPct ?? {}) };
         const value = Number(select.value);
         if (value) next[select.dataset.budget] = value;
         else delete next[select.dataset.budget];
-        save({ dailyLimits: next });
+        save({ dailyLimitPct: next });
       }),
     );
   }
 
-  function renderModels(models, total) {
+  function renderModels(models, total, rows) {
     const list = $("usage-models");
     if (models.length === 0) {
       list.innerHTML = `<li class="py-4 text-center text-xs text-zinc-400">Aucune IA utilisée sur cette période.</li>`;
@@ -158,7 +186,7 @@ export function createUsageView({ call, settings, save }) {
     }
     const sparkDays = Array.from({ length: SPARK_DAYS }, (_, i) => localDay(SPARK_DAYS - 1 - i));
     // Activity over the last 14 days, from all rows (not just the selected range).
-    const recent = summarize(data.rows, sparkDays[0]);
+    const recent = summarize(rows, sparkDays[0]);
     list.innerHTML = models
       .map((m) => {
         const color = familyColor(m.family);

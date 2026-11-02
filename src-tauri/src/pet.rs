@@ -81,6 +81,12 @@ pub fn start(window: WebviewWindow) {
 
         for frame in 0u64.. {
             std::thread::sleep(FRAME);
+            // WebView2 forgets the see-through background when its GPU process restarts (sleep,
+            // driver update…): the whole window turns into a black rectangle. Said again every
+            // 5 s, so it comes back on its own.
+            if frame % 300 == 0 {
+                let _ = window.set_background_color(Some(tauri::window::Color(0, 0, 0, 0)));
+            }
             let (Ok(pos), Ok(size), Ok(scale), Some((cx, cy))) = (
                 window.outer_position(),
                 window.outer_size(),

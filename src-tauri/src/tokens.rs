@@ -137,10 +137,12 @@ pub async fn compress_with_claude(text: String) -> Result<String, String> {
         let dir = std::env::temp_dir().join(COMPRESS_DIR);
         std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
         let prompt = format!(
-            "Compresse ce prompt destiné à un agent de code IA pour qu'il coûte le moins de tokens possible. \
-             Style télégraphique, en anglais si c'est plus court, sans politesse ni remplissage, même si ça devient \
-             peu lisible pour un humain. Garde tous les détails techniques : noms de fichiers, code, chiffres, \
-             contraintes, intention. Réponds UNIQUEMENT avec le prompt compressé.\n\n<prompt>\n{text}\n</prompt>"
+            "Réécris ce prompt destiné à une IA en « code IA » : le plus court possible, lisible seulement par une IA. \
+             Format, une ligne par balise, balises vides omises : \
+             #do étapes dans l'ordre séparées par > ; #not ce qu'il ne faut pas faire ; #must ce qui doit rester vrai ; \
+             #out la réponse attendue ; #ctx le contexte utile. Style télégraphique, abréviations courantes, \
+             anglais si c'est plus court, aucune politesse. Garde tous les détails techniques : fichiers, code, \
+             chiffres, contraintes, intention. Réponds UNIQUEMENT avec le prompt réécrit.\n\n<prompt>\n{text}\n</prompt>"
         );
         let mut child = claude_command()
             .args(["-p", "--model", "haiku"])

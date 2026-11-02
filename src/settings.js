@@ -56,7 +56,7 @@ const isTauri = "__TAURI_INTERNALS__" in window;
 const DEV_SETTINGS = {
   display: "editor", notifications: true, targetApps: ["antigravity"], follow: false, glide: false, sounds: true, volume: 0.8,
   size: 1, skin: "classique", accessory: "aucun", sleepAfter: 45, approvals: true, theme: "auto", dnd: false, dndUntil: 0, speech: true,
-  guard: true, dailyLimits: { anthropic: 50_000_000 }, repromptAi: false,
+  guard: true, dailyLimitPct: { anthropic: 100 }, repromptAi: false,
 };
 const todayIso = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
 const DEV_ANSWERS = {
@@ -313,7 +313,7 @@ $("repo-link").addEventListener("click", () => openUrl(REPO));
 $("update-link").addEventListener("click", () => openUrl(`${REPO}/releases/latest`));
 (async () => {
   try {
-    const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : "0.3.1";
+    const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : "0.3.2";
     $("version").textContent = current;
     const res = await fetch("https://api.github.com/repos/ItzSized/Boofer/releases/latest");
     if (!res.ok) return;

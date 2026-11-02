@@ -63,7 +63,7 @@ export function createUsageBar(el, { isTauri, invoke, limits = () => ({}), onDat
       })
       .join("");
 
-    const budgets = dailyBudgets(rows, limits());
+    const budgets = dailyBudgets(rows, limits(rows));
     budgetsEl.classList.toggle("hidden", budgets.length === 0);
     budgetsEl.innerHTML = budgets
       .map((b) => {

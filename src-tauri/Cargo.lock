@@ -315,7 +315,7 @@ dependencies = [
 
 [[package]]
 name = "booffer"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "rusqlite",
  "serde",

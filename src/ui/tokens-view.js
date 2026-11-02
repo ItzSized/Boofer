@@ -1,4 +1,4 @@
-import { compressWithStats, estimateTokens } from "../core/compress.js";
+import { estimateTokens, repromptWithStats } from "../core/compress.js";
 
 /** autoCompactWindow choices: null = Claude Code's default (the whole window). */
 const WINDOWS = [
@@ -59,7 +59,7 @@ export function createTokensView({ call, isTauri }) {
 
   // Local compression follows the typing.
   input.addEventListener("input", () => {
-    const r = compressWithStats(input.value);
+    const r = repromptWithStats(input.value);
     showResult(r.text, r.before);
   });
 

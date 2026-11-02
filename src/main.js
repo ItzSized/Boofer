@@ -5,10 +5,10 @@ import { EventBus } from "./core/event-bus.js";
 import { loadHistory, recordFinished, todayStats } from "./core/history.js";
 import { gainXp, levelFor, loadXp } from "./core/level.js";
 import { compact, describeModel, localDay, summarize } from "./core/models.js";
-import { dailyBudgets } from "./core/budget.js";
+import { dailyBudgets, limitsFromPercent } from "./core/budget.js";
 import { recordWebAnswer, withWebUsage } from "./core/web-usage.js";
 import { approx, clockTime, duration, isNewer } from "./core/format.js";
-import { compressWithStats, estimateTokens } from "./core/compress.js";
+import { estimateTokens, repromptForAI } from "./core/compress.js";
 import { EtaEstimator } from "./core/eta.js";
 import { State } from "./core/states.js";
 import { setTheme } from "./core/theme.js";
@@ -52,7 +52,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   const usageBar = createUsageBar(document.getElementById("usage-bar"), {
     isTauri,
     invoke,
-    limits: () => settings.dailyLimits ?? {},
+    limits: (rows) => limitsFromPercent(rows, settings.dailyLimitPct),
     onData: (usage) => onUsage(usage),
   });
   const app = document.getElementById("app");
@@ -402,7 +402,8 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
       if (isTauri) invoke("notify", { title: "Limite bientôt atteinte", body: text, force: true });
     }
     // The user's own daily limits (settings → 📊 Modèles): at 80 % and when over, once a day each.
-    for (const b of dailyBudgets(withWebUsage(usage.rows), settings.dailyLimits)) {
+    const rows = withWebUsage(usage.rows);
+    for (const b of dailyBudgets(rows, limitsFromPercent(rows, settings.dailyLimitPct))) {
       const step = b.pct >= 1 ? 100 : b.pct >= 0.8 ? 80 : 0;
       if (!step || !once(`booffer.budget.${b.family}.${step}.${localDay(0)}`)) continue;
       const text = step === 100
@@ -475,7 +476,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
       speech.tell("🔁 Je reformule avec Haiku…", 15000);
       result = await invoke("compress_with_claude", { text }).catch(() => null);
     }
-    result ||= compressWithStats(text).text;
+    result ||= repromptForAI(text);
     await invoke("write_clipboard", { text: result });
     const after = estimateTokens(result);
     const saved = Math.max(0, Math.round((1 - after / before) * 100));

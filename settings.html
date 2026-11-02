@@ -254,6 +254,7 @@
             <button data-range="all" class="segment rounded-lg px-2 py-0.5 text-[11px] ring-1 ring-black/10 dark:ring-white/15">Tout</button>
           </div>
         </div>
+        <div id="usage-tools" class="mb-3 flex flex-wrap gap-1" aria-label="Outil"></div>
         <div id="usage-loading" class="flex items-center gap-2 py-6 text-xs text-zinc-500 dark:text-zinc-400">
           <span class="spinner"></span> Lecture de tes historiques (Claude Code, Antigravity, Codex)…
         </div>
@@ -281,8 +282,8 @@
       <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
         <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">🎯 Ma limite par jour</h2>
         <p class="mt-0.5 text-[11px] text-zinc-400">
-          Un plafond de tokens par IA : Booffer te prévient à 80 % et à 100 %, et te dit si tu es en avance ou en retard
-          sur ton rythme (limite répartie de 8 h à minuit).
+          Un plafond par IA, en % de ta journée moyenne (7 derniers jours) : Booffer te prévient à 80 % et à 100 %, et te dit
+          si tu es en avance ou en retard sur ton rythme (limite répartie de 8 h à minuit).
         </p>
         <div id="budget-rows" class="mt-3 space-y-3"></div>
       </section>
@@ -350,8 +351,13 @@
       <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
         <h2 class="text-sm font-bold">🔁 Reprompt</h2>
         <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-          Écris ta demande normalement : Booffer la réécrit rien que pour l'IA, en « langage IA » (télégraphique, sans politesse
-          ni mots inutiles). Pas joli pour un humain, mais l'IA comprend pareil, va plus vite et lit moins de tokens.
+          Écris ta demande normalement : Booffer la réécrit en « code IA », rien que pour l'IA. Chaque partie va sous une
+          balise courte : <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#do</code> les étapes (séparées par &gt;),
+          <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#not</code> ce qu'il ne faut pas faire,
+          <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#must</code> ce qui doit rester vrai,
+          <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#out</code> la réponse attendue,
+          <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#ctx</code> le contexte. Illisible pour un humain, mais l'IA
+          comprend tout de suite et lit moins de tokens.
         </p>
         <textarea id="prompt-in" rows="4" placeholder="Ex. : Salut ! Est-ce que tu peux stp corriger le bug du fichier pet.rs et ensuite lancer les tests ?"
           class="mt-2 w-full resize-y rounded-lg bg-zinc-100 px-3 py-2 text-xs outline-none ring-violet-400 focus:ring-2 dark:bg-zinc-800"></textarea>
@@ -359,7 +365,7 @@
           <span id="prompt-stats" class="text-xs font-semibold tabular-nums text-violet-600 dark:text-violet-300"></span>
           <button id="prompt-ai" class="hidden rounded-lg bg-zinc-100 px-2.5 py-1 text-xs hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700">✨ Reformuler avec Haiku</button>
         </div>
-        <textarea id="prompt-out" rows="3" readonly placeholder="Version compressée"
+        <textarea id="prompt-out" rows="3" readonly placeholder="Version code IA"
           class="mt-1 w-full resize-y rounded-lg bg-violet-50 px-3 py-2 font-mono text-xs outline-none dark:bg-violet-950/40"></textarea>
         <div class="mt-1 flex items-center justify-between gap-2">
           <p class="text-[11px] text-zinc-400">Partout : copie ton prompt, <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd>, puis colle la version IA.</p>
@@ -380,7 +386,7 @@
     </div>
 
     <footer class="pb-2 text-center text-[11px] text-zinc-400">
-      Booffer <span id="version">0.3.1</span> · <button id="repo-link" class="hover:text-violet-500 hover:underline">github.com/ItzSized/Boofer</button>
+      Booffer <span id="version">0.3.2</span> · <button id="repo-link" class="hover:text-violet-500 hover:underline">github.com/ItzSized/Boofer</button>
       <span id="update" class="hidden"> · <button id="update-link" class="font-semibold text-violet-500 hover:underline"></button></span>
     </footer>
   </main>
