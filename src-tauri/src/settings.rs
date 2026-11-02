@@ -128,6 +128,7 @@ pub fn apply(app: &AppHandle, settings: &Settings) {
     app.state::<PetState>().glide.store(settings.glide, Relaxed);
     crate::sync_tray(app, settings);
     if let Some(window) = app.get_webview_window("main") {
+        // pet.rs keeps the ghost's feet in place when the size changes.
         let size = settings.size.clamp(0.6, 1.6);
         let _ = window.set_size(LogicalSize::new(BASE_WINDOW.0 * size, BASE_WINDOW.1 * size));
     }

@@ -60,8 +60,11 @@ pub fn start(window: WebviewWindow) {
         let mut foreground = ForegroundTracker::default();
         let mut moving = false;
         let mut last_tick: Option<Tick> = None;
-        // Where the ghost sits in each target window, as an offset from its bottom-right corner.
+        // Where the ghost's feet (bottom center of our window) sit in each target window, as an
+        // offset from its bottom-right corner: the same spot whatever the ghost's size.
         let mut spots: HashMap<usize, (f64, f64)> = HashMap::new();
+        // Our window's last size (physical px) and scale factor.
+        let mut last_size: Option<(f64, f64, f64)> = None;
         let mut placed_on: Option<usize> = None;
         let mut title = String::new();
         let mut settings_version = u64::MAX;
@@ -84,11 +87,16 @@ pub fn start(window: WebviewWindow) {
             if config.version.load(Relaxed) != settings_version {
                 settings_version = config.version.load(Relaxed);
                 let current = config.current.lock().unwrap();
-                everywhere = current.everywhere();
-                follow_windows = current.follows_windows();
-                targets = current.target_apps.iter().map(|t| t.trim().to_lowercase()).collect();
-                foreground = ForegroundTracker::default();
-                placed_on = None;
+                let next: Vec<String> = current.target_apps.iter().map(|t| t.trim().to_lowercase()).collect();
+                // Only where the ghost lives matters here. The other settings (size, sounds…) are
+                // changed while a window of ours is in front: starting over would hide the ghost.
+                if (current.everywhere(), current.follows_windows(), &next) != (everywhere, follow_windows, &targets) {
+                    everywhere = current.everywhere();
+                    follow_windows = current.follows_windows();
+                    targets = next;
+                    foreground.retarget(&targets, follow_windows);
+                    placed_on = None;
+                }
             }
 
             let state = window.state::<PetState>();
@@ -118,15 +126,25 @@ pub fn start(window: WebviewWindow) {
             let (mut nx, mut ny) = (x, y);
             let dragging = os::left_button_down();
 
+            // The size setting changed: Windows kept our top-left corner, but the ghost stands at
+            // the bottom center of the window, so it grows or shrinks around its feet instead.
+            // (Same logical size on a monitor with another scale: nothing to do.)
+            if let Some((lw, lh, ls)) = last_size.replace((w, h, scale)) {
+                if (w / scale - lw / ls).abs() > 1.0 || (h / scale - lh / ls).abs() > 1.0 {
+                    nx += ((lw - w) / 2.0).round();
+                    ny += lh - h;
+                }
+            }
+
             // Switched to another target window: go back to the ghost's spot in that one.
             let mut arrived = false;
             if let Some((hwnd, r)) = target {
                 if placed_on != Some(hwnd) {
                     let (ox, oy) = *spots
                         .entry(hwnd)
-                        .or_insert((w + DEFAULT_MARGIN.0 * scale, h + DEFAULT_MARGIN.1 * scale));
-                    nx = r.right - ox;
-                    ny = r.bottom - oy;
+                        .or_insert((w / 2.0 + DEFAULT_MARGIN.0 * scale, DEFAULT_MARGIN.1 * scale));
+                    nx = r.right - ox - w / 2.0;
+                    ny = r.bottom - oy - h;
                     placed_on = Some(hwnd);
                     arrived = true;
                 }
@@ -156,7 +174,7 @@ pub fn start(window: WebviewWindow) {
                     nx = nx.min(r.right - w).max(r.left);
                     ny = ny.min(r.bottom - h).max(r.top);
                 }
-                spots.insert(hwnd, (r.right - nx, r.bottom - ny));
+                spots.insert(hwnd, (r.right - (nx + w / 2.0), r.bottom - (ny + h)));
             }
 
             let (step_x, step_y) = ((nx - x).round(), (ny - y).round());
@@ -203,10 +221,26 @@ impl ForegroundTracker {
             return;
         }
         self.hwnd = hwnd;
-        let pid = os::window_pid(hwnd);
-        if pid == std::process::id() {
+        if os::window_pid(hwnd) == std::process::id() {
             return;
         }
+        self.classify(hwnd, targets, any_window);
+    }
+
+    /// New targets or mode: judges the last window that isn't ours again right away, since
+    /// ours (the settings window, the menu) is usually the one in front when they change.
+    fn retarget(&mut self, targets: &[String], any_window: bool) {
+        self.hwnd = 0;
+        self.editor = None;
+        self.target = None;
+        if let Some(hwnd) = self.other {
+            self.classify(hwnd, targets, any_window);
+        }
+    }
+
+    /// `hwnd` is the last window in front that isn't ours: is it one the ghost sits on?
+    fn classify(&mut self, hwnd: usize, targets: &[String], any_window: bool) {
+        let pid = os::window_pid(hwnd);
         self.other = Some(hwnd);
         let win_title = os::window_title(hwnd).to_lowercase();
         let is_target = os::process_name(pid).is_some_and(|path| {
