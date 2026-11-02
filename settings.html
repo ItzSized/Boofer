@@ -154,6 +154,31 @@
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
+          <p class="text-sm font-medium">🎥 Mode stream</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Toujours affiché, sur fond vert : dans OBS, capture la fenêtre « Boofer » et ajoute un filtre « Incrustation chromatique ».</p>
+        </div>
+        <label class="toggle"><input id="stream-mode" type="checkbox" /><span></span></label>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">🎃 Tenues de saison</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Chapeau de sorcière pour Halloween, bonnet de Noël en décembre (sans accessoire choisi).</p>
+        </div>
+        <label class="toggle"><input id="seasonal" type="checkbox" /><span></span></label>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">Son de fin</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Quand une tâche ou une réponse est prête.</p>
+        </div>
+        <select id="sound-theme" class="rounded-lg bg-zinc-100 px-2 py-1 text-sm outline-none dark:bg-zinc-800">
+          <option value="classique">✨ Clochettes</option>
+          <option value="doux">🌙 Doux</option>
+          <option value="retro">👾 Rétro 8-bit</option>
+        </select>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
           <p class="text-sm font-medium">Sons</p>
           <p class="text-xs text-zinc-500 dark:text-zinc-400">Ping de fin, demande d'attention, caresses.</p>
         </div>
@@ -273,6 +298,11 @@
           <p class="text-[11px] text-zinc-500 dark:text-zinc-400">fichiers modifiés</p>
         </div>
       </div>
+      <div class="mt-3 flex items-baseline justify-between">
+        <p class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Cette semaine</p>
+        <p id="week-total" class="text-[11px] tabular-nums text-zinc-400"></p>
+      </div>
+      <div id="week" class="mt-1.5 grid h-20 grid-cols-7 items-end gap-1.5"></div>
       <p class="mt-3 mb-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">Dernières tâches</p>
       <ul id="history" class="divide-y divide-zinc-100 dark:divide-zinc-800"></ul>
     </section>
@@ -307,6 +337,7 @@
             <div class="rounded-xl bg-zinc-50 py-2 dark:bg-zinc-800/60">
               <p id="usage-tokens" class="text-lg font-bold tabular-nums">0</p>
               <p class="text-[11px] text-zinc-500 dark:text-zinc-400">tokens (lus + écrits)</p>
+              <p id="usage-cost" class="text-[10px] tabular-nums text-zinc-400" title="Ce que ces tokens coûteraient au prix de l'API, sans abonnement : un ordre d'idée, pas une facture."></p>
             </div>
           </div>
           <p class="mt-4 mb-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">Répartition des réponses</p>
@@ -424,7 +455,7 @@
     <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
       <div class="flex items-center justify-between gap-3">
         <div class="min-w-0">
-          <p class="text-sm font-medium">👻 Boofer <span id="version">0.3.8</span></p>
+          <p class="text-sm font-medium">👻 Boofer <span id="version">0.3.9</span></p>
           <p id="update-status" class="text-xs text-zinc-500 dark:text-zinc-400">Les mises à jour s'installent par-dessus, sans rien désinstaller.</p>
         </div>
         <button id="update-check"

@@ -217,8 +217,33 @@ body {
 .mascot[data-accessory="couronne"] .acc-couronne,
 .mascot[data-accessory="casque"] .acc-casque,
 .mascot[data-accessory="pousse"] .acc-pousse,
-.mascot[data-accessory="lunettes"] .acc-lunettes {
+.mascot[data-accessory="lunettes"] .acc-lunettes,
+.mascot[data-accessory="sorciere"] .acc-sorciere,
+.mascot[data-accessory="bonnet"] .acc-bonnet {
   display: inline;
+}
+
+.acc-sorciere .brim,
+.acc-sorciere .cone {
+  fill: #3b2a5c;
+}
+
+.acc-sorciere .band {
+  fill: #f59e0b;
+}
+
+.acc-bonnet .cap {
+  fill: #dc2626;
+}
+
+.acc-bonnet .fur {
+  fill: #ffffff;
+}
+
+/* « Mode stream »: a flat green for OBS's chroma key (settings → Comportement). */
+html.stream,
+html.stream body {
+  background: #00ff00;
 }
 
 .acc-noeud path {

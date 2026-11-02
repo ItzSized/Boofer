@@ -5,11 +5,13 @@
 let ctx;
 let enabled = true;
 let masterVolume = 0.8;
+let theme = "classique";
 
-/** From the settings: sounds on/off and volume (0–1). */
-export function configureSound({ sounds, volume }) {
+/** From the settings: sounds on/off, volume (0–1) and theme ("classique", "doux", "retro"). */
+export function configureSound({ sounds, volume, soundTheme = "classique" }) {
   enabled = sounds;
   masterVolume = volume;
+  theme = soundTheme;
 }
 
 function audio() {
@@ -38,6 +40,18 @@ function tone(freq, start, { duration = 0.6, volume = 0.22, type = "sine", glide
 /** Bright little major arpeggio — "c'est prêt !" */
 export function playDone() {
   const t = audio().currentTime + 0.02;
+  if (theme === "doux") {
+    // Two low, round notes.
+    tone(523.25, t, { duration: 0.9, volume: 0.16 });
+    tone(784, t + 0.16, { duration: 1.1, volume: 0.14 });
+    return;
+  }
+  if (theme === "retro") {
+    // 8-bit « coin ».
+    tone(988, t, { duration: 0.08, type: "square", volume: 0.07 });
+    tone(1319, t + 0.08, { duration: 0.35, type: "square", volume: 0.07 });
+    return;
+  }
   [880, 1318.5, 1760].forEach((freq, i) => {
     tone(freq, t + i * 0.09);
     tone(freq * 2, t + i * 0.09, { volume: 0.05, duration: 0.35 }); // bell shimmer

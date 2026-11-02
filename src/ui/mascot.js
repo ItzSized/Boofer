@@ -83,6 +83,16 @@ const svg = (gradientId) => `
       <rect class="hat" x="46" y="-6" width="28" height="24" rx="3" />
       <rect class="band" x="46" y="10" width="28" height="4" />
     </g>
+    <g class="acc acc-sorciere">
+      <ellipse class="brim" cx="60" cy="17" rx="27" ry="4.5" />
+      <path class="cone" d="M43 16 L58 -12 Q63 -16 66 -9 L77 16 Z" />
+      <rect class="band" x="44" y="10" width="32" height="4" />
+    </g>
+    <g class="acc acc-bonnet">
+      <path class="cap" d="M38 20 Q44 -6 66 -4 Q80 -2 88 10 L80 14 Q72 6 62 8 Q76 12 82 20 Z" />
+      <rect class="fur" x="36" y="15" width="48" height="7" rx="3.5" />
+      <circle class="fur" cx="89" cy="11" r="4.5" />
+    </g>
     <g class="acc acc-couronne">
       <polygon points="44,19 45,3 52.5,11 60,0 67.5,11 75,3 76,19" />
       <circle cx="60" cy="13" r="2.2" />

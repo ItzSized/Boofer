@@ -60,6 +60,12 @@ pub struct Settings {
     pub auto_update: bool,
     /// « ChatGPT, Gemini… (navigateur) » was added to the editors once (0.3.8); unchecking it sticks.
     pub web_ai_added: bool,
+    /// « Mode stream »: always shown, on a green background for OBS's chroma key.
+    pub stream_mode: bool,
+    /// Witch hat around Halloween, Santa hat in December (when no accessory is chosen).
+    pub seasonal: bool,
+    /// "classique", "doux" or "retro".
+    pub sound_theme: String,
 }
 
 impl Default for Settings {
@@ -89,6 +95,9 @@ impl Default for Settings {
             animations_off: Vec::new(),
             auto_update: true,
             web_ai_added: true,
+            stream_mode: false,
+            seasonal: true,
+            sound_theme: "classique".into(),
         }
     }
 }
@@ -96,7 +105,7 @@ impl Default for Settings {
 impl Settings {
     /// "follow" was a display mode in 0.1 builds: it is now the « Suis-moi » switch.
     pub fn everywhere(&self) -> bool {
-        self.display == "everywhere" || self.display == "follow"
+        self.display == "everywhere" || self.display == "follow" || self.stream_mode
     }
 
     pub fn follows_windows(&self) -> bool {

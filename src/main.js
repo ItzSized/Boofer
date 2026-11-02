@@ -10,7 +10,7 @@ import { recordWebAnswer, withWebUsage } from "./core/web-usage.js";
 import { approx, clockTime, duration } from "./core/format.js";
 import { estimateTokens, repromptForAI } from "./core/compress.js";
 import { EtaEstimator } from "./core/eta.js";
-import { State } from "./core/states.js";
+import { ACTIVE_STATES, State } from "./core/states.js";
 import { setTheme } from "./core/theme.js";
 import { applyAnimations } from "./core/animations.js";
 import { findUpdate, installUpdate } from "./core/updates.js";
@@ -195,6 +195,36 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     while (chars.join("").length > 119) chars.pop();
     return `${chars.join("")}…`;
   }
+
+  // Around Halloween a witch hat, in December a Santa hat: only when no accessory is chosen.
+  function seasonalAccessory(s) {
+    if (!s.seasonal || (s.accessory && s.accessory !== "aucun")) return null;
+    const d = new Date();
+    const day = d.getMonth() * 100 + d.getDate(); // 9_20 = 20 October
+    if (day >= 920 && day <= 1002) return "sorciere";
+    if (d.getMonth() === 11) return "bonnet";
+    return null;
+  }
+
+  // An agent stuck: nothing new for 8 minutes while working, or 3 failed actions in one task.
+  // Said once per task.
+  const STUCK_MS = 8 * 60_000;
+  const warned = new Set();
+  setInterval(() => {
+    const now = Date.now();
+    for (const s of sessions) {
+      if (!ACTIVE_STATES.has(s.state)) continue;
+      const turn = `${s.key}:${s.details?.startedAt ?? ""}`;
+      const silent = now - s.updatedAt > STUCK_MS;
+      const failing = (s.details?.errors ?? 0) >= 3;
+      if ((!silent && !failing) || warned.has(turn)) continue;
+      warned.add(turn);
+      const who = s.project || s.agent;
+      const text = silent ? `${who} ne bouge plus depuis 8 min : il est peut-être bloqué` : `${who} a raté 3 actions : il tourne peut-être en rond`;
+      speech.tell(`🤔 ${text}`, 8000);
+      if (isTauri) invoke("notify", { title: "Agent bloqué ?", body: text, force: true });
+    }
+  }, 30_000);
 
   // Keeps the ⏱ timer in the bubble ticking.
   setInterval(() => {
@@ -418,7 +448,8 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     if (settingsLoaded && !settings.follow && next.follow) speech.say("follow");
     settingsLoaded = true;
     settings = next;
-    configureSound({ sounds: settings.sounds && !settings.dnd, volume: settings.volume });
+    configureSound({ sounds: settings.sounds && !settings.dnd, volume: settings.volume, soundTheme: settings.soundTheme });
+    document.documentElement.classList.toggle("stream", Boolean(settings.streamMode));
     const dndEl = document.getElementById("dnd");
     dndEl.classList.toggle("hidden", !settings.dnd);
     dndEl.title = settings.dnd && settings.dndUntil ? `Ne pas déranger jusqu'à ${clockTime(settings.dndUntil)}` : "Ne pas déranger";
@@ -426,7 +457,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     applyAnimations(settings.animationsOff);
     document.documentElement.style.zoom = String(settings.size); // the window is resized to match
     mascotEl.dataset.skin = settings.skin;
-    mascotEl.dataset.accessory = settings.accessory;
+    mascotEl.dataset.accessory = seasonalAccessory(settings) ?? settings.accessory;
     usageBar.rerender();
     render(); // the tray tooltip shows « Ne pas déranger » too
   }

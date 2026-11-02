@@ -1,6 +1,7 @@
 import { FAMILIES, compact, describeModel, familyColor, localDay, summarize } from "../core/models.js";
 import { PACE_HELP, dailyAverage, dailyBudgets, limitsFromPercent, paceLabel, windowDelta } from "../core/budget.js";
 import { withWebUsage } from "../core/web-usage.js";
+import { costOf, euros } from "../core/prices.js";
 
 /** Daily limits offered, as a % of the user's average day (0 = none). */
 const BUDGETS = [0, 25, 50, 75, 100, 125, 150, 200];
@@ -106,6 +107,7 @@ export function createUsageView({ call, settings, save }) {
     $("usage-calls").textContent = compact(calls);
     $("usage-models-count").textContent = String(models.length);
     $("usage-tokens").textContent = compact(tokens);
+    $("usage-cost").textContent = tokens ? `${euros(models.reduce((sum, m) => sum + costOf(m.family, m.name, m.input, m.output), 0))} au prix API` : "";
 
     // Share of answers per family: few, stable colors, labelled with their percentage.
     const families = Object.keys(FAMILIES)
@@ -211,6 +213,7 @@ export function createUsageView({ call, settings, save }) {
             </div>
             <p class="text-xs text-zinc-600 dark:text-zinc-300">
               <span class="font-semibold tabular-nums">${plural(m.calls, "réponse")}</span>
+              <span class="text-zinc-400" title="Au prix de l'API, sans abonnement">· ${euros(costOf(m.family, m.name, m.input, m.output))}</span>
               <span class="text-zinc-400">· ${share} %</span>
             </p>
             <p class="truncate text-[11px] text-zinc-400" title="Tokens lus (contexte, cache compris) · tokens écrits">

@@ -163,6 +163,9 @@ function render() {
   $("glide").checked = settings.glide;
   $("sleep").value = String(settings.sleepAfter);
   $("sounds").checked = settings.sounds;
+  $("stream-mode").checked = Boolean(settings.streamMode);
+  $("seasonal").checked = settings.seasonal !== false;
+  $("sound-theme").value = settings.soundTheme ?? "classique";
   $("volume").value = settings.volume;
   $("volume").disabled = !settings.sounds;
   $("approvals").checked = settings.approvals;
@@ -266,6 +269,38 @@ function renderHistory() {
     }));
   }
   $("history").replaceChildren(...rows);
+  renderWeek(entries);
+}
+
+// Tasks per day over the last 7 days, today last.
+function renderWeek(entries) {
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - (6 - i));
+    const end = start.getTime() + 86_400_000;
+    const done = entries.filter((e) => e.at >= start.getTime() && e.at < end);
+    return { start, tasks: done.length, ms: done.reduce((sum, e) => sum + e.ms, 0) };
+  });
+  const peak = Math.max(1, ...days.map((d) => d.tasks));
+  const total = days.reduce((sum, d) => sum + d.tasks, 0);
+  $("week-total").textContent = total ? `${total} tâche${total > 1 ? "s" : ""} · ${duration(days.reduce((s, d) => s + d.ms, 0))}` : "";
+  $("week").replaceChildren(
+    ...days.map((d, i) => {
+      const col = document.createElement("div");
+      col.className = "flex h-full flex-col items-center justify-end gap-1";
+      col.title = `${d.start.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" })} : ${d.tasks} tâche${d.tasks > 1 ? "s" : ""}${d.ms ? ` · ${duration(d.ms)}` : ""}`;
+      const bar = document.createElement("div");
+      bar.className = `w-full rounded-md ${d.tasks ? (i === 6 ? "bg-violet-500" : "bg-violet-300 dark:bg-violet-700") : "bg-zinc-100 dark:bg-zinc-800"}`;
+      bar.style.height = d.tasks ? `${Math.max(10, Math.round((d.tasks / peak) * 100))}%` : "4px";
+      const label = Object.assign(document.createElement("span"), {
+        className: "text-[10px] text-zinc-400",
+        textContent: d.start.toLocaleDateString("fr-FR", { weekday: "narrow" }),
+      });
+      col.append(bar, label);
+      return col;
+    }),
+  );
 }
 
 async function refreshHooks() {
@@ -305,6 +340,13 @@ $("follow").addEventListener("change", (e) =>
 $("glide").addEventListener("change", (e) => save({ glide: e.target.checked }));
 $("sleep").addEventListener("change", (e) => save({ sleepAfter: Number(e.target.value) }));
 $("sounds").addEventListener("change", (e) => save({ sounds: e.target.checked }));
+$("stream-mode").addEventListener("change", (e) => save({ streamMode: e.target.checked }));
+$("seasonal").addEventListener("change", (e) => save({ seasonal: e.target.checked }));
+$("sound-theme").addEventListener("change", (e) => {
+  save({ soundTheme: e.target.value });
+  configureSound({ ...settings, soundTheme: e.target.value });
+  playDone();
+});
 $("volume").addEventListener("change", (e) => save({ volume: Number(e.target.value) }));
 $("test-sound").addEventListener("click", () => playDone());
 $("autostart").addEventListener("change", async (e) => {
@@ -403,7 +445,7 @@ async function installPending() {
 
 $("update-check").addEventListener("click", () => (pendingUpdate ? installPending() : checkForUpdate()));
 (async () => {
-  const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : "0.3.8";
+  const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : "0.3.9";
   $("version").textContent = current;
 })();
 window.addEventListener("focus", () => {
