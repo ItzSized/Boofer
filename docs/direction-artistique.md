@@ -114,7 +114,7 @@ Repris des animations de l'application (`src/style.css`), pour que la marque et 
 ## Les marques des autres
 
 - Les logos Discord de la bannière appartiennent à la bannière Discord seulement : ils ne font pas partie de la DA et ne vont dans aucune vidéo.
-- Aucun autre logo de marque (Claude, Anthropic, OpenAI, Google). Pour dire avec quoi Booffer fonctionne, écrire les noms en texte (Claude Code, Codex, Gemini), sans laisser croire à un partenariat, avec la mention « Projet indépendant, non affilié à Anthropic, OpenAI ou Google » dès qu'un de ces noms apparaît.
+- Aucun autre logo de marque (Claude, Anthropic, OpenAI, Google). Pour dire avec quoi Boofer fonctionne, écrire les noms en texte (Claude Code, Codex, Gemini), sans laisser croire à un partenariat, avec la mention « Projet indépendant, non affilié à Anthropic, OpenAI ou Google » dès qu'un de ces noms apparaît.
 
 ## Les fichiers
 
