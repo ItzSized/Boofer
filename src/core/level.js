@@ -22,7 +22,7 @@ const LEVELS = [
 /** What each level unlocks, shown in the settings. */
 export const PERKS = {
   3: "une douce lueur",
-  5: "une auréole",
+  5: "une auréole dorée",
   8: "une aura dorée",
 };
 

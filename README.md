@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/icon.png" alt="Booffer" width="160" /></p>
+
 # Booffer 👻
 
 Un petit fantôme qui vit sur ton écran pendant que tes agents IA codent. Il te montre en direct où en sont **Antigravity** (Gemini 3.1 Pro, Gemini 4 Argon, Flash…), **Claude Code** et **Codex**, te laisse approuver les demandes sans changer de fenêtre, et fait *ding* quand c'est fini.
@@ -43,7 +45,7 @@ Rien d'autre à installer : les installeurs ajoutent WebView2 s'il manque (déj�
 - **Animations au choix** (Réglages → Animations) : coupe tout d'un coup pour un fantôme immobile, ou seulement ce qui te gêne (flottement, bras, saut de fin, pirouettes, clignements, Zzz…).
 - **🧪 Essayer** (Réglages) : simule une tâche, deux sessions, un compactage, une demande ou un stop pour voir le fantôme en action.
 - **Raccourcis** : Ctrl+Alt+B pour l'afficher ou le cacher, Ctrl+Alt+M pour l'usage des modèles.
-- **Il grandit avec toi** : chaque tâche finie donne de l'XP. Niveau 3 une lueur, niveau 5 une auréole, niveau 8 une aura dorée. Il a l'air fatigué quand le contexte est presque plein, et soulagé après un compactage.
+- **Il grandit avec toi** : chaque tâche finie donne de l'XP. Niveau 3 une lueur, niveau 5 une auréole dorée, niveau 8 une aura dorée. Il a l'air fatigué quand le contexte est presque plein, et soulagé après un compactage.
 - **Une session = un mini-fantôme** à sa couleur, qui sautille tant qu'elle travaille.
 - **Mises à jour automatiques** : Booffer télécharge la nouvelle version et l'installe par-dessus, sans rien désinstaller, puis redémarre (au démarrage et toutes les 6 h, jamais pendant qu'un agent travaille). Bouton « Rechercher des mises à jour » en bas des réglages, et un interrupteur pour le faire à la main.
 - **Résumé du jour** vers 18 h (ou clic droit → Ma journée), et un message quand une nouvelle version sort sur GitHub.

@@ -20,14 +20,16 @@ body {
   --agent: #a78bfa;
   /* Skin (see "Skins" below): body gradient, face color, eye highlight, cheeks. */
   --skin-top: #ffffff;
-  --skin-bottom: #e6dcff;
-  --ink: #2b2240;
+  --skin-bottom: #d9c8ff;
+  --ink: #1e1533;
   --shine: #ffffff;
-  --cheek: #ff9fb2;
+  --cheek: #ff8cc6;
+  --glow: rgb(167 139 250 / 0.55);
   --body-top: var(--skin-top);
   --body-bottom: var(--skin-bottom);
   width: 132px;
-  filter: drop-shadow(0 6px 10px rgb(70 50 130 / 0.25));
+  /* A soft violet glow around the body, like the logo. */
+  filter: drop-shadow(0 0 7px var(--glow)) drop-shadow(0 6px 10px rgb(70 50 130 / 0.22));
 }
 
 .mascot svg {
@@ -124,7 +126,7 @@ body {
 
 .cheeks ellipse {
   fill: var(--cheek);
-  opacity: 0.55;
+  opacity: 0.7;
   transition: opacity 0.25s;
 }
 
@@ -563,16 +565,18 @@ body {
 
 /* ---------- Levels (core/level.js): the ghost grows with you ---------- */
 
-.halo,
 .sweat {
   opacity: 0;
   transition: opacity 0.3s;
 }
 
+/* The neon halo of the logo: always there (hidden under a hat), golden from level 5. */
 .halo {
   fill: none;
-  stroke: #facc15;
-  stroke-width: 3;
+  stroke: #d8ccff;
+  stroke-width: 3.2;
+  filter: drop-shadow(0 0 2px #a78bfa) drop-shadow(0 0 5px #8b5cf6);
+  transition: opacity 0.3s, stroke 0.4s;
   animation: halo 3s ease-in-out infinite;
 }
 
@@ -585,7 +589,8 @@ body {
 }
 
 .mascot:is([data-tier="halo"], [data-tier="gold"]) .halo {
-  opacity: 1;
+  stroke: #fde68a;
+  filter: drop-shadow(0 0 2px #facc15) drop-shadow(0 0 5px #f59e0b);
 }
 
 /* An accessory on the head: the halo would sit inside it. */
