@@ -1,4 +1,4 @@
-// npm run release: builds Booffer, then puts the fresh exe at the root of the project and in
+// npm run release: builds Boofer, then puts the fresh exe at the root of the project and in
 // !_EXE_ET_INSTALLEUR, so the copy you double-click is always the latest, and relaunches it.
 // Fast by default: exe only, incremental compile (the installers are built by GitHub on push).
 //   npm run release -- --installer   also builds the .msi / setup.exe locally
@@ -40,7 +40,7 @@ const installers = withInstaller
   ? bundles.filter((dir) => fs.existsSync(dir)).flatMap((dir) =>
     fs.readdirSync(dir).filter((f) => /(-setup\.exe|\.msi)$/.test(f) && f.includes(`_${version}_`)).map((f) => path.join(dir, f)))
   : [];
-const files = [[path.join(release, "booffer.exe"), "Booffer.exe"], ...installers.map((f) => [f, path.basename(f)])];
+const files = [[path.join(release, "boofer.exe"), "Boofer.exe"], ...installers.map((f) => [f, path.basename(f)])];
 
 // A running exe can't be overwritten on Windows, but it can be renamed out of the way.
 function copy(from, to) {
@@ -53,7 +53,7 @@ function copy(from, to) {
     fs.renameSync(to, old);
     fs.copyFileSync(from, to);
   }
-  // Keep the build's date: Booffer compares exe dates to replace an older running copy.
+  // Keep the build's date: Boofer compares exe dates to replace an older running copy.
   const { atime, mtime } = fs.statSync(from);
   fs.utimesSync(to, atime, mtime);
 }
@@ -64,6 +64,6 @@ for (const dir of destinations) {
   console.log(`✔ ${path.relative(root, dir) || "."} ← ${files.map(([, name]) => name).join(", ")}`);
 }
 
-// The new exe closes any older Booffer still running when it starts.
-spawn(path.join(root, "Booffer.exe"), { detached: true, stdio: "ignore" }).unref();
-console.log("✔ Booffer relancé (dernière version)");
+// The new exe closes any older Boofer still running when it starts.
+spawn(path.join(root, "Boofer.exe"), { detached: true, stdio: "ignore" }).unref();
+console.log("✔ Boofer relancé (dernière version)");

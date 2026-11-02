@@ -262,7 +262,7 @@ function renderHistory() {
   if (rows.length === 0) {
     rows.push(Object.assign(document.createElement("li"), {
       className: "py-2 text-xs text-zinc-400",
-      textContent: "Rien pour l'instant : Booffer note ici chaque tâche terminée.",
+      textContent: "Rien pour l'instant : Boofer note ici chaque tâche terminée.",
     }));
   }
   $("history").replaceChildren(...rows);
@@ -273,7 +273,7 @@ async function refreshHooks() {
   const texts = {
     ok: ["✓ Claude Code est connecté", "Les hooks sont dans ~/.claude/settings.json (statut, demandes, compactage)."],
     outdated: ["Claude Code : mise à jour dispo", "Ajoute les nouveaux hooks (ex. voir quand le contexte se compacte)."],
-    missing: ["Claude Code n'est pas connecté", "Ajoute les hooks de Booffer à ~/.claude/settings.json (tes réglages sont gardés, une copie de sauvegarde est faite)."],
+    missing: ["Claude Code n'est pas connecté", "Ajoute les hooks de Boofer à ~/.claude/settings.json (tes réglages sont gardés, une copie de sauvegarde est faite)."],
   };
   const [title, text] = texts[status] ?? texts.missing;
   $("hooks-title").textContent = title;
@@ -392,7 +392,7 @@ async function installPending() {
   try {
     await installUpdate(pendingUpdate, (p) => {
       $("update-fill").style.width = `${Math.round((p ?? 0.5) * 100)}%`;
-      if (p === 1) updateStatus("Installation… Booffer va redémarrer tout seul.");
+      if (p === 1) updateStatus("Installation… Boofer va redémarrer tout seul.");
     });
   } catch (e) {
     updateStatus(`Échec de la mise à jour : ${e}`);

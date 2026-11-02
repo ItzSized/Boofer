@@ -1,6 +1,6 @@
 /**
  * Raw model ids from each tool → a name people recognize, and the family it
- * belongs to (its color everywhere in Booffer).
+ * belongs to (its color everywhere in Boofer).
  *   claude-opus-5-5 → Claude Opus 5.5 · gemini-pro-default → Gemini Pro · gpt-6-astra → GPT-6 Astra
  */
 

@@ -57,7 +57,7 @@ export function createPermissionCard(el, { agentName, color, resolve, onChange }
     answer({ behavior: "allow", updatedPermissions: queue[0]?.payload.permission_suggestions }),
   );
   $("deny").addEventListener("click", () =>
-    answer({ behavior: "deny", message: "Refusé par l'utilisateur depuis Booffer." }),
+    answer({ behavior: "deny", message: "Refusé par l'utilisateur depuis Boofer." }),
   );
   $("skip").addEventListener("click", () => answer(null));
 
@@ -74,7 +74,7 @@ export function createPermissionCard(el, { agentName, color, resolve, onChange }
       queue.push(request);
       render();
     },
-    /** Booffer gave up waiting (Claude Code now asks by itself). */
+    /** Boofer gave up waiting (Claude Code now asks by itself). */
     expire: (id) => drop((r) => r.id === id),
     /** The user answered in Claude Code instead: the session moved on. */
     dismissSession(sessionId) {

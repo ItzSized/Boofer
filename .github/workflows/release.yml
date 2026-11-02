@@ -1,6 +1,6 @@
 name: Build Windows (installeur .msi, .exe et version portable)
 
-# Each push to main rebuilds Booffer and refreshes the GitHub release of the current version
+# Each push to main rebuilds Boofer and refreshes the GitHub release of the current version
 # (tauri.conf.json → "version"): people download it ready to use, nothing to compile.
 on:
   push:
@@ -43,15 +43,15 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         with:
           tagName: v__VERSION__
-          releaseName: "Booffer v__VERSION__"
+          releaseName: "Boofer v__VERSION__"
           releaseBody: |
             **Windows 10 / 11**, au choix :
-            - `Booffer_x.y.z_x64_en-US.msi` : installeur classique (recommandé)
-            - `Booffer_x.y.z_x64-setup.exe` : installeur léger
-            - `Booffer.exe` : version portable, rien à installer, double-clic et c'est parti
+            - `Boofer_x.y.z_x64_en-US.msi` : installeur classique (recommandé)
+            - `Boofer_x.y.z_x64-setup.exe` : installeur léger
+            - `Boofer.exe` : version portable, rien à installer, double-clic et c'est parti
 
             Les installeurs ajoutent WebView2 s'il manque. Rien d'autre à installer : ni Node, ni Rust.
-            Déjà installé ? Booffer se met à jour tout seul (Réglages → Rechercher des mises à jour).
+            Déjà installé ? Boofer se met à jour tout seul (Réglages → Rechercher des mises à jour).
             Pour Claude Code : Réglages → Claude Code → Connecter.
           releaseDraft: false
           prerelease: false
@@ -62,5 +62,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           version=$(node -p "require('./src-tauri/tauri.conf.json').version")
-          cp src-tauri/target/release/booffer.exe Booffer.exe
-          gh release upload "v$version" Booffer.exe --clobber
+          cp src-tauri/target/release/boofer.exe Boofer.exe
+          gh release upload "v$version" Boofer.exe --clobber

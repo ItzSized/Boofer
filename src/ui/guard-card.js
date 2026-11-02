@@ -76,7 +76,7 @@ export function createGuardCard(el, { agentName, resolve, onChange }) {
       queue.push({ ...request, at: Date.now() });
       render();
     },
-    /** Booffer stopped waiting: the command was blocked. */
+    /** Boofer stopped waiting: the command was blocked. */
     expire(id) {
       const i = queue.findIndex((r) => r.id === id);
       if (i < 0) return;

@@ -50,7 +50,7 @@ pub struct Settings {
     pub daily_limit_pct: std::collections::BTreeMap<String, u64>,
     /// Ctrl+Alt+P rewrites the prompt with Claude Haiku instead of the local compressor.
     pub reprompt_ai: bool,
-    /// When a task ends and no sound can be heard (Booffer's sounds off, or the PC muted),
+    /// When a task ends and no sound can be heard (Boofer's sounds off, or the PC muted),
     /// a Windows notification shows even with the editor in front.
     pub notify_when_silent: bool,
     /// Animation groups switched off ("float", "work", "arms", "celebrate", "tricks", "blink", "sleep"),
@@ -200,7 +200,7 @@ pub(crate) fn claude_settings_path() -> Option<PathBuf> {
         .map(|home| PathBuf::from(home).join(".claude").join("settings.json"))
 }
 
-/// "missing": no Booffer hooks yet. "outdated": installed by an older Booffer (some events
+/// "missing": no Boofer hooks yet. "outdated": installed by an older Boofer (some events
 /// are missing, e.g. compaction). "ok": everything is there.
 #[tauri::command]
 pub fn claude_hooks_status() -> &'static str {
@@ -225,28 +225,28 @@ pub fn claude_hooks_status() -> &'static str {
     }
 }
 
-/// Booffer's endpoint in a hook entry: "/event/claude-code", "/permission", "/guard".
+/// Boofer's endpoint in a hook entry: "/event/claude-code", "/permission", "/guard".
 fn endpoint(entry: &serde_json::Value) -> Option<String> {
     let text = entry.to_string();
     let start = text.find(HOOK_MARKER)? + HOOK_MARKER.len();
     Some(text[start..].chars().take_while(|c| !c.is_whitespace() && *c != '"' && *c != '\\').collect())
 }
 
-/// Whether `list` (one event's hooks) already holds Booffer's entry for the same endpoint.
+/// Whether `list` (one event's hooks) already holds Boofer's entry for the same endpoint.
 fn has_entry(list: &serde_json::Value, entry: &serde_json::Value) -> bool {
     let Some(wanted) = endpoint(entry) else { return true };
     list.as_array().into_iter().flatten().any(|e| endpoint(e).as_deref() == Some(wanted.as_str()))
 }
 
-/// Booffer hooks from an older version: add the new events (the user already said yes once).
+/// Boofer hooks from an older version: add the new events (the user already said yes once).
 pub fn upgrade_claude_hooks() {
     if claude_hooks_status() == "outdated" {
         let _ = install_claude_hooks();
     }
 }
 
-/// Adds Booffer's hooks to ~/.claude/settings.json, keeping everything else. The file as it
-/// was before Booffer's first install is kept next to it as settings.json.booffer-backup.
+/// Adds Boofer's hooks to ~/.claude/settings.json, keeping everything else. The file as it
+/// was before Boofer's first install is kept next to it as settings.json.booffer-backup.
 #[tauri::command]
 pub fn install_claude_hooks() -> Result<(), String> {
     install_hooks_at(&claude_settings_path().ok_or("dossier utilisateur introuvable")?)
@@ -349,7 +349,7 @@ pub(crate) mod tests {
         assert!(installed["hooks"].to_string().contains(HOOK_MARKER));
         let backup = path.with_extension("json.booffer-backup");
         assert_eq!(std::fs::read_to_string(&backup).unwrap(), original);
-        // An upgrade installs again: the backup still holds the file from before Booffer.
+        // An upgrade installs again: the backup still holds the file from before Boofer.
         install_hooks_at(&path).unwrap();
         assert_eq!(std::fs::read_to_string(&backup).unwrap(), original);
     }

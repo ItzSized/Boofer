@@ -169,9 +169,9 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   }
 
   // The tray icon's tooltip says what the bubble says: readable when the ghost is hidden or elsewhere.
-  let trayText = "Booffer";
+  let trayText = "Boofer";
   function trayStatus(selected, state) {
-    const parts = [settings.dnd ? "Booffer 🌙" : "Booffer"];
+    const parts = [settings.dnd ? "Boofer 🌙" : "Boofer"];
     if (asking()) parts.push(guard.isOpen() ? "« Stop ! » : une commande attend ta réponse" : "Une demande attend ta réponse");
     else if (selected && state !== State.IDLE) {
       const pct = typeof selected.progress === "number" ? ` · ${Math.round(selected.progress * 100)} %` : "";
@@ -200,7 +200,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     playDone();
     const compactOnly = session.details?.compactOnly;
     speech.say(compactOnly ? "relieved" : "done");
-    // silent: no ping from Booffer → Rust shows the notification even with the editor in front
+    // silent: no ping from Boofer → Rust shows the notification even with the editor in front
     // (it also checks whether the PC itself is muted).
     const silent = !settings.sounds || settings.volume <= 0;
     if (isTauri) invoke("notify", { title: session.headline ?? `${session.project || session.agent} a fini !`, body: notifyBody(session), silent });
@@ -376,7 +376,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
 
   // Fake Claude Code compaction: what the hooks send for a /compact.
   async function runCompactDemo() {
-    const base = { session_id: `demo-compact-${Date.now()}`, cwd: "C:/Users/me/Booffer" };
+    const base = { session_id: `demo-compact-${Date.now()}`, cwd: "C:/Users/me/Boofer" };
     const key = `claude-code:${base.session_id}`;
     contexts.set(key, { tokens: 0, window: 1_000_000, model: "claude-opus-5-5", compactMs: 12_000 });
     ingest("claude-code", { ...base, hook_event_name: "PreCompact", trigger: "manual" });
@@ -519,7 +519,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   }, 60_000);
 
   // A new release on GitHub? Checked at launch and every 6 h. With « Mettre à jour
-  // automatiquement », it installs over this version at a calm moment, then Booffer restarts.
+  // automatiquement », it installs over this version at a calm moment, then Boofer restarts.
   let updating = false;
   async function checkUpdate() {
     if (!isTauri || updating) return;
@@ -531,7 +531,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     }
     if (!update) return;
     if (settings.autoUpdate === false) {
-      if (once(`booffer.update.${update.version}`)) speech.tell(`✨ Booffer ${update.version} est dispo ! Réglages → Rechercher des mises à jour`, 8000);
+      if (once(`booffer.update.${update.version}`)) speech.tell(`✨ Boofer ${update.version} est dispo ! Réglages → Rechercher des mises à jour`, 8000);
       return;
     }
     const calm = () => !sessions.some((s) => s.state !== State.IDLE && s.state !== State.DONE) && !asking();
@@ -568,7 +568,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     reprompt(await invoke("read_clipboard_text").catch(() => ""));
   }
 
-  // Booffer can't type in Claude Code: it copies /compact and brings its window up.
+  // Boofer can't type in Claude Code: it copies /compact and brings its window up.
   async function compactNow() {
     const project = selectedSession()?.project;
     await invoke("write_clipboard", { text: "/compact" });
@@ -579,7 +579,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   // Demos to try the animations and cards without a real agent: settings → « 🧪 Essayer »
   // in the app, the right-click menu in the browser preview (npm run dev).
   const DEMOS = {
-    task: { label: "✨ Simuler une tâche", run: () => runDemo("Booffer", 0, "antigravity", "Gemini 3.1 Pro") },
+    task: { label: "✨ Simuler une tâche", run: () => runDemo("Boofer", 0, "antigravity", "Gemini 3.1 Pro") },
     sessions: { label: "👻 Simuler 2 sessions", run: () => (runDemo("site-web", 0, "antigravity", "Gemini 3.1 Pro"), runDemo("api", 2500, "claude-api")) },
     compact: { label: "🧹 Simuler un compactage", run: () => runCompactDemo() },
     request: { label: "🔐 Simuler une demande", run: () => card.add(TEST_REQUEST()) },

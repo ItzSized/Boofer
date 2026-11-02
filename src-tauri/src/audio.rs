@@ -1,4 +1,4 @@
-//! Can the user hear Booffer? Reads the Windows output device: muted or volume at 0 = silent.
+//! Can the user hear Boofer? Reads the Windows output device: muted or volume at 0 = silent.
 
 #[cfg(windows)]
 pub fn system_muted() -> bool {

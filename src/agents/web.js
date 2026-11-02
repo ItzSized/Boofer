@@ -3,7 +3,7 @@ import { compact } from "../core/models.js";
 import { duration } from "../core/format.js";
 import { State } from "../core/states.js";
 
-/** The sites src-tauri/src/web.rs recognizes, with their color in Booffer. */
+/** The sites src-tauri/src/web.rs recognizes, with their color in Boofer. */
 export const WEB_SITES = [
   { id: "chatgpt", name: "ChatGPT", color: "#10A37F" },
   { id: "gemini", name: "Gemini", color: "#4285F4" },

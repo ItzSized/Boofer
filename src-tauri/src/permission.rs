@@ -1,5 +1,5 @@
 //! Claude Code's PermissionRequest hook POSTs to /permission and waits.
-//! The request stays open until the user clicks Allow / Deny in Booffer,
+//! The request stays open until the user clicks Allow / Deny in Boofer,
 //! or it times out and Claude Code falls back to its own prompt.
 
 use std::collections::HashMap;

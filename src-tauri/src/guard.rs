@@ -1,7 +1,7 @@
 //! « Stop ! » : Claude Code's PreToolUse hook POSTs every Bash / PowerShell command to
 //! /guard before running it. Harmless commands get an empty answer right away; a dangerous
 //! one (rm -rf, git push --force, format…) waits until the user says "continue" or "block"
-//! in Booffer. No answer in time = blocked: an agent working alone must not wipe anything.
+//! in Boofer. No answer in time = blocked: an agent working alone must not wipe anything.
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
@@ -46,9 +46,9 @@ pub fn resolve(app: &AppHandle, id: u64, allow: bool) {
     let entry = app.state::<Guards>().pending.lock().unwrap().remove(&id);
     if let Some((_, request)) = entry {
         let reason = if allow {
-            "Confirmé par l'utilisateur dans Booffer."
+            "Confirmé par l'utilisateur dans Boofer."
         } else {
-            "Booffer a bloqué cette commande dangereuse : l'utilisateur a refusé. Ne la relance pas, propose une alternative sûre ou demande-lui."
+            "Boofer a bloqué cette commande dangereuse : l'utilisateur a refusé. Ne la relance pas, propose une alternative sûre ou demande-lui."
         };
         respond(request, allow, reason);
     }
@@ -73,7 +73,7 @@ pub fn start_reaper(app: AppHandle) {
             respond(
                 request,
                 false,
-                "Booffer a bloqué cette commande dangereuse : l'utilisateur n'a pas confirmé à temps. Demande-lui avant de réessayer.",
+                "Boofer a bloqué cette commande dangereuse : l'utilisateur n'a pas confirmé à temps. Demande-lui avant de réessayer.",
             );
             let _ = app.emit("guard-expired", id);
         }

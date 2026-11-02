@@ -32,7 +32,7 @@ export class ClaudeCodeAdapter extends AgentAdapter {
   normalize(p) {
     const id = p?.session_id;
     const project = basename(p?.cwd);
-    // Booffer's own prompt compression (settings → ✂️ Tokens) runs Claude there.
+    // Boofer's own prompt compression (settings → ✂️ Tokens) runs Claude there.
     if (!id || project === "booffer-compress") return null;
     const out = (turn, rest) => ({ id, project, details: this.#details(turn), ...rest });
 
@@ -127,7 +127,7 @@ export class ClaudeCodeAdapter extends AgentAdapter {
     return turn;
   }
 
-  // A turn may already be running when Booffer starts: create it lazily.
+  // A turn may already be running when Boofer starts: create it lazily.
   #turn(id) {
     return this.#turns.get(id) ?? this.#newTurn(id, "");
   }

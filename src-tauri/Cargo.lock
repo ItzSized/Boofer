@@ -314,7 +314,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "booffer"
+name = "boofer"
 version = "0.3.6"
 dependencies = [
  "rusqlite",

@@ -4,6 +4,7 @@ mod apps;
 mod autostart;
 mod codex;
 mod guard;
+mod migrate;
 mod permission;
 mod pet;
 mod session_stats;
@@ -52,7 +53,7 @@ fn build_stamp() -> u64 {
     })
 }
 
-/// Ensures only one instance of Booffer can run at a time.
+/// Ensures only one instance of Boofer can run at a time.
 /// - If the same or a newer build is already running, sends `POST /show` to unhide it and exits `0`.
 /// - If an older build is holding port 47823 (it answers `/show` with an older stamp, or
 ///   without one), replaces it: launching a fresh build always gets you the fresh build.
@@ -84,7 +85,7 @@ fn acquire_single_instance_server() -> Option<tiny_http::Server> {
             .args(["/F", "/FI", &format!("PID ne {my_pid}"), "/IM", "booffer.exe"])
             .output();
         let _ = std::process::Command::new("taskkill")
-            .args(["/F", "/FI", &format!("PID ne {my_pid}"), "/IM", "Booffer.exe"])
+            .args(["/F", "/FI", &format!("PID ne {my_pid}"), "/IM", "boofer.exe"])
             .output();
         std::thread::sleep(Duration::from_millis(350));
     }
@@ -105,7 +106,7 @@ fn start_event_server(app: AppHandle, server: tiny_http::Server) {
             let is_post = *request.method() == tiny_http::Method::Post;
 
             // Hooks and scripts (curl) send no Origin; a web page always does. A site you visit
-            // must not be able to talk to Booffer behind your back (fake statuses, cards).
+            // must not be able to talk to Boofer behind your back (fake statuses, cards).
             if request.headers().iter().any(|h| h.field.equiv("Origin")) {
                 let _ = request.respond(tiny_http::Response::empty(403));
                 continue;
@@ -236,7 +237,7 @@ fn show_settings(app: &AppHandle, page: &str) -> Result<(), String> {
     }
     let url = format!("settings.html#{page}");
     tauri::WebviewWindowBuilder::new(app, "settings", tauri::WebviewUrl::App(url.into()))
-        .title("Réglages · Booffer")
+        .title("Réglages · Boofer")
         .inner_size(500.0, 720.0)
         .min_inner_size(420.0, 480.0)
         .center()
@@ -263,7 +264,7 @@ fn set_tray_status(app: AppHandle, text: String) {
         tip.push(c);
     }
     if let Some(tray) = app.tray_by_id(TRAY_ID) {
-        let _ = tray.set_tooltip(Some(if tip.is_empty() { "Booffer".to_string() } else { tip }));
+        let _ = tray.set_tooltip(Some(if tip.is_empty() { "Boofer".to_string() } else { tip }));
     }
 }
 
@@ -276,7 +277,7 @@ fn set_attention(app: AppHandle, active: bool) {
 /// Windows notification for a finished task, unless the user is already looking
 /// at their editor (the ghost told them) or asked not to be disturbed.
 #[tauri::command]
-/// `silent`: the end of a task, while Booffer's own sounds are off. With the PC muted too,
+/// `silent`: the end of a task, while Boofer's own sounds are off. With the PC muted too,
 /// the ping can't be heard: the notification then shows even with the editor in front.
 fn notify(app: AppHandle, title: String, body: String, force: Option<bool>, silent: Option<bool>) {
     let (enabled, dnd, when_silent) = {
@@ -347,7 +348,7 @@ fn register_shortcuts(app: &AppHandle) {
         Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyM),
         Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyP),
     ] {
-        // Another app may own it already: Booffer works without.
+        // Another app may own it already: Boofer works without.
         let _ = app.global_shortcut().register(shortcut);
     }
 }
@@ -390,12 +391,12 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
     let recall = MenuItem::with_id(app, "recall", "Ramener le fantôme", true, None::<&str>)?;
     let settings_item = MenuItem::with_id(app, "settings", "Réglages…", true, None::<&str>)?;
     let models_item = MenuItem::with_id(app, "models", "Usage des modèles…", true, None::<&str>)?;
-    let quit_item = MenuItem::with_id(app, "quit", "Quitter Booffer", true, None::<&str>)?;
+    let quit_item = MenuItem::with_id(app, "quit", "Quitter Boofer", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&settings_item, &models_item, &follow, &dnd, &recall, &hidden, &quit_item])?;
 
     TrayIconBuilder::with_id(TRAY_ID)
         .icon(app.default_window_icon().cloned().expect("bundle icon"))
-        .tooltip("Booffer")
+        .tooltip("Boofer")
         .menu(&menu)
         .on_menu_event(|app, event| {
             let state = app.state::<PetState>();
@@ -487,6 +488,7 @@ pub fn run() {
             app.manage(loaded);
             settings::apply(app.handle(), &initial);
             build_tray(app.handle())?;
+            migrate::remove_old_install();
             if let Some(server) = server_cell.lock().unwrap().take() {
                 start_event_server(app.handle().clone(), server);
             }

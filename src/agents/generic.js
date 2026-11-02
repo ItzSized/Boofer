@@ -4,7 +4,7 @@ import { State } from "../core/states.js";
 const VALID_STATES = new Set(Object.values(State));
 
 /**
- * For anything that already speaks Booffer's format, e.g. reporters/anthropic.js:
+ * For anything that already speaks Boofer's format, e.g. reporters/anthropic.js:
  * POST /event/<source> { id, state, label?, progress?, tokens?, project?, headline? }
  */
 export class GenericAdapter extends AgentAdapter {

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Réglages · Booffer</title>
+  <title>Réglages · Boofer</title>
 </head>
 
 <body class="min-h-screen bg-zinc-100 dark:bg-zinc-950 text-zinc-800 dark:text-zinc-100 antialiased select-none">
@@ -13,7 +13,7 @@
       class="flex items-center gap-4 rounded-2xl bg-gradient-to-br from-violet-100 dark:from-violet-950 to-white dark:to-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
       <div id="hero" data-state="idle" class="mascot hero shrink-0"></div>
       <div class="min-w-0 flex-1">
-        <h1 class="text-lg font-bold">Réglages de Booffer</h1>
+        <h1 class="text-lg font-bold">Réglages de Boofer</h1>
         <p class="text-xs text-zinc-500 dark:text-zinc-400">Tout s'applique tout de suite, et reste enregistré.</p>
         <div id="level" class="mt-2 text-xs" title="1 tâche finie = 1 XP">
           <div class="flex items-baseline justify-between gap-2">
@@ -61,7 +61,7 @@
     </section>
 
     <section class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
-      <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Où vit Booffer</h2>
+      <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Où vit Boofer</h2>
       <div class="grid grid-cols-2 gap-2">
         <button data-display="editor"
           class="display-card rounded-xl p-3 text-left ring-1 ring-black/10 dark:ring-white/15">
@@ -88,7 +88,7 @@
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
           <p class="text-sm font-medium">Lancer au démarrage de Windows</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400" id="autostart-text">Booffer s'ouvre tout seul quand tu
+          <p class="text-xs text-zinc-500 dark:text-zinc-400" id="autostart-text">Boofer s'ouvre tout seul quand tu
             allumes le PC.</p>
         </div>
         <label class="toggle"><input id="autostart" type="checkbox" /><span></span></label>
@@ -141,7 +141,7 @@
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
           <p class="text-sm font-medium">🔕 Prévenir quand le son est coupé</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Si les sons de Booffer sont coupés ou si le PC est en muet, une notification te dit quand une tâche finit, même sur ton éditeur.</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Si les sons de Boofer sont coupés ou si le PC est en muet, une notification te dit quand une tâche finit, même sur ton éditeur.</p>
         </div>
         <label class="toggle"><input id="notify-silent" type="checkbox" /><span></span></label>
       </div>
@@ -227,7 +227,7 @@
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">Approuver depuis Booffer (Claude Code)</p>
+          <p class="text-sm font-medium">Approuver depuis Boofer (Claude Code)</p>
           <p class="text-xs text-zinc-500 dark:text-zinc-400">Autoriser / Refuser les demandes de permission depuis la
             carte.</p>
         </div>
@@ -237,7 +237,7 @@
         <div>
           <p class="text-sm font-medium">🛑 Bloquer les commandes dangereuses</p>
           <p class="text-xs text-zinc-500 dark:text-zinc-400">Avant un <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">rm -rf</code>,
-            un <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">git push --force</code>, un formatage… Booffer croise les bras et te demande
+            un <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">git push --force</code>, un formatage… Boofer croise les bras et te demande
             de confirmer. Sans réponse en 55 s, c'est bloqué. Marche même en mode auto de Claude Code.</p>
         </div>
         <label class="toggle"><input id="guard-toggle" type="checkbox" /><span></span></label>
@@ -318,7 +318,7 @@
       <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
         <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">🎯 Ma limite par jour</h2>
         <p class="mt-0.5 text-[11px] text-zinc-400">
-          Un plafond par IA, en % de ta journée moyenne (7 derniers jours) : Booffer te prévient à 80 % et à 100 %, et te dit
+          Un plafond par IA, en % de ta journée moyenne (7 derniers jours) : Boofer te prévient à 80 % et à 100 %, et te dit
           si tu es en avance ou en retard sur ton rythme (limite répartie de 8 h à minuit).
         </p>
         <div id="budget-rows" class="mt-3 space-y-3"></div>
@@ -387,7 +387,7 @@
       <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
         <h2 class="text-sm font-bold">🔁 Reprompt</h2>
         <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-          Écris ta demande normalement : Booffer la réécrit en « code IA », rien que pour l'IA. Chaque partie va sous une
+          Écris ta demande normalement : Boofer la réécrit en « code IA », rien que pour l'IA. Chaque partie va sous une
           balise courte : <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#do</code> les étapes (séparées par &gt;),
           <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#not</code> ce qu'il ne faut pas faire,
           <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#must</code> ce qui doit rester vrai,
@@ -424,7 +424,7 @@
     <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
       <div class="flex items-center justify-between gap-3">
         <div class="min-w-0">
-          <p class="text-sm font-medium">👻 Booffer <span id="version">0.3.6</span></p>
+          <p class="text-sm font-medium">👻 Boofer <span id="version">0.3.6</span></p>
           <p id="update-status" class="text-xs text-zinc-500 dark:text-zinc-400">Les mises à jour s'installent par-dessus, sans rien désinstaller.</p>
         </div>
         <button id="update-check"

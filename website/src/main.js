@@ -42,14 +42,14 @@ export function initWebsite() {
       icon.textContent = "🍎";
       title.textContent = "Télécharger pour macOS";
       sub.textContent = "Apple Silicon (M1–M4) & Intel · .dmg";
-      link.href = "https://github.com/ItzSized/Boofer/releases/latest/download/Booffer_0.1.0_aarch64.dmg";
+      link.href = "https://github.com/ItzSized/Boofer/releases/latest/download/Boofer_0.1.0_aarch64.dmg";
       link.removeAttribute("download");
       $("dl-card-macos")?.classList.add("ring-2", "ring-blue-500");
     } else if (ua.includes("linux")) {
       icon.textContent = "🐧";
       title.textContent = "Télécharger pour Linux";
       sub.textContent = "AppImage universel, Ubuntu/Debian (.deb) & Fedora (.rpm)";
-      link.href = "https://github.com/ItzSized/Boofer/releases/latest/download/Booffer_0.1.0_amd64.AppImage";
+      link.href = "https://github.com/ItzSized/Boofer/releases/latest/download/Boofer_0.1.0_amd64.AppImage";
       link.removeAttribute("download");
       $("dl-card-linux")?.classList.add("ring-2", "ring-amber-500");
     }

@@ -1,6 +1,6 @@
 /**
- * Report the progress of YOUR OWN Anthropic SDK streams to Booffer.
- * The API key stays in your script; Booffer never sees it.
+ * Report the progress of YOUR OWN Anthropic SDK streams to Boofer.
+ * The API key stays in your script; Boofer never sees it.
  *
  *   const stream = client.messages.stream({ ... });
  *   trackStream(stream, { label: "Résumé du PDF" });
@@ -16,7 +16,7 @@ export function trackStream(stream, { label, expectedTokens = 800, url = BOOFFER
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ id, label, ...body }),
-    }).catch(() => {}); // Booffer not running: never break the caller
+    }).catch(() => {}); // Boofer not running: never break the caller
 
   let chars = 0;
   let lastSent = 0;

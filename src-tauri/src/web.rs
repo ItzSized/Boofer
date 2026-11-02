@@ -232,7 +232,7 @@ mod tests {
 mod live {
     use super::*;
 
-    /// cargo test --lib web::live -- --ignored --nocapture : what Booffer reads in the open browsers.
+    /// cargo test --lib web::live -- --ignored --nocapture : what Boofer reads in the open browsers.
     #[test]
     #[ignore]
     fn prints_browser_tabs() {

@@ -1,4 +1,4 @@
-// npm run demo:api   (needs ANTHROPIC_API_KEY or an `ant auth login` profile, and Booffer running)
+// npm run demo:api   (needs ANTHROPIC_API_KEY or an `ant auth login` profile, and Boofer running)
 import Anthropic from "@anthropic-ai/sdk";
 import { trackStream } from "../reporters/anthropic.js";
 

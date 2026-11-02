@@ -1,7 +1,7 @@
 // Updates from the GitHub releases (tauri-plugin-updater): the signed installer of the latest
-// version is downloaded and installed over this one, then Booffer restarts. Nothing to uninstall.
+// version is downloaded and installed over this one, then Boofer restarts. Nothing to uninstall.
 
-/** The available update, or null when Booffer is up to date. Throws when offline. */
+/** The available update, or null when Boofer is up to date. Throws when offline. */
 export async function findUpdate() {
   const { check } = await import("@tauri-apps/plugin-updater");
   return check();
@@ -19,7 +19,7 @@ export async function installUpdate(update, onProgress = () => {}) {
     }
     if (event.event === "Finished") onProgress(1);
   });
-  // On Windows the installer closes Booffer and opens the new version itself; elsewhere, restart.
+  // On Windows the installer closes Boofer and opens the new version itself; elsewhere, restart.
   const { relaunch } = await import("@tauri-apps/plugin-process");
   await relaunch();
 }

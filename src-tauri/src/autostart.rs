@@ -1,5 +1,5 @@
 //! "Lancer au démarrage":
-//! - Windows: HKCU\Software\Microsoft\Windows\CurrentVersion\Run\Booffer
+//! - Windows: HKCU\Software\Microsoft\Windows\CurrentVersion\Run\Boofer
 //! - macOS:   ~/Library/LaunchAgents/dev.booffer.desktop.plist
 //! - Linux:   ~/.config/autostart/booffer.desktop
 
@@ -20,7 +20,7 @@ mod os {
     };
 
     const RUN_KEY: &str = r"Software\Microsoft\Windows\CurrentVersion\Run";
-    const VALUE_NAME: &str = "Booffer";
+    const VALUE_NAME: &str = "Boofer";
     const ERROR_FILE_NOT_FOUND: u32 = 2;
 
     fn wide(text: &str) -> Vec<u16> {
@@ -143,7 +143,7 @@ mod os {
                 std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
             }
             let entry = format!(
-                "[Desktop Entry]\nType=Application\nName=Booffer\nComment=Compagnon IA sur ton bureau\nExec=\"{}\"\nTerminal=false\nX-GNOME-Autostart-enabled=true\n",
+                "[Desktop Entry]\nType=Application\nName=Boofer\nComment=Compagnon IA sur ton bureau\nExec=\"{}\"\nTerminal=false\nX-GNOME-Autostart-enabled=true\n",
                 exe.display()
             );
             std::fs::write(path, entry).map_err(|e| e.to_string())

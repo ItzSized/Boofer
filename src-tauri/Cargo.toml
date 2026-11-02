@@ -1,11 +1,11 @@
 [package]
-name = "booffer"
+name = "boofer"
 version = "0.3.6"
 description = "A cute desktop companion that tracks your AI agents"
 edition = "2021"
 
 [lib]
-name = "booffer_lib"
+name = "boofer_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

@@ -132,7 +132,7 @@ export function createLiveView({ call, isTauri, emit, listen }) {
   }
 
   const DEV_SESSIONS = () => [
-    { key: "a", agent: "Claude Code", color: "#D97757", project: "Booffer", state: "tool", label: "Modifie main.js", model: "Claude Opus 5.5", prompt: "Ajoute la page en direct", elapsedMs: 95_000, etaMs: 140_000, steps: 14, files: 3, progress: 0.42, context: { tokens: 312_000, window: 1_000_000 },
+    { key: "a", agent: "Claude Code", color: "#D97757", project: "Boofer", state: "tool", label: "Modifie main.js", model: "Claude Opus 5.5", prompt: "Ajoute la page en direct", elapsedMs: 95_000, etaMs: 140_000, steps: 14, files: 3, progress: 0.42, context: { tokens: 312_000, window: 1_000_000 },
       cost: { tokens: 1_240_000, pct: 0.018, label: "💰 1,2M tokens · 2 % de ta limite du jour" },
       contextParts: [{ key: "files", tokens: 118_000 }, { key: "system", tokens: 64_000 }, { key: "commands", tokens: 52_000 }, { key: "replies", tokens: 41_000 }, { key: "toolCalls", tokens: 21_000 }, { key: "prompts", tokens: 9_000 }, { key: "search", tokens: 7_000 }] },
     { key: "b", agent: "Antigravity", color: "#4285F4", project: "site-web", state: "idle", label: "En attente de ta demande", model: "Gemini 3.1 Pro", elapsedMs: 0, etaMs: null, steps: 0, files: 0, progress: null, context: null },

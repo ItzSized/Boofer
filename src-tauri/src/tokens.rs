@@ -14,7 +14,7 @@ use crate::settings::{claude_settings_path, read_user_file, write_user_file};
 const CONCISE_START: &str = "<!-- booffer:concise -->";
 const CONCISE_END: &str = "<!-- /booffer:concise -->";
 const CONCISE_BLOCK: &str = "<!-- booffer:concise -->
-## Style des réponses (ajouté par Booffer, à retirer depuis ses réglages)
+## Style des réponses (ajouté par Boofer, à retirer depuis ses réglages)
 - Réponds court et direct : pas de récapitulatif final, ne reformule pas la demande.
 - Ne réaffiche pas le code inchangé : seulement les lignes modifiées.
 - Pas d'explication sauf si on la demande.
