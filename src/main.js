@@ -12,6 +12,7 @@ import { estimateTokens, repromptForAI } from "./core/compress.js";
 import { EtaEstimator } from "./core/eta.js";
 import { State } from "./core/states.js";
 import { setTheme } from "./core/theme.js";
+import { applyAnimations } from "./core/animations.js";
 import { Tracker } from "./core/tracker.js";
 import { configureSound, playAttention, playDone, playError } from "./audio/chime.js";
 import { createBubble } from "./ui/bubble.js";
@@ -62,7 +63,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   const card = createPermissionCard(document.getElementById("ask"), {
     agentName: claudeCode.name,
     color: claudeCode.color,
-    // Negative ids are local test requests (menu → "Tester une demande").
+    // Negative ids are local test requests (settings → « 🧪 Essayer »).
     resolve: (id, decision) => id >= 0 && invoke("resolve_permission", { id, decision }),
     onChange: () => onCardsChange(),
   });
@@ -197,7 +198,10 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     playDone();
     const compactOnly = session.details?.compactOnly;
     speech.say(compactOnly ? "relieved" : "done");
-    if (isTauri) invoke("notify", { title: session.headline ?? `${session.project || session.agent} a fini !`, body: notifyBody(session) });
+    // silent: no ping from Booffer → Rust shows the notification even with the editor in front
+    // (it also checks whether the PC itself is muted).
+    const silent = !settings.sounds || settings.volume <= 0;
+    if (isTauri) invoke("notify", { title: session.headline ?? `${session.project || session.agent} a fini !`, body: notifyBody(session), silent });
     if (compactOnly) return;
     if (session.details?.webUsage) {
       recordWebAnswer(session.details.webUsage);
@@ -337,7 +341,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   const quit = () => (isTauri ? invoke("quit") : window.close());
 
   // Settings live in Rust (settings.json); every window gets "settings-changed".
-  let settings = { follow: false, glide: false, sleepAfter: 45, size: 1, sounds: true, volume: 0.8, skin: "classique", accessory: "aucun", theme: "auto", dnd: false, dndUntil: 0, speech: true };
+  let settings = { animationsOff: [], follow: false, glide: false, sleepAfter: 45, size: 1, sounds: true, volume: 0.8, skin: "classique", accessory: "aucun", theme: "auto", dnd: false, dndUntil: 0, speech: true };
 
   function applySettings(next) {
     if (settingsLoaded && !settings.follow && next.follow) speech.say("follow");
@@ -348,6 +352,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     dndEl.classList.toggle("hidden", !settings.dnd);
     dndEl.title = settings.dnd && settings.dndUntil ? `Ne pas déranger jusqu'à ${clockTime(settings.dndUntil)}` : "Ne pas déranger";
     setTheme(settings.theme);
+    applyAnimations(settings.animationsOff);
     document.documentElement.style.zoom = String(settings.size); // the window is resized to match
     mascotEl.dataset.skin = settings.skin;
     mascotEl.dataset.accessory = settings.accessory;
@@ -495,10 +500,19 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     speech.tell(focused ? "📋 /compact copié : colle-le (Ctrl+V) puis Entrée" : "📋 /compact copié : colle-le dans Claude Code", 6000);
   }
 
+  // Demos to try the animations and cards without a real agent: settings → « 🧪 Essayer »
+  // in the app, the right-click menu in the browser preview (npm run dev).
+  const DEMOS = {
+    task: { label: "✨ Simuler une tâche", run: () => runDemo("Booffer", 0, "antigravity", "Gemini 3.1 Pro") },
+    sessions: { label: "👻 Simuler 2 sessions", run: () => (runDemo("site-web", 0, "antigravity", "Gemini 3.1 Pro"), runDemo("api", 2500, "claude-api")) },
+    compact: { label: "🧹 Simuler un compactage", run: () => runCompactDemo() },
+    request: { label: "🔐 Simuler une demande", run: () => card.add(TEST_REQUEST()) },
+    guard: { label: "🛑 Simuler un stop", run: () => guard.add(TEST_GUARD()) },
+  };
+  const demoItems = (ids) => (isTauri ? [] : ids.map((id) => ({ label: DEMOS[id].label, action: DEMOS[id].run })));
+
   const menu = createMenu(document.getElementById("menu"), [
-    { label: "✨ Tester l'animation", action: () => runDemo("Booffer", 0, "antigravity", "Gemini 3.1 Pro") },
-    { label: "👻 Tester 2 sessions", action: () => (runDemo("site-web", 0, "antigravity", "Gemini 3.1 Pro"), runDemo("api", 2500, "claude-api")) },
-    { label: "🧹 Tester un compactage", action: () => runCompactDemo() },
+    ...demoItems(["task", "sessions", "compact"]),
     { label: "📅 Ma journée", action: () => daySummary() },
     ...(isTauri
       ? [
@@ -508,8 +522,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
         { label: "🟢 Agents en direct", action: () => invoke("open_settings", { page: "live" }) },
       ]
       : []),
-    { label: "🔐 Tester une demande", action: () => card.add(TEST_REQUEST()) },
-    { label: "🛑 Tester le stop", action: () => guard.add(TEST_GUARD()) },
+    ...demoItems(["request", "guard"]),
     ...(isTauri
       ? [
         { label: "⚙️ Réglages", action: () => invoke("open_settings") },
@@ -561,6 +574,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     listen("guard-expired", ({ payload }) => guard.expire(payload));
     listen("settings-changed", ({ payload }) => applySettings(payload));
     listen("dnd-choice", ({ payload }) => setDnd(payload)); // tray → « Ne pas déranger »
+    listen("demo", ({ payload }) => DEMOS[payload]?.run()); // settings → « 🧪 Essayer »
     // Ctrl+Alt+P: the prompt in the clipboard comes back rewritten for the AI.
     listen("compress-clipboard", ({ payload }) => reprompt(payload));
     invoke("get_settings").then((loaded) => {

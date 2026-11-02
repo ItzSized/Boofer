@@ -4,6 +4,7 @@ import { configureSound, playDone } from "./audio/chime.js";
 import { duration } from "./core/format.js";
 import { clearHistory, loadHistory, todayStats } from "./core/history.js";
 import { setTheme } from "./core/theme.js";
+import { ANIMATION_GROUPS, applyAnimations } from "./core/animations.js";
 import { createMascot } from "./ui/mascot.js";
 import { createUsageView } from "./ui/usage-view.js";
 import { createTokensView } from "./ui/tokens-view.js";
@@ -54,7 +55,7 @@ const SLEEP_CHOICES = [
 // In a plain browser (npm run dev), fake the Rust side so the page can be designed.
 const isTauri = "__TAURI_INTERNALS__" in window;
 const DEV_SETTINGS = {
-  display: "editor", notifications: true, targetApps: ["antigravity"], follow: false, glide: false, sounds: true, volume: 0.8,
+  display: "editor", notifications: true, notifyWhenSilent: true, animationsOff: [], targetApps: ["antigravity"], follow: false, glide: false, sounds: true, volume: 0.8,
   size: 1, skin: "classique", accessory: "aucun", sleepAfter: 45, approvals: true, theme: "auto", dnd: false, dndUntil: 0, speech: true,
   guard: true, dailyLimitPct: { anthropic: 100 }, repromptAi: false,
 };
@@ -169,6 +170,36 @@ function render() {
   $("dnd-until").textContent = settings.dnd && settings.dndUntil ? ` Jusqu'à ${clockTime(settings.dndUntil)}.` : "";
   $("speech-toggle").checked = settings.speech;
   $("notifications").checked = settings.notifications !== false;
+  $("notify-silent").checked = settings.notifyWhenSilent !== false;
+  renderAnimations();
+}
+
+// Animations: one switch for all, and a chip per group (lit = animated).
+const animationButtons = ANIMATION_GROUPS.map((group) => {
+  const button = Object.assign(document.createElement("button"), { className: "chip", textContent: group.name, title: group.hint });
+  button.addEventListener("click", () => {
+    const off = new Set((settings.animationsOff ?? []).filter((id) => id !== "all"));
+    off.has(group.id) ? off.delete(group.id) : off.add(group.id);
+    save({ animationsOff: [...off] });
+  });
+  return { group, button };
+});
+$("anim-groups").replaceChildren(...animationButtons.map((a) => a.button));
+
+function renderAnimations() {
+  const off = settings.animationsOff ?? [];
+  const all = off.includes("all");
+  applyAnimations(off); // the preview ghost at the top of this page too
+  $("anim-all").checked = !all;
+  $("anim-groups-block").classList.toggle("opacity-40", all);
+  for (const { group, button } of animationButtons) {
+    button.classList.toggle("on", !all && !off.includes(group.id));
+    button.disabled = all;
+  }
+  const count = off.filter((id) => id !== "all").length;
+  $("anim-hint").textContent = all
+    ? "Tout est coupé : réactive « Animer le fantôme » pour choisir."
+    : count ? `${count} coupée${count > 1 ? "s" : ""}. Clique pour couper ou remettre une animation.` : "Clique pour couper ou remettre une animation.";
 }
 
 function renderEditors() {
@@ -279,6 +310,17 @@ $("autostart").addEventListener("change", async (e) => {
 // Here it has no end: for a while, it's the tray or the ghost's menu (they set dndUntil).
 $("dnd-toggle").addEventListener("change", (e) => save({ dnd: e.target.checked, dndUntil: 0 }));
 $("notifications").addEventListener("change", (e) => save({ notifications: e.target.checked }));
+$("notify-silent").addEventListener("change", (e) => save({ notifyWhenSilent: e.target.checked }));
+// Off then on again keeps the groups chosen before.
+$("anim-all").addEventListener("change", (e) => {
+  const groups = (settings.animationsOff ?? []).filter((id) => id !== "all");
+  save({ animationsOff: e.target.checked ? groups : [...groups, "all"] });
+});
+document.querySelectorAll("[data-demo]").forEach((button) => {
+  button.addEventListener("click", () => {
+    if (isTauri) emit("demo", button.dataset.demo);
+  });
+});
 $("speech-toggle").addEventListener("change", (e) => save({ speech: e.target.checked }));
 $("approvals").addEventListener("change", (e) => save({ approvals: e.target.checked }));
 $("guard-toggle").addEventListener("change", (e) => save({ guard: e.target.checked }));
@@ -313,7 +355,7 @@ $("repo-link").addEventListener("click", () => openUrl(REPO));
 $("update-link").addEventListener("click", () => openUrl(`${REPO}/releases/latest`));
 (async () => {
   try {
-    const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : "0.3.3";
+    const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : "0.3.4";
     $("version").textContent = current;
     const res = await fetch("https://api.github.com/repos/ItzSized/Boofer/releases/latest");
     if (!res.ok) return;

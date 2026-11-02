@@ -50,6 +50,12 @@ pub struct Settings {
     pub daily_limit_pct: std::collections::BTreeMap<String, u64>,
     /// Ctrl+Alt+P rewrites the prompt with Claude Haiku instead of the local compressor.
     pub reprompt_ai: bool,
+    /// When a task ends and no sound can be heard (Booffer's sounds off, or the PC muted),
+    /// a Windows notification shows even with the editor in front.
+    pub notify_when_silent: bool,
+    /// Animation groups switched off ("float", "work", "arms", "celebrate", "tricks", "blink", "sleep"),
+    /// or "all".
+    pub animations_off: Vec<String>,
 }
 
 impl Default for Settings {
@@ -75,6 +81,8 @@ impl Default for Settings {
             daily_limits: Default::default(),
             daily_limit_pct: Default::default(),
             reprompt_ai: false,
+            notify_when_silent: true,
+            animations_off: Vec::new(),
         }
     }
 }

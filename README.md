@@ -39,6 +39,9 @@ Rien d'autre à installer : les installeurs ajoutent WebView2 s'il manque (déj�
 - **IA du navigateur**, sans rien installer : dans Chrome, Edge ou Brave, Booffer suit aussi ChatGPT, Gemini, AI Studio, Claude, Grok, Perplexity, DeepSeek, Le Chat et Copilot (l'onglet affiché de chaque fenêtre) : statut en direct, un bip et une notification quand la réponse est prête, et l'historique. Coche « ChatGPT, Gemini… (navigateur) » dans les éditeurs pour qu'il s'affiche sur ces onglets.
 - **Clic sur la bulle** : ramène au premier plan la fenêtre du projet en cours.
 - **Notifications Windows** quand une tâche finit et que tu n'es pas sur ton éditeur, et une alerte quand une limite d'abonnement dépasse 80 %.
+- **Son coupé ?** Si les sons de Booffer sont coupés ou si ton PC est en muet, une notification te prévient quand une tâche finit, même quand tu es sur ton éditeur (Réglages → 🔕).
+- **Animations au choix** (Réglages → Animations) : coupe tout d'un coup pour un fantôme immobile, ou seulement ce qui te gêne (flottement, bras, saut de fin, pirouettes, clignements, Zzz…).
+- **🧪 Essayer** (Réglages) : simule une tâche, deux sessions, un compactage, une demande ou un stop pour voir le fantôme en action.
 - **Raccourcis** : Ctrl+Alt+B pour l'afficher ou le cacher, Ctrl+Alt+M pour l'usage des modèles.
 - **Il grandit avec toi** : chaque tâche finie donne de l'XP. Niveau 3 une lueur, niveau 5 une auréole, niveau 8 une aura dorée. Il a l'air fatigué quand le contexte est presque plein, et soulagé après un compactage.
 - **Une session = un mini-fantôme** à sa couleur, qui sautille tant qu'elle travaille.

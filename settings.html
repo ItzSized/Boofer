@@ -140,6 +140,13 @@
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
+          <p class="text-sm font-medium">🔕 Prévenir quand le son est coupé</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Si les sons de Booffer sont coupés ou si le PC est en muet, une notification te dit quand une tâche finit, même sur ton éditeur.</p>
+        </div>
+        <label class="toggle"><input id="notify-silent" type="checkbox" /><span></span></label>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
           <p class="text-sm font-medium">⌨️ Raccourcis</p>
           <p class="text-xs text-zinc-500 dark:text-zinc-400"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd> afficher / cacher ·
             <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> usage des modèles · <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> reprompt</p>
@@ -160,6 +167,35 @@
             class="rounded-lg bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-xs hover:bg-zinc-200 dark:hover:bg-zinc-700">▶
             Tester</button>
         </div>
+      </div>
+    </section>
+
+    <section
+      class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
+      <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Animations</h2>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">Animer le fantôme</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Coupe tout pour un fantôme immobile : son humeur reste visible à ses yeux et à sa couleur.</p>
+        </div>
+        <label class="toggle"><input id="anim-all" type="checkbox" /><span></span></label>
+      </div>
+      <div class="py-2.5" id="anim-groups-block">
+        <p class="text-sm font-medium">Choisir lesquelles</p>
+        <p class="mb-2 text-xs text-zinc-500 dark:text-zinc-400" id="anim-hint">Clique pour couper ou remettre une animation.</p>
+        <div id="anim-groups" class="flex flex-wrap gap-1.5"></div>
+      </div>
+    </section>
+
+    <section class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
+      <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">🧪 Essayer</h2>
+      <p class="mt-1 mb-2 text-xs text-zinc-500 dark:text-zinc-400">Voir le fantôme en action sans lancer de vrai agent.</p>
+      <div class="flex flex-wrap gap-1.5">
+        <button class="chip" data-demo="task">✨ Une tâche</button>
+        <button class="chip" data-demo="sessions">👻 2 sessions</button>
+        <button class="chip" data-demo="compact">🧹 Un compactage</button>
+        <button class="chip" data-demo="request">🔐 Une demande</button>
+        <button class="chip" data-demo="guard">🛑 Un stop</button>
       </div>
     </section>
 
@@ -386,7 +422,7 @@
     </div>
 
     <footer class="pb-2 text-center text-[11px] text-zinc-400">
-      Booffer <span id="version">0.3.3</span> · <button id="repo-link" class="hover:text-violet-500 hover:underline">github.com/ItzSized/Boofer</button>
+      Booffer <span id="version">0.3.4</span> · <button id="repo-link" class="hover:text-violet-500 hover:underline">github.com/ItzSized/Boofer</button>
       <span id="update" class="hidden"> · <button id="update-link" class="font-semibold text-violet-500 hover:underline"></button></span>
     </footer>
   </main>

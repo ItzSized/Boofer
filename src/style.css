@@ -1127,3 +1127,66 @@ body {
 #guard-card .guard-timer {
   transition: width 1s linear;
 }
+
+/* ---------- Animations switched off (settings → Animations, core/animations.js) ---------- */
+
+/* Floating at rest (also when gliding, asleep, done). The one-shot moves keep their own group. */
+.anim-off-float .mascot:not(.celebrate, .patted, .waking, .trick-spin, .trick-hop, .stop):is([data-state="idle"], [data-state="done"], .moving, .sleeping) .ghost,
+.anim-off-float .shadow,
+.anim-off-float .halo,
+.anim-off-float .mini-busy .mini-ghost {
+  animation: none !important;
+}
+
+/* Moving while an agent works. */
+.anim-off-work .mascot:not(.celebrate, .patted):is([data-state="thinking"], [data-state="tool"], [data-state="streaming"], [data-state="attention"], [data-state="error"], [data-state="compacting"]) .ghost,
+.anim-off-work .think-dots circle,
+.anim-off-work [data-state="streaming"] .mouth-o,
+.anim-off-work .mascot.stop .ghost,
+.anim-off-work .mascot.stop .stop-sign,
+.anim-off-work .mascot.tired .sweat {
+  animation: none !important;
+}
+
+.anim-off-work .think-dots circle {
+  opacity: 0 !important;
+}
+
+.anim-off-arms .mascot .arm {
+  animation: none !important;
+}
+
+.anim-off-celebrate .mascot.celebrate .ghost,
+.anim-off-celebrate .mascot.celebrate .arm,
+.anim-off-celebrate .spark {
+  animation: none !important;
+}
+
+.anim-off-tricks .mascot:is(.trick-spin, .trick-hop, .patted, .waking) .ghost,
+.anim-off-tricks .mascot.trick-peek .eyes-open {
+  animation: none !important;
+}
+
+.anim-off-tricks .heart {
+  display: none;
+}
+
+.anim-off-blink .eyes-open {
+  animation: none !important;
+}
+
+.anim-off-sleep .mascot.sleeping .ghost,
+.anim-off-sleep .mascot.sleeping .zzz text {
+  animation: none !important;
+}
+
+/* Everything at once, transitions included: the ghost stays still, its mood still shows.
+   Only the ghosts: the rest of the window (cards, settings page) keeps its transitions. */
+.anim-off-all :is(.mascot, .mascot *, .mini-ghost, .mini-ghost *) {
+  animation: none !important;
+  transition: none !important;
+}
+
+.anim-off-all .mascot svg {
+  rotate: 0deg !important;
+}

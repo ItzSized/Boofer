@@ -1,4 +1,5 @@
 mod antigravity;
+mod audio;
 mod apps;
 mod autostart;
 mod codex;
@@ -274,14 +275,21 @@ fn set_attention(app: AppHandle, active: bool) {
 /// Windows notification for a finished task, unless the user is already looking
 /// at their editor (the ghost told them) or asked not to be disturbed.
 #[tauri::command]
-fn notify(app: AppHandle, title: String, body: String, force: Option<bool>) {
-    let (enabled, dnd) = {
+/// `silent`: the end of a task, while Booffer's own sounds are off. With the PC muted too,
+/// the ping can't be heard: the notification then shows even with the editor in front.
+fn notify(app: AppHandle, title: String, body: String, force: Option<bool>, silent: Option<bool>) {
+    let (enabled, dnd, when_silent) = {
         let settings = app.state::<SettingsState>();
         let s = settings.current.lock().unwrap();
-        (s.notifications, s.dnd)
+        (s.notifications, s.dnd, s.notify_when_silent)
     };
+    if dnd {
+        return;
+    }
     let editor_in_front = app.state::<PetState>().editor_in_front.load(Relaxed);
-    if enabled && !dnd && (force.unwrap_or(false) || !editor_in_front) {
+    let usual = enabled && (force.unwrap_or(false) || !editor_in_front);
+    let unheard = when_silent && silent.is_some() && (silent == Some(true) || audio::system_muted());
+    if usual || unheard {
         let _ = app.notification().builder().title(title).body(body).show();
     }
 }
