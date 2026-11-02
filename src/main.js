@@ -6,6 +6,7 @@ import { loadHistory, recordFinished, todayStats } from "./core/history.js";
 import { gainXp, levelFor, loadXp } from "./core/level.js";
 import { compact, describeModel, localDay, summarize } from "./core/models.js";
 import { dailyBudgets } from "./core/budget.js";
+import { recordWebAnswer, withWebUsage } from "./core/web-usage.js";
 import { approx, clockTime, duration, isNewer } from "./core/format.js";
 import { compressWithStats, estimateTokens } from "./core/compress.js";
 import { EtaEstimator } from "./core/eta.js";
@@ -198,6 +199,10 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     speech.say(compactOnly ? "relieved" : "done");
     if (isTauri) invoke("notify", { title: session.headline ?? `${session.project || session.agent} a fini !`, body: notifyBody(session) });
     if (compactOnly) return;
+    if (session.details?.webUsage) {
+      recordWebAnswer(session.details.webUsage);
+      usageBar.refresh();
+    }
     recordFinished(session);
     const levelUp = gainXp();
     showLevel();
@@ -397,7 +402,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
       if (isTauri) invoke("notify", { title: "Limite bientôt atteinte", body: text, force: true });
     }
     // The user's own daily limits (settings → 📊 Modèles): at 80 % and when over, once a day each.
-    for (const b of dailyBudgets(usage.rows, settings.dailyLimits)) {
+    for (const b of dailyBudgets(withWebUsage(usage.rows), settings.dailyLimits)) {
       const step = b.pct >= 1 ? 100 : b.pct >= 0.8 ? 80 : 0;
       if (!step || !once(`booffer.budget.${b.family}.${step}.${localDay(0)}`)) continue;
       const text = step === 100
@@ -427,7 +432,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
 
   function daySummary() {
     const stats = todayStats(loadHistory());
-    const top = summarize(latestUsage.rows, localDay(0))[0];
+    const top = summarize(withWebUsage(latestUsage.rows), localDay(0))[0];
     const parts = [
       `${stats.tasks} tâche${stats.tasks > 1 ? "s" : ""}`,
       stats.ms ? duration(stats.ms) : "",

@@ -101,6 +101,18 @@ fn start_event_server(app: AppHandle, server: tiny_http::Server) {
         for mut request in server.incoming_requests() {
             let is_post = *request.method() == tiny_http::Method::Post;
 
+            // The browser extension: is the tab in front an AI chat? { "active": true }
+            if is_post && request.url() == "/web-focus" {
+                let mut body = String::new();
+                let _ = request.as_reader().take(MAX_BODY_BYTES).read_to_string(&mut body);
+                let active = serde_json::from_str::<serde_json::Value>(&body).ok().and_then(|v| v["active"].as_bool());
+                let state = app.state::<PetState>();
+                state.web_ai.store(active.unwrap_or(false), Relaxed);
+                state.web_seen.store(true, Relaxed);
+                let _ = request.respond(tiny_http::Response::empty(204));
+                continue;
+            }
+
             if is_post && request.url() == "/show" {
                 app.state::<PetState>().hidden.store(false, Relaxed);
                 if let Some(items) = app.try_state::<TrayItems>() {
@@ -166,6 +178,9 @@ fn start_event_server(app: AppHandle, server: tiny_http::Server) {
 
             let status = match source {
                 Some(source) if is_post && read_ok => {
+                    if source.starts_with("web-") {
+                        app.state::<PetState>().web_seen.store(true, Relaxed);
+                    }
                     let _ = app.emit("agent-event", RawAgentEvent { source, payload });
                     204
                 }
@@ -282,6 +297,27 @@ fn notify(app: AppHandle, title: String, body: String, force: Option<bool>) {
 #[tauri::command]
 fn focus_project(project: String) -> bool {
     !project.trim().is_empty() && pet::focus_window_titled(&project)
+}
+
+/// Settings → « IA du navigateur »: has the extension talked to us since launch?
+#[tauri::command]
+fn web_extension_status(app: AppHandle) -> bool {
+    app.state::<PetState>().web_seen.load(Relaxed)
+}
+
+/// Opens the folder of the browser extension (shipped with the app), to load it in Chrome / Edge.
+#[tauri::command]
+fn open_extension_folder(app: AppHandle) -> Result<String, String> {
+    let installed = app.path().resource_dir().ok().map(|dir| dir.join("extension"));
+    let dev = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../extension");
+    let dir = installed
+        .filter(|d| d.join("manifest.json").exists())
+        .or_else(|| dev.join("manifest.json").exists().then(|| dev.canonicalize().unwrap_or(dev)))
+        .ok_or("dossier de l'extension introuvable")?;
+    let text = dir.to_string_lossy().trim_start_matches(r"\\?\").to_string();
+    #[cfg(windows)]
+    std::process::Command::new("explorer").arg(&text).spawn().map_err(|e| e.to_string())?;
+    Ok(text)
 }
 
 /// Opens a page of the project on GitHub in the browser (only those).
@@ -445,6 +481,8 @@ pub fn run() {
             set_hidden,
             set_attention,
             set_tray_status,
+            web_extension_status,
+            open_extension_folder,
             notify,
             focus_project,
             tokens::get_token_savers,

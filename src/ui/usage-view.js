@@ -1,5 +1,6 @@
 import { FAMILIES, compact, describeModel, familyColor, localDay, summarize } from "../core/models.js";
 import { PACE_HELP, dailyBudgets, paceLabel, windowDelta } from "../core/budget.js";
+import { withWebUsage } from "../core/web-usage.js";
 
 /** Daily token limits offered (0 = none). Claude's count includes cache reads, so it climbs fast. */
 const BUDGETS = [0, 1e6, 5e6, 10e6, 25e6, 50e6, 100e6, 250e6, 500e6, 1e9];
@@ -231,7 +232,8 @@ export function createUsageView({ call, settings, save }) {
       loading = true;
       render();
       try {
-        data = (await call("model_usage", { tzOffsetMinutes: new Date().getTimezoneOffset() })) ?? data;
+        const usage = await call("model_usage", { tzOffsetMinutes: new Date().getTimezoneOffset() });
+        if (usage) data = { ...usage, rows: withWebUsage(usage.rows) };
       } catch {
         // keep what we had
       } finally {

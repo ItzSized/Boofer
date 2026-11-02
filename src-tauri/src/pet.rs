@@ -31,6 +31,10 @@ pub struct PetState {
     pub editor_in_front: AtomicBool,
     /// Tray « Ramener le fantôme »: forget where it sat, put it back in sight.
     pub recall: AtomicBool,
+    /// The browser extension says the tab in front is ChatGPT, Gemini, Claude… (POST /web-focus).
+    pub web_ai: AtomicBool,
+    /// The browser extension has talked to us since launch (settings → « IA du navigateur »).
+    pub web_seen: AtomicBool,
 }
 
 impl Default for PetState {
@@ -41,6 +45,8 @@ impl Default for PetState {
             attention: AtomicBool::new(false),
             editor_in_front: AtomicBool::new(false),
             recall: AtomicBool::new(false),
+            web_ai: AtomicBool::new(false),
+            web_seen: AtomicBool::new(false),
         }
     }
 }
@@ -103,7 +109,7 @@ pub fn start(window: WebviewWindow) {
             }
 
             let state = window.state::<PetState>();
-            foreground.poll(&targets, follow_windows);
+            foreground.poll(&targets, follow_windows, state.web_ai.load(Relaxed));
             state.editor_in_front.store(foreground.editor.is_some(), Relaxed);
             let target = if everywhere && !follow_windows { None } else { foreground.target() };
             // « Ramener le fantôme »: every window's spot is forgotten, so it lands back in the
@@ -236,14 +242,22 @@ struct ForegroundTracker {
     target: Option<usize>,
     /// The editor in front, if it is one.
     editor: Option<usize>,
+    /// An AI chat tab is in front in the browser (extension): the browser counts as an editor
+    /// when "web-ai" is among the targets.
+    web_ai: bool,
 }
 
+/// Browsers the extension runs in (Chromium based).
+const BROWSERS: &[&str] = &["chrome.exe", "msedge.exe", "brave.exe", "opera.exe", "vivaldi.exe", "arc.exe"];
+
 impl ForegroundTracker {
-    fn poll(&mut self, targets: &[String], any_window: bool) {
+    fn poll(&mut self, targets: &[String], any_window: bool, web_ai: bool) {
         let hwnd = os::foreground_window();
-        if hwnd == self.hwnd {
+        // Switching tabs keeps the same browser window: the extension's answer changes instead.
+        if hwnd == self.hwnd && web_ai == self.web_ai {
             return;
         }
+        self.web_ai = web_ai;
         self.hwnd = hwnd;
         if os::window_pid(hwnd) == std::process::id() {
             return;
@@ -272,7 +286,13 @@ impl ForegroundTracker {
             targets
                 .iter()
                 .any(|t| !t.is_empty() && (path_lower.contains(t.as_str()) || win_title.contains(t.as_str())))
-        }) || targets.iter().any(|t| !t.is_empty() && win_title.contains(t.as_str()));
+        }) || targets.iter().any(|t| !t.is_empty() && win_title.contains(t.as_str()))
+            || (self.web_ai
+                && targets.iter().any(|t| t == "web-ai")
+                && os::process_name(pid).is_some_and(|path| {
+                    let path = path.to_lowercase();
+                    BROWSERS.iter().any(|b| path.ends_with(b))
+                }));
         self.editor = is_target.then_some(hwnd);
         if is_target || (any_window && os::is_app_window(hwnd)) {
             self.target = Some(hwnd);

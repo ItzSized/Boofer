@@ -2,6 +2,7 @@ import { AntigravityAdapter } from "./antigravity.js";
 import { ClaudeCodeAdapter } from "./claude-code.js";
 import { CodexAdapter } from "./codex.js";
 import { GenericAdapter } from "./generic.js";
+import { WEB_SITES, WebAdapter } from "./web.js";
 
 /** Add new agents here — the rest of the app picks them up automatically. */
 export const adapters = [
@@ -10,6 +11,8 @@ export const adapters = [
   new CodexAdapter(),
   new GenericAdapter({ source: "claude-api", name: "Claude", color: "#D97757" }),
   new GenericAdapter({ source: "generic", name: "Agent", color: "#a78bfa" }),
+  // ChatGPT, Gemini, Claude, Grok… in the browser (extension/).
+  ...WEB_SITES.map((site) => new WebAdapter(site)),
 ];
 
 export const adapterBySource = new Map(adapters.map((a) => [a.source, a]));

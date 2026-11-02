@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "Booffer · IA du navigateur",
+  "version": "0.3.0",
+  "description": "Booffer suit ChatGPT, Gemini, Claude, Grok… : statut en direct et un bip quand la réponse est prête.",
+  "icons": { "32": "icons/32.png", "128": "icons/128.png" },
+  "host_permissions": [
+    "http://127.0.0.1:47823/*",
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://gemini.google.com/*",
+    "https://aistudio.google.com/*",
+    "https://claude.ai/*",
+    "https://grok.com/*",
+    "https://*.perplexity.ai/*",
+    "https://perplexity.ai/*",
+    "https://chat.deepseek.com/*",
+    "https://chat.mistral.ai/*",
+    "https://copilot.microsoft.com/*"
+  ],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://gemini.google.com/*",
+        "https://aistudio.google.com/*",
+        "https://claude.ai/*",
+        "https://grok.com/*",
+        "https://*.perplexity.ai/*",
+        "https://perplexity.ai/*",
+        "https://chat.deepseek.com/*",
+        "https://chat.mistral.ai/*",
+        "https://copilot.microsoft.com/*"
+      ],
+      "js": ["sites.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

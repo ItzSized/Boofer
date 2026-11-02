@@ -46,6 +46,7 @@ export function describeModel(raw) {
     return { name, family: "google" };
   }
 
+  if (lower.startsWith("chatgpt")) return { name: id, family: "openai" };
   if (lower === "codex-auto-review") return { name: "Codex · revue auto", family: "openai" };
   // gpt-6-astra, gpt-5.6-sol, o3, codex-mini
   const gpt = lower.match(/^gpt-([\d.]+)(?:-(.+))?$/);

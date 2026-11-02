@@ -1,5 +1,6 @@
 import { compact, describeModel, familyColor, localDay, summarize } from "../core/models.js";
 import { dailyBudgets, paceLabel } from "../core/budget.js";
+import { withWebUsage } from "../core/web-usage.js";
 
 const REFRESH_MS = 30_000;
 const SHOWN = 3;
@@ -91,7 +92,7 @@ export function createUsageBar(el, { isTauri, invoke, limits = () => ({}), onDat
     }
     try {
       const usage = await invoke("model_usage", { tzOffsetMinutes: new Date().getTimezoneOffset() });
-      rows = usage.rows;
+      rows = withWebUsage(usage.rows);
       render();
       onData(usage);
     } catch {

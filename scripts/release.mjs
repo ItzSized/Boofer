@@ -33,10 +33,12 @@ function targetDir() {
 }
 
 const release = path.join(targetDir(), "release");
+// Only this version's installers: the bundle folders keep the old ones.
+const { version } = JSON.parse(fs.readFileSync(path.join(root, "src-tauri/tauri.conf.json"), "utf8"));
 const bundles = [path.join(release, "bundle/nsis"), path.join(release, "bundle/msi")];
 const installers = withInstaller
   ? bundles.filter((dir) => fs.existsSync(dir)).flatMap((dir) =>
-    fs.readdirSync(dir).filter((f) => /(-setup\.exe|\.msi)$/.test(f)).map((f) => path.join(dir, f)))
+    fs.readdirSync(dir).filter((f) => /(-setup\.exe|\.msi)$/.test(f) && f.includes(`_${version}_`)).map((f) => path.join(dir, f)))
   : [];
 const files = [[path.join(release, "booffer.exe"), "Booffer.exe"], ...installers.map((f) => [f, path.basename(f)])];
 
