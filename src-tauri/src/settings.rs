@@ -56,6 +56,8 @@ pub struct Settings {
     /// Animation groups switched off ("float", "work", "arms", "celebrate", "tricks", "blink", "sleep"),
     /// or "all".
     pub animations_off: Vec<String>,
+    /// Downloads and installs a new release by itself (checked at launch and every few hours).
+    pub auto_update: bool,
 }
 
 impl Default for Settings {
@@ -83,6 +85,7 @@ impl Default for Settings {
             reprompt_ai: false,
             notify_when_silent: true,
             animations_off: Vec::new(),
+            auto_update: true,
         }
     }
 }

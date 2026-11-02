@@ -1,6 +1,6 @@
 [package]
 name = "booffer"
-version = "0.3.4"
+version = "0.3.5"
 description = "A cute desktop companion that tracks your AI agents"
 edition = "2021"
 
@@ -21,6 +21,8 @@ rusqlite = { version = "0.41.0", features = ["bundled"] }
 tauri-plugin-notification = "2"
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-clipboard-manager = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
 
 [target.'cfg(windows)'.dependencies]
 # UI Automation: reads the AI chat tab shown in the browser (src/web.rs).

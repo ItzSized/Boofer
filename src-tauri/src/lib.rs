@@ -440,6 +440,9 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_clipboard_manager::init())
+        // Updates: the signed installer of the latest GitHub release, installed over this one.
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .plugin(shortcuts())
         .manage(PetState::default())
         .manage(antigravity::AntigravityState::default())

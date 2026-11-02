@@ -7,12 +7,13 @@ import { gainXp, levelFor, loadXp } from "./core/level.js";
 import { compact, describeModel, localDay, summarize } from "./core/models.js";
 import { dailyBudgets, limitsFromPercent } from "./core/budget.js";
 import { recordWebAnswer, withWebUsage } from "./core/web-usage.js";
-import { approx, clockTime, duration, isNewer } from "./core/format.js";
+import { approx, clockTime, duration } from "./core/format.js";
 import { estimateTokens, repromptForAI } from "./core/compress.js";
 import { EtaEstimator } from "./core/eta.js";
 import { State } from "./core/states.js";
 import { setTheme } from "./core/theme.js";
 import { applyAnimations } from "./core/animations.js";
+import { findUpdate, installUpdate } from "./core/updates.js";
 import { Tracker } from "./core/tracker.js";
 import { configureSound, playAttention, playDone, playError } from "./audio/chime.js";
 import { createBubble } from "./ui/bubble.js";
@@ -341,7 +342,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   const quit = () => (isTauri ? invoke("quit") : window.close());
 
   // Settings live in Rust (settings.json); every window gets "settings-changed".
-  let settings = { animationsOff: [], follow: false, glide: false, sleepAfter: 45, size: 1, sounds: true, volume: 0.8, skin: "classique", accessory: "aucun", theme: "auto", dnd: false, dndUntil: 0, speech: true };
+  let settings = { animationsOff: [], autoUpdate: true, follow: false, glide: false, sleepAfter: 45, size: 1, sounds: true, volume: 0.8, skin: "classique", accessory: "aucun", theme: "auto", dnd: false, dndUntil: 0, speech: true };
 
   function applySettings(next) {
     if (settingsLoaded && !settings.follow && next.follow) speech.say("follow");
@@ -455,22 +456,35 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     }
   }, 60_000);
 
-  // A new release on GitHub? Checked once a day.
+  // A new release on GitHub? Checked at launch and every 6 h. With « Mettre à jour
+  // automatiquement », it installs over this version at a calm moment, then Booffer restarts.
+  let updating = false;
   async function checkUpdate() {
-    if (!isTauri || !once(`booffer.update.${localDay(0)}`)) return;
+    if (!isTauri || updating) return;
+    let update;
     try {
-      const [{ getVersion }, res] = await Promise.all([
-        import("@tauri-apps/api/app"),
-        fetch("https://api.github.com/repos/ItzSized/Boofer/releases/latest"),
-      ]);
-      if (!res.ok) return;
-      const latest = String((await res.json()).tag_name ?? "").replace(/^v/, "");
-      if (latest && isNewer(latest, await getVersion())) speech.tell(`✨ Booffer ${latest} est dispo ! Voir les réglages`, 8000);
+      update = await findUpdate();
     } catch {
-      // offline: try again tomorrow
+      return; // offline: next time
+    }
+    if (!update) return;
+    if (settings.autoUpdate === false) {
+      if (once(`booffer.update.${update.version}`)) speech.tell(`✨ Booffer ${update.version} est dispo ! Réglages → Rechercher des mises à jour`, 8000);
+      return;
+    }
+    const calm = () => !sessions.some((s) => s.state !== State.IDLE && s.state !== State.DONE) && !asking();
+    if (!calm()) return setTimeout(checkUpdate, 5 * 60_000); // an agent is working: later
+    updating = true;
+    speech.tell(`⬇️ Mise à jour vers ${update.version}… je reviens tout de suite !`, 15_000);
+    try {
+      await installUpdate(update);
+    } catch {
+      updating = false;
+      speech.tell("😕 La mise à jour a échoué, je réessaierai plus tard", 6000);
     }
   }
   setTimeout(checkUpdate, 20_000);
+  setInterval(checkUpdate, 6 * 3600_000);
 
   // Reprompt: the clipboard's prompt, rewritten for the AI only (local, or Claude Haiku if chosen).
   async function reprompt(text) {

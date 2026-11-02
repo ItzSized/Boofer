@@ -5,12 +5,13 @@ import { duration } from "./core/format.js";
 import { clearHistory, loadHistory, todayStats } from "./core/history.js";
 import { setTheme } from "./core/theme.js";
 import { ANIMATION_GROUPS, applyAnimations } from "./core/animations.js";
+import { findUpdate, installUpdate } from "./core/updates.js";
 import { createMascot } from "./ui/mascot.js";
 import { createUsageView } from "./ui/usage-view.js";
 import { createTokensView } from "./ui/tokens-view.js";
 import { createLiveView } from "./ui/live-view.js";
 import { PERKS, levelFor, loadXp } from "./core/level.js";
-import { clockTime, isNewer } from "./core/format.js";
+import { clockTime } from "./core/format.js";
 import "./style.css";
 import "./settings.css";
 
@@ -55,7 +56,7 @@ const SLEEP_CHOICES = [
 // In a plain browser (npm run dev), fake the Rust side so the page can be designed.
 const isTauri = "__TAURI_INTERNALS__" in window;
 const DEV_SETTINGS = {
-  display: "editor", notifications: true, notifyWhenSilent: true, animationsOff: [], targetApps: ["antigravity"], follow: false, glide: false, sounds: true, volume: 0.8,
+  display: "editor", notifications: true, notifyWhenSilent: true, animationsOff: [], autoUpdate: true, targetApps: ["antigravity"], follow: false, glide: false, sounds: true, volume: 0.8,
   size: 1, skin: "classique", accessory: "aucun", sleepAfter: 45, approvals: true, theme: "auto", dnd: false, dndUntil: 0, speech: true,
   guard: true, dailyLimitPct: { anthropic: 100 }, repromptAi: false,
 };
@@ -171,6 +172,7 @@ function render() {
   $("speech-toggle").checked = settings.speech;
   $("notifications").checked = settings.notifications !== false;
   $("notify-silent").checked = settings.notifyWhenSilent !== false;
+  $("auto-update").checked = settings.autoUpdate !== false;
   renderAnimations();
 }
 
@@ -311,6 +313,7 @@ $("autostart").addEventListener("change", async (e) => {
 $("dnd-toggle").addEventListener("change", (e) => save({ dnd: e.target.checked, dndUntil: 0 }));
 $("notifications").addEventListener("change", (e) => save({ notifications: e.target.checked }));
 $("notify-silent").addEventListener("change", (e) => save({ notifyWhenSilent: e.target.checked }));
+$("auto-update").addEventListener("change", (e) => save({ autoUpdate: e.target.checked }));
 // Off then on again keeps the groups chosen before.
 $("anim-all").addEventListener("change", (e) => {
   const groups = (settings.animationsOff ?? []).filter((id) => id !== "all");
@@ -352,21 +355,50 @@ renderLevel();
 const REPO = "https://github.com/ItzSized/Boofer";
 const openUrl = (url) => (isTauri ? call("open_url", { url }) : window.open(url, "_blank"));
 $("repo-link").addEventListener("click", () => openUrl(REPO));
-$("update-link").addEventListener("click", () => openUrl(`${REPO}/releases/latest`));
-(async () => {
+// Version and updates: « Rechercher » looks, then the same button installs (over this version).
+let pendingUpdate = null;
+const updateStatus = (text) => ($("update-status").textContent = text);
+
+async function checkForUpdate() {
+  if (!isTauri) return updateStatus("Les mises à jour se font dans l'appli installée.");
+  const button = $("update-check");
+  button.disabled = true;
+  updateStatus("Recherche…");
   try {
-    const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : "0.3.4";
-    $("version").textContent = current;
-    const res = await fetch("https://api.github.com/repos/ItzSized/Boofer/releases/latest");
-    if (!res.ok) return;
-    const latest = String((await res.json()).tag_name ?? "").replace(/^v/, "");
-    if (latest && isNewer(latest, current)) {
-      $("update-link").textContent = `✨ Mettre à jour vers ${latest}`;
-      $("update").classList.remove("hidden");
+    pendingUpdate = await findUpdate();
+    if (pendingUpdate) {
+      updateStatus(`✨ La version ${pendingUpdate.version} est disponible.`);
+      button.textContent = `Installer ${pendingUpdate.version}`;
+    } else {
+      updateStatus(`✓ Tu as la dernière version (vérifié à ${clockTime(Date.now())}).`);
     }
   } catch {
-    // offline
+    updateStatus("Impossible de vérifier : pas de connexion ?");
   }
+  button.disabled = false;
+}
+
+async function installPending() {
+  const button = $("update-check");
+  button.disabled = true;
+  $("update-bar").classList.remove("hidden");
+  updateStatus(`Téléchargement de la version ${pendingUpdate.version}…`);
+  try {
+    await installUpdate(pendingUpdate, (p) => {
+      $("update-fill").style.width = `${Math.round((p ?? 0.5) * 100)}%`;
+      if (p === 1) updateStatus("Installation… Booffer va redémarrer tout seul.");
+    });
+  } catch (e) {
+    updateStatus(`Échec de la mise à jour : ${e}`);
+    $("update-bar").classList.add("hidden");
+    button.disabled = false;
+  }
+}
+
+$("update-check").addEventListener("click", () => (pendingUpdate ? installPending() : checkForUpdate()));
+(async () => {
+  const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : "0.3.5";
+  $("version").textContent = current;
 })();
 window.addEventListener("focus", () => {
   renderHistory();

@@ -45,6 +45,7 @@ Rien d'autre à installer : les installeurs ajoutent WebView2 s'il manque (déj�
 - **Raccourcis** : Ctrl+Alt+B pour l'afficher ou le cacher, Ctrl+Alt+M pour l'usage des modèles.
 - **Il grandit avec toi** : chaque tâche finie donne de l'XP. Niveau 3 une lueur, niveau 5 une auréole, niveau 8 une aura dorée. Il a l'air fatigué quand le contexte est presque plein, et soulagé après un compactage.
 - **Une session = un mini-fantôme** à sa couleur, qui sautille tant qu'elle travaille.
+- **Mises à jour automatiques** : Booffer télécharge la nouvelle version et l'installe par-dessus, sans rien désinstaller, puis redémarre (au démarrage et toutes les 6 h, jamais pendant qu'un agent travaille). Bouton « Rechercher des mises à jour » en bas des réglages, et un interrupteur pour le faire à la main.
 - **Résumé du jour** vers 18 h (ou clic droit → Ma journée), et un message quand une nouvelle version sort sur GitHub.
 - **Historique** : les tâches terminées du jour, le temps de travail des agents et les fichiers modifiés, dans les réglages.
 - **Discret** : les clics passent à travers les zones vides, et il se ferme avec le bouton ×, le clic droit ou l'icône de la barre système.
