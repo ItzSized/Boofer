@@ -6,7 +6,7 @@ import { loadHistory, recordFinished, todayStats } from "./core/history.js";
 import { gainXp, levelFor, loadXp } from "./core/level.js";
 import { compact, describeModel, localDay, summarize } from "./core/models.js";
 import { dailyBudgets } from "./core/budget.js";
-import { duration, isNewer } from "./core/format.js";
+import { approx, clockTime, duration, isNewer } from "./core/format.js";
 import { compressWithStats, estimateTokens } from "./core/compress.js";
 import { EtaEstimator } from "./core/eta.js";
 import { State } from "./core/states.js";
@@ -143,6 +143,11 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     mascotEl.classList.toggle("tired", tired);
     usageBar.setActiveSession(selected);
     tabs.render(sessions, selected?.key);
+    const status = trayStatus(selected, state);
+    if (isTauri && status !== trayText) {
+      trayText = status;
+      invoke("set_tray_status", { text: status });
+    }
 
     if (state !== lastState) {
       if (state === State.ATTENTION) {
@@ -157,6 +162,26 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     }
     lastState = state;
     pet?.refresh(); // cards, tabs or the bubble may have appeared or gone under the cursor
+  }
+
+  // The tray icon's tooltip says what the bubble says: readable when the ghost is hidden or elsewhere.
+  let trayText = "Booffer";
+  function trayStatus(selected, state) {
+    const parts = [settings.dnd ? "Booffer 🌙" : "Booffer"];
+    if (asking()) parts.push(guard.isOpen() ? "« Stop ! » : une commande attend ta réponse" : "Une demande attend ta réponse");
+    else if (selected && state !== State.IDLE) {
+      const pct = typeof selected.progress === "number" ? ` · ${Math.round(selected.progress * 100)} %` : "";
+      const left = state === State.DONE ? null : eta.remaining(selected);
+      const rest = left == null ? "" : left < 5000 ? " · presque fini" : ` · reste ${approx(left)}`;
+      parts.push(`${selected.project || selected.agent} : ${selected.label}${pct}${rest}`);
+    } else parts.push("rien en cours");
+    const busy = sessions.filter((s) => s.state !== State.IDLE).length;
+    if (busy > 1) parts.push(`${busy} sessions`);
+    // Windows cuts tooltips at 127 UTF-16 units: shorten by whole characters (emoji included).
+    const chars = [...parts.join(" · ")];
+    if (chars.join("").length <= 120) return chars.join("");
+    while (chars.join("").length > 119) chars.pop();
+    return `${chars.join("")}…`;
   }
 
   // Keeps the ⏱ timer in the bubble ticking.
@@ -307,20 +332,42 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   const quit = () => (isTauri ? invoke("quit") : window.close());
 
   // Settings live in Rust (settings.json); every window gets "settings-changed".
-  let settings = { follow: false, glide: false, sleepAfter: 45, size: 1, sounds: true, volume: 0.8, skin: "classique", accessory: "aucun", theme: "auto", dnd: false, speech: true };
+  let settings = { follow: false, glide: false, sleepAfter: 45, size: 1, sounds: true, volume: 0.8, skin: "classique", accessory: "aucun", theme: "auto", dnd: false, dndUntil: 0, speech: true };
 
   function applySettings(next) {
     if (settingsLoaded && !settings.follow && next.follow) speech.say("follow");
     settingsLoaded = true;
     settings = next;
     configureSound({ sounds: settings.sounds && !settings.dnd, volume: settings.volume });
-    document.getElementById("dnd").classList.toggle("hidden", !settings.dnd);
+    const dndEl = document.getElementById("dnd");
+    dndEl.classList.toggle("hidden", !settings.dnd);
+    dndEl.title = settings.dnd && settings.dndUntil ? `Ne pas déranger jusqu'à ${clockTime(settings.dndUntil)}` : "Ne pas déranger";
     setTheme(settings.theme);
     document.documentElement.style.zoom = String(settings.size); // the window is resized to match
     mascotEl.dataset.skin = settings.skin;
     mascotEl.dataset.accessory = settings.accessory;
     usageBar.rerender();
+    render(); // the tray tooltip shows « Ne pas déranger » too
   }
+
+  // « Ne pas déranger » for a while ("30", "60", "morning"), with no end ("on"), or "off". The tray
+  // and this menu end up here: only this window knows the local time for « demain matin ».
+  function setDnd(choice) {
+    const now = new Date();
+    const morning = new Date(now);
+    if (morning.getHours() >= 8) morning.setDate(morning.getDate() + 1);
+    morning.setHours(8, 0, 0, 0);
+    const until = { 30: now.getTime() + 30 * 60_000, 60: now.getTime() + 60 * 60_000, morning: morning.getTime() }[choice] ?? 0;
+    invoke("set_settings", { settings: { ...settings, dnd: choice !== "off", dndUntil: until } });
+  }
+
+  // It ends by itself (checked every 15 s, so right after the PC wakes up too).
+  setInterval(() => {
+    if (settings.dnd && settings.dndUntil && Date.now() >= settings.dndUntil) {
+      setDnd("off");
+      speech.tell("🔔 Fin du « Ne pas déranger » : sons et demandes réactivés", 5000);
+    }
+  }, 15_000);
 
   // ---------- Extras: notifications, levels, limits, day summary, updates ----------
 
@@ -465,9 +512,12 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
           label: () => (settings.follow ? "🐾 Reste ici" : "🐾 Suis-moi (de fenêtre en fenêtre)"),
           action: () => invoke("set_follow", { enabled: !settings.follow }),
         },
+        { label: "🌙 Ne pas déranger 1 h", visible: () => !settings.dnd, action: () => setDnd("60") },
+        { label: "🌙 Ne pas déranger jusqu'à demain matin", visible: () => !settings.dnd, action: () => setDnd("morning") },
         {
-          label: () => (settings.dnd ? "🔔 Réactiver sons et demandes" : "🌙 Ne pas déranger"),
-          action: () => invoke("set_settings", { settings: { ...settings, dnd: !settings.dnd } }),
+          label: () => `🔔 Réactiver sons et demandes${settings.dndUntil ? ` (prévu à ${clockTime(settings.dndUntil)})` : ""}`,
+          visible: () => settings.dnd,
+          action: () => setDnd("off"),
         },
         { label: "🙈 Me cacher (icône de la barre)", action: () => invoke("set_hidden", { hidden: true }) },
       ]
@@ -504,6 +554,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     listen("live-request", () => emit("live-sessions", liveSnapshot()));
     listen("guard-expired", ({ payload }) => guard.expire(payload));
     listen("settings-changed", ({ payload }) => applySettings(payload));
+    listen("dnd-choice", ({ payload }) => setDnd(payload)); // tray → « Ne pas déranger »
     // Ctrl+Alt+P: the prompt in the clipboard comes back rewritten for the AI.
     listen("compress-clipboard", ({ payload }) => reprompt(payload));
     invoke("get_settings").then((loaded) => {

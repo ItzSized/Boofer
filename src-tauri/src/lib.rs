@@ -13,7 +13,7 @@ use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpStream};
 use std::sync::atomic::Ordering::Relaxed;
 use std::time::Duration;
-use tauri::menu::{CheckMenuItem, Menu, MenuItem};
+use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::tray::TrayIconBuilder;
 use tauri::{AppHandle, Emitter, Manager, Wry};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
@@ -179,15 +179,24 @@ fn start_event_server(app: AppHandle, server: tiny_http::Server) {
 /// Tray menu items whose checkmark mirrors the pet state.
 struct TrayItems {
     follow: CheckMenuItem<Wry>,
-    dnd: CheckMenuItem<Wry>,
+    /// « Ne pas déranger » submenu: its title says when it is on.
+    dnd: Submenu<Wry>,
+    dnd_off: MenuItem<Wry>,
     hidden: CheckMenuItem<Wry>,
 }
+
+/// The tray icon, found by id: a copy kept in TrayItems would leave it in the tray after « Quitter ».
+const TRAY_ID: &str = "booffer";
+
+const DND: &str = "Ne pas déranger";
+const DND_ON: &str = "Ne pas déranger (activé)";
 
 /// Keeps the tray checkmarks in line with the settings (they can change from any window).
 pub(crate) fn sync_tray(app: &AppHandle, settings: &settings::Settings) {
     if let Some(items) = app.try_state::<TrayItems>() {
         let _ = items.follow.set_checked(settings.follows_windows());
-        let _ = items.dnd.set_checked(settings.dnd);
+        let _ = items.dnd.set_text(if settings.dnd { DND_ON } else { DND });
+        let _ = items.dnd_off.set_enabled(settings.dnd);
     }
 }
 
@@ -230,6 +239,22 @@ fn show_settings(app: &AppHandle, page: &str) -> Result<(), String> {
 fn set_hidden(app: AppHandle, hidden: bool) {
     app.state::<PetState>().hidden.store(hidden, Relaxed);
     let _ = app.state::<TrayItems>().hidden.set_checked(hidden);
+}
+
+/// Tray icon tooltip: what the ghost is showing, readable even when it is hidden.
+#[tauri::command]
+fn set_tray_status(app: AppHandle, text: String) {
+    // Windows keeps 127 UTF-16 units, and an empty tooltip shows nothing.
+    let mut tip = String::new();
+    for c in text.trim().chars() {
+        if tip.encode_utf16().count() + c.len_utf16() > 127 {
+            break;
+        }
+        tip.push(c);
+    }
+    if let Some(tray) = app.tray_by_id(TRAY_ID) {
+        let _ = tray.set_tooltip(Some(if tip.is_empty() { "Booffer".to_string() } else { tip }));
+    }
 }
 
 /// Keeps the ghost visible while a permission card waits, even outside the target app.
@@ -329,14 +354,29 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
     let following = app.state::<SettingsState>().current.lock().unwrap().follows_windows();
     let follow = CheckMenuItem::with_id(app, "follow", "Suis-moi (de fenêtre en fenêtre)", true, following, None::<&str>)?;
     let dnd_on = app.state::<SettingsState>().current.lock().unwrap().dnd;
-    let dnd = CheckMenuItem::with_id(app, "dnd", "Ne pas déranger", true, dnd_on, None::<&str>)?;
+    let dnd_off = MenuItem::with_id(app, "dnd-off", "Réactiver sons et demandes", dnd_on, None::<&str>)?;
+    let dnd = Submenu::with_id_and_items(
+        app,
+        "dnd",
+        if dnd_on { DND_ON } else { DND },
+        true,
+        &[
+            &MenuItem::with_id(app, "dnd-30", "Pendant 30 min", true, None::<&str>)?,
+            &MenuItem::with_id(app, "dnd-60", "Pendant 1 h", true, None::<&str>)?,
+            &MenuItem::with_id(app, "dnd-morning", "Jusqu'à demain matin", true, None::<&str>)?,
+            &MenuItem::with_id(app, "dnd-on", "Jusqu'à ce que je le réactive", true, None::<&str>)?,
+            &PredefinedMenuItem::separator(app)?,
+            &dnd_off,
+        ],
+    )?;
     let hidden = CheckMenuItem::with_id(app, "hidden", "Masquer", true, false, None::<&str>)?;
+    let recall = MenuItem::with_id(app, "recall", "Ramener le fantôme", true, None::<&str>)?;
     let settings_item = MenuItem::with_id(app, "settings", "Réglages…", true, None::<&str>)?;
     let models_item = MenuItem::with_id(app, "models", "Usage des modèles…", true, None::<&str>)?;
     let quit_item = MenuItem::with_id(app, "quit", "Quitter Booffer", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&settings_item, &models_item, &follow, &dnd, &hidden, &quit_item])?;
+    let menu = Menu::with_items(app, &[&settings_item, &models_item, &follow, &dnd, &recall, &hidden, &quit_item])?;
 
-    TrayIconBuilder::new()
+    TrayIconBuilder::with_id(TRAY_ID)
         .icon(app.default_window_icon().cloned().expect("bundle icon"))
         .tooltip("Booffer")
         .menu(&menu)
@@ -353,17 +393,24 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
                     let following = app.state::<SettingsState>().current.lock().unwrap().follows_windows();
                     let _ = set_follow(app.clone(), !following);
                 }
-                "dnd" => {
-                    let _ = settings::update(app, |s| s.dnd = !s.dnd);
-                }
                 "hidden" => set_hidden(app.clone(), !state.hidden.load(Relaxed)),
+                // Lost off screen, under the taskbar or behind a corner: shown again, back in its corner.
+                "recall" => {
+                    set_hidden(app.clone(), false);
+                    state.recall.store(true, Relaxed);
+                }
                 "quit" => app.exit(0),
+                // « 30 », « 60 », « morning », « on », « off »: the ghost window knows the local time
+                // (« demain matin ») and saves when it ends; it also turns it off then.
+                id if id.starts_with("dnd-") => {
+                    let _ = app.emit_to("main", "dnd-choice", id.trim_start_matches("dnd-"));
+                }
                 _ => {}
             }
         })
         .build(app)?;
 
-    app.manage(TrayItems { follow, dnd, hidden });
+    app.manage(TrayItems { follow, dnd, dnd_off, hidden });
     Ok(())
 }
 
@@ -397,6 +444,7 @@ pub fn run() {
             set_follow,
             set_hidden,
             set_attention,
+            set_tray_status,
             notify,
             focus_project,
             tokens::get_token_savers,

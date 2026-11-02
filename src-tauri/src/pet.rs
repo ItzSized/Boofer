@@ -29,6 +29,8 @@ pub struct PetState {
     pub attention: AtomicBool,
     /// The window in front is one of the editors: no need for a Windows notification.
     pub editor_in_front: AtomicBool,
+    /// Tray « Ramener le fantôme »: forget where it sat, put it back in sight.
+    pub recall: AtomicBool,
 }
 
 impl Default for PetState {
@@ -38,6 +40,7 @@ impl Default for PetState {
             hidden: AtomicBool::new(false),
             attention: AtomicBool::new(false),
             editor_in_front: AtomicBool::new(false),
+            recall: AtomicBool::new(false),
         }
     }
 }
@@ -103,6 +106,13 @@ pub fn start(window: WebviewWindow) {
             foreground.poll(&targets, follow_windows);
             state.editor_in_front.store(foreground.editor.is_some(), Relaxed);
             let target = if everywhere && !follow_windows { None } else { foreground.target() };
+            // « Ramener le fantôme »: every window's spot is forgotten, so it lands back in the
+            // default corner of the one it sits on (placed below, or further down on the desktop).
+            let recall = state.recall.swap(false, Relaxed);
+            if recall {
+                spots.clear();
+                placed_on = None;
+            }
             let shown = everywhere
                 || follow_windows
                 || !os::supports_window_tracking()
@@ -167,6 +177,18 @@ pub fn start(window: WebviewWindow) {
                 }
             } else {
                 moving = false;
+            }
+            // Recalled with no window to sit on (desktop, or nothing in front): bottom right of the
+            // screen the cursor is on, i.e. the one whose tray was just clicked, above the taskbar.
+            if recall && target.is_none() {
+                if let Ok(Some(monitor)) = window.monitor_from_point(cx, cy) {
+                    let (area, s) = (monitor.work_area(), monitor.scale_factor());
+                    let (left, top) = (area.position.x as f64, area.position.y as f64);
+                    // Our size once there: Windows keeps the logical size on a screen with another scale.
+                    let (sw, sh) = (w / scale * s, h / scale * s);
+                    nx = (left + area.size.width as f64 - sw - DEFAULT_MARGIN.0 * s).max(left);
+                    ny = (top + area.size.height as f64 - sh - DEFAULT_MARGIN.1 * s).max(top);
+                }
             }
             if let Some((hwnd, r)) = target {
                 // Don't fight the OS while the user drags; snap back inside once released.

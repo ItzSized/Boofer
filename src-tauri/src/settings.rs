@@ -35,6 +35,8 @@ pub struct Settings {
     pub theme: String,
     /// Ne pas déranger: no sounds, no permission cards.
     pub dnd: bool,
+    /// When « Ne pas déranger » turns itself off (Unix ms, checked by the ghost window); 0 = never.
+    pub dnd_until: u64,
     /// Little lines in a speech bubble ("Coucou !", "Tadaa !").
     pub speech: bool,
     /// Windows notification when a task ends while the editor isn't in front.
@@ -63,6 +65,7 @@ impl Default for Settings {
             approvals: true,
             theme: "auto".into(),
             dnd: false,
+            dnd_until: 0,
             speech: true,
             notifications: true,
             guard: true,

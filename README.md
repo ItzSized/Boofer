@@ -24,7 +24,9 @@ Rien d'autre à installer : les installeurs ajoutent WebView2 s'il manque (déj�
 - **Un vrai compagnon** : ses yeux suivent la souris, il fait coucou au survol, aime les caresses (clic), s'endort quand tu ne bouges plus et fait des petites pirouettes.
 - **Skins et accessoires** : 8 skins (Classique, Fraise, Menthe, Ciel, Citrouille, Gelée, Or, Nuit) et 6 accessoires (nœud, chapeau, couronne, casque, pousse, lunettes).
 - **Réglages** (icône de la barre système ou clic droit → Réglages) : thème clair / sombre / auto, sur ton éditeur seulement ou partout sur le bureau, éditeurs suivis, lancement au démarrage de Windows, suivi de la souris, délai avant de s'endormir, sons et volume, taille, approbations, et un bouton pour connecter Claude Code.
-- **Ne pas déranger** : plus de sons ni de cartes de permission, en un clic depuis la barre système.
+- **Ne pas déranger** : plus de sons ni de cartes de permission, pour 30 min, 1 h, jusqu'à demain matin ou sans limite, depuis la barre système ou le clic droit. Il se réactive tout seul à l'heure dite.
+- **Ramener le fantôme** (barre système) : perdu hors de l'écran ou sous la barre des tâches, il revient dans son coin.
+- **Statut au survol de l'icône** de la barre système : « Booffer · mon-projet : Modifie pet.js · 42 % · reste ≈ 3 min », même quand le fantôme est caché.
 - **Petites phrases** : « Coucou ! », « Tadaa ! ✨ », « Psst… il a besoin de toi », et des réactions quand tu le caresses ou le réveilles.
 - **Usage des modèles** (barre système → « Usage des modèles… », ou clic sur la petite carte sous le fantôme) : quelles IA tu utilises vraiment (Claude Opus 5.5, Gemini 3.1 Pro, Gemini 4 Argon, GPT-6…), leur part, leur activité sur 14 jours et les limites de ton abonnement Codex. Seuls les modèles trouvés sur ton PC apparaissent, et tout est lu localement.
 - **Compactage et contexte** : une jauge « 🧠 Contexte 64 % » prévient avant que Claude Code compacte, et pendant un compactage le fantôme se serre comme un accordéon avec un % et le temps restant (d'après la durée de tes compactages précédents).
