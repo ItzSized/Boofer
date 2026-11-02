@@ -39,7 +39,7 @@ const EDITORS = [
   { id: "windsurf", name: "Windsurf" },
   // Claude Code and Codex in Windows Terminal (WindowsTerminal.exe).
   { id: "windowsterminal", name: "Terminal" },
-  // Chrome / Edge / Brave, only while an AI chat tab is in front (needs the extension).
+  // Chrome / Edge / Brave, only while an AI chat tab is in front (src-tauri/src/web.rs).
   { id: "web-ai", name: "ChatGPT, Gemini… (navigateur)" },
 ];
 const SLEEP_CHOICES = [
@@ -63,8 +63,6 @@ const DEV_ANSWERS = {
   get_settings: () => ({ ...DEV_SETTINGS }),
   claude_hooks_status: () => "outdated",
   get_autostart: () => false,
-  web_extension_status: () => false,
-  open_extension_folder: () => "C:\\Program Files\\Booffer\\extension",
   running_apps: () => [{ name: "Antigravity", processes: 14, memoryMb: 1840 }, { name: "Claude Code", processes: 2, memoryMb: 310 }],
   get_token_savers: () => ({ compactWindow: 200_000, concise: false, claudeCli: true }),
   set_compact_window: () => {},
@@ -231,12 +229,6 @@ function renderHistory() {
   $("history").replaceChildren(...rows);
 }
 
-async function refreshWeb() {
-  const connected = await call("web_extension_status");
-  $("web-title").textContent = connected ? "✓ L'extension du navigateur est connectée" : "IA du navigateur : ChatGPT, Gemini, Claude, Grok…";
-  $("web-steps").classList.toggle("hidden", Boolean(connected));
-}
-
 async function refreshHooks() {
   const status = await call("claude_hooks_status");
   const texts = {
@@ -321,7 +313,7 @@ $("repo-link").addEventListener("click", () => openUrl(REPO));
 $("update-link").addEventListener("click", () => openUrl(`${REPO}/releases/latest`));
 (async () => {
   try {
-    const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : "0.3.0";
+    const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : "0.3.1";
     $("version").textContent = current;
     const res = await fetch("https://api.github.com/repos/ItzSized/Boofer/releases/latest");
     if (!res.ok) return;
@@ -384,24 +376,6 @@ call("get_settings").then((loaded) => {
   render();
 });
 refreshHooks();
-refreshWeb();
-window.addEventListener("focus", refreshWeb);
-$("open-extension").addEventListener("click", async () => {
-  try {
-    const dir = await call("open_extension_folder");
-    $("extension-path").textContent = dir;
-  } catch (error) {
-    $("extension-path").textContent = `Impossible : ${error}`;
-  }
-});
-$("copy-extensions-url").addEventListener("click", async (e) => {
-  try {
-    await navigator.clipboard.writeText("chrome://extensions");
-    e.target.textContent = "✓ Copié";
-  } catch {
-    e.target.textContent = "chrome://extensions";
-  }
-});
 call("get_autostart").then((on) => ($("autostart").checked = on));
 renderHistory();
 showPage(location.hash.slice(1));

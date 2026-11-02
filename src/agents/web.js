@@ -3,7 +3,7 @@ import { compact } from "../core/models.js";
 import { duration } from "../core/format.js";
 import { State } from "../core/states.js";
 
-/** The sites of extension/sites.js, with their color in Booffer. */
+/** The sites src-tauri/src/web.rs recognizes, with their color in Booffer. */
 export const WEB_SITES = [
   { id: "chatgpt", name: "ChatGPT", color: "#10A37F" },
   { id: "gemini", name: "Gemini", color: "#4285F4" },
@@ -25,8 +25,8 @@ function modelName(shown, site) {
 const truncate = (text, n) => (text && text.length > n ? `${text.slice(0, n - 1)}…` : text ?? "");
 
 /**
- * An AI chat in the browser, through the Booffer extension (extension/content.js):
- * POST /event/web-<site> { id (tab), kind: start | progress | done | closed, title, model, prompt, chars }
+ * An AI chat in the browser, read by src-tauri/src/web.rs (no extension needed):
+ * "agent-event" web-<site> { id (window), kind: start | progress | done | closed, title, tookMs }
  */
 export class WebAdapter extends AgentAdapter {
   #turns = new Map(); // tab → { startedAt, prompt, model }

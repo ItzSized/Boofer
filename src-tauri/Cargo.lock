@@ -315,7 +315,7 @@ dependencies = [
 
 [[package]]
 name = "booffer"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "rusqlite",
  "serde",
@@ -326,6 +326,7 @@ dependencies = [
  "tauri-plugin-global-shortcut",
  "tauri-plugin-notification",
  "tiny_http",
+ "windows",
  "windows-sys 0.61.2",
  "zstd",
 ]

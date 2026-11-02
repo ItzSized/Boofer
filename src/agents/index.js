@@ -11,7 +11,7 @@ export const adapters = [
   new CodexAdapter(),
   new GenericAdapter({ source: "claude-api", name: "Claude", color: "#D97757" }),
   new GenericAdapter({ source: "generic", name: "Agent", color: "#a78bfa" }),
-  // ChatGPT, Gemini, Claude, Grok… in the browser (extension/).
+  // ChatGPT, Gemini, Claude, Grok… in the browser (src-tauri/src/web.rs).
   ...WEB_SITES.map((site) => new WebAdapter(site)),
 ];
 

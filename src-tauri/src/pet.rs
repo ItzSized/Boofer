@@ -31,10 +31,8 @@ pub struct PetState {
     pub editor_in_front: AtomicBool,
     /// Tray « Ramener le fantôme »: forget where it sat, put it back in sight.
     pub recall: AtomicBool,
-    /// The browser extension says the tab in front is ChatGPT, Gemini, Claude… (POST /web-focus).
+    /// The browser window in front shows ChatGPT, Gemini, Claude… (web.rs).
     pub web_ai: AtomicBool,
-    /// The browser extension has talked to us since launch (settings → « IA du navigateur »).
-    pub web_seen: AtomicBool,
 }
 
 impl Default for PetState {
@@ -46,7 +44,6 @@ impl Default for PetState {
             editor_in_front: AtomicBool::new(false),
             recall: AtomicBool::new(false),
             web_ai: AtomicBool::new(false),
-            web_seen: AtomicBool::new(false),
         }
     }
 }
@@ -242,18 +239,18 @@ struct ForegroundTracker {
     target: Option<usize>,
     /// The editor in front, if it is one.
     editor: Option<usize>,
-    /// An AI chat tab is in front in the browser (extension): the browser counts as an editor
+    /// An AI chat tab is in front in the browser (web.rs): the browser counts as an editor
     /// when "web-ai" is among the targets.
     web_ai: bool,
 }
 
-/// Browsers the extension runs in (Chromium based).
+/// Browsers whose tabs web.rs can read (Chromium based).
 const BROWSERS: &[&str] = &["chrome.exe", "msedge.exe", "brave.exe", "opera.exe", "vivaldi.exe", "arc.exe"];
 
 impl ForegroundTracker {
     fn poll(&mut self, targets: &[String], any_window: bool, web_ai: bool) {
         let hwnd = os::foreground_window();
-        // Switching tabs keeps the same browser window: the extension's answer changes instead.
+        // Switching tabs keeps the same browser window: web.rs's answer changes instead.
         if hwnd == self.hwnd && web_ai == self.web_ai {
             return;
         }
@@ -314,7 +311,7 @@ pub fn focus_window_titled(needle: &str) -> bool {
 }
 
 #[cfg(windows)]
-mod os {
+pub(crate) mod os {
     use windows_sys::Win32::Foundation::{CloseHandle, HWND, POINT, RECT};
     use windows_sys::Win32::System::Threading::{
         OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
@@ -323,7 +320,7 @@ mod os {
     use windows_sys::core::BOOL;
     use windows_sys::Win32::Foundation::LPARAM;
     use windows_sys::Win32::UI::WindowsAndMessaging::{
-        EnumWindows, GetClassNameW, GetCursorPos, GetForegroundWindow, GetWindowRect, GetWindowTextW,
+        EnumWindows, GetClassNameW, GetCursorPos, GetForegroundWindow, GetWindowRect, GetWindowTextLengthW, GetWindowTextW,
         GetWindowThreadProcessId, IsIconic, IsWindowVisible, SetForegroundWindow, ShowWindow, SW_RESTORE,
     };
 
@@ -423,6 +420,20 @@ mod os {
         }
     }
 
+    /// Visible top-level windows with a title, front to back.
+    pub fn top_level_windows() -> Vec<usize> {
+        unsafe extern "system" fn collect(hwnd: HWND, lparam: LPARAM) -> BOOL {
+            let list = &mut *(lparam as *mut Vec<usize>);
+            if IsWindowVisible(hwnd) != 0 && GetWindowTextLengthW(hwnd) > 0 {
+                list.push(hwnd as usize);
+            }
+            1
+        }
+        let mut list: Vec<usize> = Vec::new();
+        unsafe { EnumWindows(Some(collect), &mut list as *mut Vec<usize> as LPARAM) };
+        list
+    }
+
     pub fn window_title(hwnd: usize) -> String {
         let mut buf = [0u16; 512];
         let len = unsafe { GetWindowTextW(hwnd as HWND, buf.as_mut_ptr(), buf.len() as i32) };
@@ -476,6 +487,7 @@ mod os {
         }
     }
     pub fn window_title(_: usize) -> String { String::new() }
+    pub fn top_level_windows() -> Vec<usize> { Vec::new() }
     pub fn is_app_window(_: usize) -> bool { false }
     pub fn focus_window_titled(_: &str) -> bool { false }
 }

@@ -1,5 +1,5 @@
 /**
- * Answers from AI chats in the browser (extension), counted here since no file on the PC
+ * Answers from AI chats in the browser (web.rs), counted here since no file on the PC
  * records them: one row per day, site and model, in the same shape as `model_usage` rows.
  * Tokens are estimates (≈ 4 characters each). Shared by the ghost and the settings window.
  */

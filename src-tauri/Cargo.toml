@@ -1,6 +1,6 @@
 [package]
 name = "booffer"
-version = "0.3.0"
+version = "0.3.1"
 description = "A cute desktop companion that tracks your AI agents"
 edition = "2021"
 
@@ -23,6 +23,13 @@ tauri-plugin-global-shortcut = "2"
 tauri-plugin-clipboard-manager = "2"
 
 [target.'cfg(windows)'.dependencies]
+# UI Automation: reads the AI chat tab shown in the browser (src/web.rs).
+windows = { version = "0.62", features = [
+  "Win32_Foundation",
+  "Win32_System_Com",
+  "Win32_System_Variant",
+  "Win32_UI_Accessibility",
+] }
 windows-sys = { version = "0.61", features = [
   "Win32_Foundation",
   "Win32_System_Registry",

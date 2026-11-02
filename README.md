@@ -36,7 +36,7 @@ Rien d'autre à installer : les installeurs ajoutent WebView2 s'il manque (déj�
 - **Limite par IA** (Réglages → 📊 Modèles) : un plafond de tokens par jour pour Claude, Gemini et GPT, une alerte à 80 % et à 100 %, et « ⚡ en avance / 🐢 en retard » sur ton rythme.
 - **En direct** (Réglages → 🟢 Direct) : les applis d'IA ouvertes et chaque agent qui tourne, avec son modèle, son contexte en tokens et le temps restant.
 - **Reprompt** (clic droit ou Ctrl+Alt+P) : le prompt copié est réécrit rien que pour l'IA, plus court, en local ou avec Claude Haiku.
-- **IA du navigateur** : avec l'extension (Chrome, Edge, Brave), Booffer suit aussi ChatGPT, Gemini, AI Studio, Claude, Grok, Perplexity, DeepSeek, Le Chat et Copilot : statut en direct, un bip et une notification quand la réponse est prête, l'historique et l'usage (tokens estimés). Coche « ChatGPT, Gemini… (navigateur) » dans les éditeurs pour qu'il s'affiche sur ces onglets. Installation : Réglages → IA du navigateur.
+- **IA du navigateur**, sans rien installer : dans Chrome, Edge ou Brave, Booffer suit aussi ChatGPT, Gemini, AI Studio, Claude, Grok, Perplexity, DeepSeek, Le Chat et Copilot (l'onglet affiché de chaque fenêtre) : statut en direct, un bip et une notification quand la réponse est prête, et l'historique. Coche « ChatGPT, Gemini… (navigateur) » dans les éditeurs pour qu'il s'affiche sur ces onglets.
 - **Clic sur la bulle** : ramène au premier plan la fenêtre du projet en cours.
 - **Notifications Windows** quand une tâche finit et que tu n'es pas sur ton éditeur, et une alerte quand une limite d'abonnement dépasse 80 %.
 - **Raccourcis** : Ctrl+Alt+B pour l'afficher ou le cacher, Ctrl+Alt+M pour l'usage des modèles.

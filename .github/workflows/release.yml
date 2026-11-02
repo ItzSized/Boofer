@@ -46,19 +46,17 @@ jobs:
             - `Booffer_x.y.z_x64_en-US.msi` : installeur classique (recommandé)
             - `Booffer_x.y.z_x64-setup.exe` : installeur léger
             - `Booffer.exe` : version portable, rien à installer, double-clic et c'est parti
-            - `Booffer-extension.zip` : l'extension pour suivre ChatGPT, Gemini, Claude, Grok… dans Chrome / Edge (déjà incluse avec les installeurs)
 
             Les installeurs ajoutent WebView2 s'il manque. Rien d'autre à installer : ni Node, ni Rust.
             Pour Claude Code : Réglages → Claude Code → Connecter.
           releaseDraft: false
           prerelease: false
 
-      - name: Add the portable exe and the browser extension to the release
+      - name: Add the portable exe to the release
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           version=$(node -p "require('./src-tauri/tauri.conf.json').version")
           cp src-tauri/target/release/booffer.exe Booffer.exe
-          powershell -NoProfile -Command "Compress-Archive -Path extension/* -DestinationPath Booffer-extension.zip -Force"
-          gh release upload "v$version" Booffer.exe Booffer-extension.zip --clobber
+          gh release upload "v$version" Booffer.exe --clobber
