@@ -14,6 +14,7 @@ import { State } from "./core/states.js";
 import { setTheme } from "./core/theme.js";
 import { applyAnimations } from "./core/animations.js";
 import { findUpdate, installUpdate } from "./core/updates.js";
+import { describeCost, toolTotal } from "./core/task-cost.js";
 import { Tracker } from "./core/tracker.js";
 import { configureSound, playAttention, playDone, playError } from "./audio/chime.js";
 import { createBubble } from "./ui/bubble.js";
@@ -204,11 +205,13 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     const silent = !settings.sounds || settings.volume <= 0;
     if (isTauri) invoke("notify", { title: session.headline ?? `${session.project || session.agent} a fini !`, body: notifyBody(session), silent });
     if (compactOnly) return;
-    if (session.details?.webUsage) {
-      recordWebAnswer(session.details.webUsage);
-      usageBar.refresh();
-    }
-    recordFinished(session);
+    if (session.details?.webUsage) recordWebAnswer(session.details.webUsage);
+    // What it cost (bubble, history): needs fresh usage numbers, so it comes a moment later.
+    taskCost(session, { final: true }).then((cost) => {
+      if (cost) session.details = { ...session.details, cost };
+      recordFinished(session);
+      render();
+    });
     const levelUp = gainXp();
     showLevel();
     if (levelUp) setTimeout(() => speech.tell(`Niveau ${levelUp.level} ! ${levelUp.title} 🎉`), 2800);
@@ -236,6 +239,8 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     const now = Date.now();
     if (!CONTEXT_NOW.has(payload.hook_event_name) && now - (contextAsked.get(key) ?? 0) < CONTEXT_EVERY_MS) return;
     contextAsked.set(key, now);
+    transcripts.set(key, payload.transcript_path);
+    refreshStats(key);
     invoke("claude_context", { transcriptPath: payload.transcript_path })
       .then((info) => {
         // Right after a compaction there is no reply yet: keep the median duration only.
@@ -244,6 +249,59 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
         render();
       })
       .catch(() => {});
+  }
+
+  // ---------- What each task costs, and what fills the context ----------
+
+  const transcripts = new Map(); // Claude Code tracker key → transcript path
+  const stats = new Map(); // tracker key → { startedAt, taskTokens, parts, contextTokens }
+  const toolBases = new Map(); // tracker key → { startedAt, base } tokens of the tool when the task began
+
+  /** Claude Code: tokens of the current task and the context breakdown, from the transcript. */
+  async function refreshStats(key) {
+    const path = transcripts.get(key);
+    const session = sessions.find((s) => s.key === key);
+    const startedAt = session?.details?.startedAt;
+    if (!isTauri || !path || !startedAt) return null;
+    try {
+      const r = await invoke("claude_session_stats", { transcriptPath: path, sinceMs: startedAt });
+      const entry = { startedAt, taskTokens: r.taskInput + r.taskOutput, parts: r.contextParts, contextTokens: r.contextTokens };
+      stats.set(key, entry);
+      return entry;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Other tools: remember how many tokens the tool had used today when this task began. */
+  function noteTaskStart(session) {
+    const d = session.details ?? {};
+    if (!d.startedAt || session.key.startsWith("claude-code:") || d.webUsage) return;
+    if (toolBases.get(session.key)?.startedAt === d.startedAt) return;
+    toolBases.set(session.key, { startedAt: d.startedAt, base: toolTotal(latestUsage.rows, session.agent) });
+  }
+
+  const dailyLimits = () => limitsFromPercent(withWebUsage(latestUsage.rows), settings.dailyLimitPct);
+
+  /** Tokens of a session's current task so far (sync, from what is already known). */
+  function tokensSoFar(session) {
+    const d = session.details ?? {};
+    if (d.webUsage) return d.webUsage.input + d.webUsage.output;
+    const s = stats.get(session.key);
+    if (s && s.startedAt === d.startedAt) return s.taskTokens;
+    const base = toolBases.get(session.key);
+    if (base && base.startedAt === d.startedAt) return Math.max(0, toolTotal(latestUsage.rows, session.agent) - base.base);
+    return 0;
+  }
+
+  /** What a task cost; `final` reads fresh numbers first (end of the task). */
+  async function taskCost(session, { final = false } = {}) {
+    if (final) {
+      if (transcripts.has(session.key)) await refreshStats(session.key);
+      else await usageBar.refresh();
+    }
+    const model = session.details?.model ?? contexts.get(session.key)?.model;
+    return describeCost(tokensSoFar(session), model, dailyLimits());
   }
 
   let usageRefreshTimer = null;
@@ -255,6 +313,8 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     const update = adapter?.normalize(payload);
     if (update) {
       tracker.update(adapter, update);
+      const session = tracker.get(`${source}:${update.id ?? "default"}`);
+      if (session) noteTaskStart(session);
       if (!usageRefreshTimer) {
         usageRefreshTimer = setTimeout(() => {
           usageRefreshTimer = null;
@@ -285,6 +345,8 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
         files: d.files ?? 0,
         progress: s.progress,
         context: contexts.get(s.key) ?? null,
+        cost: d.startedAt ? describeCost(tokensSoFar(s), d.model ?? contexts.get(s.key)?.model, dailyLimits()) : null,
+        contextParts: stats.get(s.key)?.parts ?? null,
       };
     });
   }

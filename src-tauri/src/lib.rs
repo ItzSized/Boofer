@@ -6,6 +6,7 @@ mod codex;
 mod guard;
 mod permission;
 mod pet;
+mod session_stats;
 mod settings;
 mod tokens;
 mod usage;
@@ -449,6 +450,7 @@ pub fn run() {
         .manage(permission::Permissions::default())
         .manage(guard::Guards::default())
         .manage(usage::UsageCache::default())
+        .manage(session_stats::StatsCache::default())
         .invoke_handler(tauri::generate_handler![
             settings::get_settings,
             settings::set_settings,
@@ -458,6 +460,7 @@ pub fn run() {
             autostart::set_autostart,
             usage::model_usage,
             usage::claude_context,
+            session_stats::claude_session_stats,
             antigravity::sync_antigravity,
             open_settings,
             set_follow,

@@ -28,6 +28,8 @@ export function recordFinished(session) {
     ms: d.startedAt ? Date.now() - d.startedAt : 0,
     steps: d.steps ?? 0,
     files: d.files ?? 0,
+    tokens: d.cost?.tokens ?? 0,
+    pct: d.cost?.pct ?? null,
   };
   try {
     localStorage.setItem(KEY, JSON.stringify([entry, ...loadHistory()].slice(0, MAX_ENTRIES)));

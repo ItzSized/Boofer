@@ -1,5 +1,6 @@
 import { approx, duration } from "../core/format.js";
 import { compact } from "../core/models.js";
+import { CONTEXT_PARTS } from "../core/task-cost.js";
 
 /** Asks the ghost window for its sessions this often while the page is shown. */
 const POLL_MS = 1500;
@@ -15,6 +16,31 @@ const STATES = {
   error: ["⚠️ Erreur", "bg-rose-100 text-rose-700 dark:bg-rose-950/70 dark:text-rose-300"],
   idle: ["💤 En attente", "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"],
 };
+
+/** « What fills the context »: a stacked bar and its legend, biggest parts first. */
+function contextDetail(parts, total, key, open) {
+  if (!parts?.length || !total) return "";
+  const sum = parts.reduce((t, p) => t + p.tokens, 0) || 1;
+  const bar = parts
+    .map((p) => `<div style="width:${(p.tokens / sum) * 100}%;background:${(CONTEXT_PARTS[p.key] ?? ["", "#a1a1aa"])[1]}" title="${esc(CONTEXT_PARTS[p.key]?.[0] ?? p.key)}"></div>`)
+    .join("");
+  const legend = parts
+    .map((p) => {
+      const [name, color] = CONTEXT_PARTS[p.key] ?? [p.key, "#a1a1aa"];
+      const pct = Math.round((p.tokens / sum) * 100);
+      return `<li class="flex items-center gap-1.5"><span class="size-2 shrink-0 rounded-sm" style="background:${color}"></span>
+        <span class="flex-1 truncate">${esc(name)}</span>
+        <span class="tabular-nums text-zinc-400">${compact(p.tokens)}</span>
+        <span class="w-9 text-right tabular-nums font-medium">${pct < 1 ? "< 1" : pct} %</span></li>`;
+    })
+    .join("");
+  return `<details data-key="${esc(key)}" ${open ? "open" : ""} class="mt-1.5 rounded-lg bg-zinc-50 px-2 py-1.5 dark:bg-zinc-800/60">
+    <summary class="cursor-pointer select-none text-[11px] font-medium text-zinc-600 dark:text-zinc-300">Ce qui remplit le contexte</summary>
+    <div class="mt-1.5 flex h-2 overflow-hidden rounded-full">${bar}</div>
+    <ul class="mt-1.5 space-y-0.5 text-[11px]">${legend}</ul>
+    <p class="mt-1 text-[10px] text-zinc-400">Estimé d'après la taille de chaque élément, ajusté au vrai total.</p>
+  </details>`;
+}
 
 const esc = (text) => String(text ?? "").replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
@@ -65,6 +91,8 @@ export function createLiveView({ call, isTauri, emit, listen }) {
       $("live-sessions").innerHTML = `<li class="py-5 text-center text-xs text-zinc-400">Aucun agent ne tourne. Lance une tâche dans Claude Code, Antigravity ou Codex.</li>`;
       return;
     }
+    // The page is redrawn every 1.5 s: keep each « Ce qui remplit le contexte » open or closed.
+    const open = new Set([...$("live-sessions").querySelectorAll("details[open]")].map((el) => el.dataset.key));
     $("live-sessions").innerHTML = list
       .map((s) => {
         const [stateText, stateClass] = STATES[s.state] ?? STATES.idle;
@@ -95,6 +123,8 @@ export function createLiveView({ call, isTauri, emit, listen }) {
               <span class="shrink-0">🧠 ${compact(s.context.tokens)} / ${compact(s.context.window)} tokens</span>
               <div class="h-1 flex-1 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"><div class="h-full rounded-full ${ctx >= 80 ? "bg-amber-500" : "bg-violet-400"}" style="width:${ctx}%"></div></div>
               <span class="tabular-nums">${ctx} %</span></div>` : ""}
+            ${s.cost ? `<p class="mt-1 text-[11px] font-medium tabular-nums text-violet-600 dark:text-violet-300" title="Tokens utilisés par cette tâche depuis ta demande (entrée + sortie), et leur part de ta limite du jour (📊 Modèles)">${esc(s.cost.label)} ${["idle", "done"].includes(s.state) ? "" : "pour l'instant"}</p>` : ""}
+            ${contextDetail(s.contextParts, s.context?.tokens, s.key, open.has(s.key))}
           </div>
         </li>`;
       })
@@ -102,7 +132,9 @@ export function createLiveView({ call, isTauri, emit, listen }) {
   }
 
   const DEV_SESSIONS = () => [
-    { key: "a", agent: "Claude Code", color: "#D97757", project: "Booffer", state: "tool", label: "Modifie main.js", model: "Claude Opus 5.5", prompt: "Ajoute la page en direct", elapsedMs: 95_000, etaMs: 140_000, steps: 14, files: 3, progress: 0.42, context: { tokens: 312_000, window: 1_000_000 } },
+    { key: "a", agent: "Claude Code", color: "#D97757", project: "Booffer", state: "tool", label: "Modifie main.js", model: "Claude Opus 5.5", prompt: "Ajoute la page en direct", elapsedMs: 95_000, etaMs: 140_000, steps: 14, files: 3, progress: 0.42, context: { tokens: 312_000, window: 1_000_000 },
+      cost: { tokens: 1_240_000, pct: 0.018, label: "💰 1,2M tokens · 2 % de ta limite du jour" },
+      contextParts: [{ key: "files", tokens: 118_000 }, { key: "system", tokens: 64_000 }, { key: "commands", tokens: 52_000 }, { key: "replies", tokens: 41_000 }, { key: "toolCalls", tokens: 21_000 }, { key: "prompts", tokens: 9_000 }, { key: "search", tokens: 7_000 }] },
     { key: "b", agent: "Antigravity", color: "#4285F4", project: "site-web", state: "idle", label: "En attente de ta demande", model: "Gemini 3.1 Pro", elapsedMs: 0, etaMs: null, steps: 0, files: 0, progress: null, context: null },
   ];
 

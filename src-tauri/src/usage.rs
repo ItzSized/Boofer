@@ -584,7 +584,7 @@ fn read_varint(buf: &[u8], i: &mut usize) -> Option<u64> {
 
 // ---------- Helpers ----------
 
-fn home() -> PathBuf {
+pub(crate) fn home() -> PathBuf {
     std::env::var_os("USERPROFILE").or_else(|| std::env::var_os("HOME")).map(PathBuf::from).unwrap_or_default()
 }
 
@@ -618,7 +618,7 @@ fn walk(root: &Path, suffix: &str) -> Vec<PathBuf> {
 }
 
 /// "2026-09-17T10:42:18.656Z" → epoch ms.
-fn parse_iso_ms(text: &str) -> Option<i64> {
+pub(crate) fn parse_iso_ms(text: &str) -> Option<i64> {
     let num = |range: std::ops::Range<usize>| text.get(range)?.parse::<i64>().ok();
     let (y, mo, d) = (num(0..4)?, num(5..7)?, num(8..10)?);
     let (h, mi, s) = (num(11..13)?, num(14..16)?, num(17..19)?);

@@ -122,6 +122,7 @@ export function createBubble(el, { eta = new EtaEstimator() } = {}) {
         d.files ? `${d.files} fichier${d.files > 1 ? "s" : ""}` : "",
         d.subagents ? `${d.subagents} sous-agent${d.subagents > 1 ? "s" : ""}` : "",
         d.errors ? `⚠ ${d.errors} échec${d.errors > 1 ? "s" : ""}` : "",
+        done && d.cost ? d.cost.label : "",
       ].filter(Boolean);
       ui.meta.textContent = facts.join(" · ");
       ui.meta.classList.toggle("hidden", facts.length === 0);

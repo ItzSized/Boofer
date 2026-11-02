@@ -12,6 +12,7 @@ import { createTokensView } from "./ui/tokens-view.js";
 import { createLiveView } from "./ui/live-view.js";
 import { PERKS, levelFor, loadXp } from "./core/level.js";
 import { clockTime } from "./core/format.js";
+import { compact as compactTokens } from "./core/models.js";
 import "./style.css";
 import "./settings.css";
 
@@ -241,7 +242,12 @@ function renderHistory() {
     });
     const meta = Object.assign(document.createElement("p"), {
       className: "truncate text-[11px] text-zinc-400",
-      textContent: [entry.project, entry.ms ? duration(entry.ms) : "", entry.files ? `${entry.files} fichier${entry.files > 1 ? "s" : ""}` : ""]
+      textContent: [
+        entry.project,
+        entry.ms ? duration(entry.ms) : "",
+        entry.files ? `${entry.files} fichier${entry.files > 1 ? "s" : ""}` : "",
+        entry.tokens ? `💰 ${compactTokens(entry.tokens)} tokens${entry.pct === null || entry.pct === undefined ? "" : ` · ${entry.pct < 0.01 ? "< 1" : Math.round(entry.pct * 100)} %`}` : "",
+      ]
         .filter(Boolean)
         .join(" · "),
     });
