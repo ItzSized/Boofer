@@ -504,6 +504,7 @@ pub fn run() {
             tokens::read_clipboard_text,
             open_url,
             updates::update_check,
+            updates::build_commit,
             updates::update_install,
             resolve_permission,
             resolve_guard,

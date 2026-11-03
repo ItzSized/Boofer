@@ -4,7 +4,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 
-/** { version, rebuild } when there is something to install, null when up to date. Throws when offline. */
+/** { version, rebuild, build } when there is something to install, null when up to date. Throws when offline. */
 export function findUpdate() {
   return invoke("update_check");
 }

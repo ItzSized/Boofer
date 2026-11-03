@@ -20,6 +20,14 @@ pub struct UpdateInfo {
     version: String,
     /// Same version, newer build: new features without a new number.
     rebuild: bool,
+    /// Commit the update was built from, when its latest.json says so.
+    build: Option<String>,
+}
+
+/// Commit this copy was built from, or null for a build made on a PC.
+#[tauri::command]
+pub fn build_commit() -> Option<&'static str> {
+    BUILD
 }
 
 fn build_of(notes: &str) -> Option<&str> {
@@ -40,7 +48,11 @@ pub async fn update_check(app: AppHandle) -> Result<Option<UpdateInfo>, String> 
         .build()
         .map_err(|e| e.to_string())?;
     let update = updater.check().await.map_err(|e| e.to_string())?;
-    let info = update.as_ref().map(|u| UpdateInfo { version: u.version.clone(), rebuild: u.version == u.current_version });
+    let info = update.as_ref().map(|u| UpdateInfo {
+        version: u.version.clone(),
+        rebuild: u.version == u.current_version,
+        build: u.body.as_deref().and_then(build_of).map(str::to_string),
+    });
     *app.state::<PendingUpdate>().0.lock().unwrap() = update;
     Ok(info)
 }

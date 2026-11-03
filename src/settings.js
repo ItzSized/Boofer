@@ -415,6 +415,7 @@ async function checkForUpdate() {
   updateStatus("Checking…");
   try {
     pendingUpdate = await findUpdate();
+    showNewCommits(pendingUpdate?.build);
     if (pendingUpdate) {
       updateStatus(pendingUpdate.rebuild ? `✨ New features are available for ${pendingUpdate.version}.` : `✨ Version ${pendingUpdate.version} is available.`);
       button.textContent = pendingUpdate.rebuild ? "Install the new features" : `Install ${pendingUpdate.version}`;
@@ -445,10 +446,52 @@ async function installPending() {
 }
 
 $("update-check").addEventListener("click", () => (pendingUpdate ? installPending() : checkForUpdate()));
+
+// The commit this copy was built from (GitHub builds only), next to the version: a link to it.
+let buildCommit = null;
+$("build-link").addEventListener("click", () => buildCommit && openUrl(`${REPO}/commit/${buildCommit}`));
+
+// What an update brings: the commits between this build and the update's, from GitHub.
+async function showNewCommits(theirs) {
+  const list = $("update-commits");
+  list.classList.add("hidden");
+  if (!buildCommit || !theirs || theirs === buildCommit) return;
+  try {
+    const res = await fetch(`https://api.github.com/repos/ItzSized/Boofer/compare/${buildCommit}...${theirs}`);
+    if (!res.ok) return;
+    const { commits = [], ahead_by: ahead = commits.length } = await res.json();
+    const shown = commits.slice(-15).reverse();
+    const title = Object.assign(document.createElement("li"), {
+      className: "font-medium text-zinc-600 dark:text-zinc-300",
+      textContent: `${ahead} new commit${ahead === 1 ? "" : "s"} since your build:`,
+    });
+    const items = shown.map((c) => {
+      const li = document.createElement("li");
+      li.className = "truncate";
+      const sha = Object.assign(document.createElement("button"), {
+        className: "mr-1.5 font-mono text-zinc-400 hover:text-violet-500 hover:underline",
+        textContent: c.sha.slice(0, 7),
+      });
+      sha.addEventListener("click", () => openUrl(c.html_url));
+      li.append(sha, c.commit.message.split("\n")[0]);
+      return li;
+    });
+    list.replaceChildren(title, ...items);
+    list.classList.remove("hidden");
+  } catch {
+    // offline or GitHub's rate limit: the update still installs
+  }
+}
+
 (async () => {
   const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : CHANGELOG[0]?.version ?? "";
   $("version").textContent = current;
   renderNews(current);
+  buildCommit = isTauri ? await call("build_commit").catch(() => null) : null;
+  const link = $("build-link");
+  link.textContent = buildCommit ? `· ${buildCommit.slice(0, 7)}` : "· local build";
+  link.disabled = !buildCommit;
+  link.classList.remove("hidden");
 })();
 
 // What's new: written from the commits at each build (scripts/changelog.mjs). Just updated?
