@@ -20,41 +20,63 @@ What changed in each version: [CHANGELOG.md](CHANGELOG.md), the notes of each [r
 
 ## What it does
 
-- **Live status**: the project, your request, the current action ("Editing pet.js", "Running: npm run build"), elapsed time, time left (estimated from tasks already done, smoothed so it doesn't jump around), number of actions, changed files, failures and active subagents.
-- **Overall and per-step progress**: when Claude keeps a task list, Boofer shows "Step 2/5 · Writing the tests — 70%" and a total ("Total 42%"). Without a list, an estimate of the total. The total never goes back and only reaches 100% at the end.
-- **Done ping**: the ghost jumps and the bubble says "Claudio is done! · Done in 45 s", with what the task cost in tokens.
-- **Approvals**: when Claude Code asks for a permission, a card shows the command or file with **Allow / Always / Deny**. Without an answer within 55 s, or if you click "Answer in Claude Code", Claude Code asks you as usual.
-- **Several sessions**: each session has its color and tab. Boofer automatically shows the session of the project open in the window in front, and keeps its spot in each window.
-- **A real companion**: its eyes follow the mouse, it waves on hover, loves being petted (click), falls asleep when you stop moving and does little spins.
-- **Skins and accessories**: 8 skins (Classic, Strawberry, Mint, Sky, Pumpkin, Jelly, Gold, Night) and 6 accessories (bow, hat, crown, headphones, sprout, glasses), plus seasonal outfits.
-- **Settings** (click the tray icon, double-click Boofer, or right-click → Settings): light / dark / auto theme, on your editor only or everywhere on the desktop, followed editors, start with Windows, follow the mouse, delay before sleeping, sounds and volume, size, approvals, and a button to connect Claude Code. Maximize the window for a two-column layout.
-- **Do not disturb**: no more sounds or permission cards, for 30 min, 1 h, until tomorrow morning or with no end, from the tray or the right-click menu. It turns itself back on at the set time.
-- **Bring the ghost back** (tray): lost off screen or under the taskbar, it comes back to its corner.
-- **Status on hover of the tray icon**: "Boofer · my-project: Editing pet.js · 42% · ≈ 3 min left", even when the ghost is hidden.
-- **Little phrases**: "Hi there!", "Ta-da! ✨", "Psst… it needs you", and reactions when you pet it or wake it up.
-- **Model usage** (tray → "Model usage…", or click the little card under the ghost): which AIs you really use (Claude Opus 5.5, Gemini 3.1 Pro, Gemini 4 Argon, GPT-6…), their share, their activity over 14 days, what it would cost at API prices, and your Codex plan limits. Only models found on your PC show up, and everything is read locally.
-- **Compaction and context**: a "🧠 Context 64%" gauge warns you before Claude Code compacts, and during a compaction the ghost squeezes like an accordion with a % and the time left (based on how long your previous compactions took).
-- **Follow me** (right-click, tray or settings): it jumps onto the window you're in, whatever the app. Off, it stays on your editor or where you put it on the desktop.
-- **Save tokens** (Settings → ✂️ Tokens): make Claude Code compact earlier (smaller context, every message costs less), short answers, and a prompt compressor into "AI language" (local and free, or rewritten by Claude Haiku). Shortcut: copy a prompt, then Ctrl+Alt+P.
-- **Stop dangerous commands**: before an `rm -rf`, a `git push --force`, a `git reset --hard` or a disk format, the ghost crosses its arms and asks "Are you sure?". Without an answer within 55 s, it's blocked (Claude Code, even in auto mode).
-- **Limit per AI** (Settings → 📊 Models): a daily token cap for Claude, Gemini and GPT, an alert at 80% and 100%, and "⚡ ahead / 🐢 behind" your pace.
-- **Stuck agent alert**: when an agent hasn't moved for 8 minutes or failed 3 actions in a row.
-- **Live** (Settings → 🟢 Live): the open AI apps and every running agent, with its model, its context in tokens, what fills it, and the time left.
-- **Reprompt** (right-click or Ctrl+Alt+P): the copied prompt is rewritten just for the AI, shorter, locally or with Claude Haiku.
-- **Browser AIs**, with nothing to install: in Chrome, Edge or Brave, Boofer also follows ChatGPT, Gemini, AI Studio, Claude, Grok, Perplexity, DeepSeek, Le Chat and Copilot (the visible tab of each window): live status, a beep and a notification when the answer is ready, and the history.
-- **Click on the bubble or a tab**: brings the window of that session to the front, browser included.
-- **Windows notifications** when a task finishes and you're not on your editor, and an alert when a plan limit goes over 80%.
-- **Sound off?** If Boofer's sounds are off or your PC is muted, a notification tells you when a task finishes, even when you're on your editor (Settings → 🔕).
-- **Animations to taste** (Settings → Animations): turn everything off at once for a still ghost, or just what bothers you (floating, arms, victory jump, spins, blinks, Zzz…).
-- **🧪 Try it** (Settings): simulate a task, two sessions, a compaction, a request or a stop to see the ghost in action.
-- **Stream mode**: always shown on a green background, ready for OBS's chroma key.
-- **Shortcuts**: Ctrl+Alt+B to show or hide it, Ctrl+Alt+M for model usage.
-- **It grows with you**: every finished task gives XP. Level 3 a glow, level 5 a golden halo, level 8 a golden aura. It looks tired when the context is almost full, and relieved after a compaction.
-- **One session = one mini-ghost** in its color, which bounces while it works.
-- **Automatic updates**: Boofer downloads the new version and installs it over the old one, nothing to uninstall, then restarts on the "What's new" list (at startup and every 6 h, never while an agent is working). A "Check for updates" button at the bottom of the settings, and a switch to do it by hand.
+### 👀 Follow your agents live
+
+- **Live status**: the project, your request, the current action ("Editing pet.js", "Running: npm run build"), elapsed time, time left (estimated from your past tasks), number of actions, changed files, failures and active subagents.
+- **Overall and per-step progress**: with a Claude task list, "Step 2/5 · Writing the tests — 70%" and a total ("Total 42%") that never goes back.
+- **Several sessions**: each one has its color, its tab and its mini-ghost. Boofer shows the session of the project in the window in front.
+- **Context and compaction**: a "🧠 Context 64%" gauge before Claude Code compacts, and the ghost squeezes like an accordion while it does.
+- **Browser AIs**, nothing to install: ChatGPT, Gemini, AI Studio, Claude, Grok, Perplexity, DeepSeek, Le Chat and Copilot in Chrome, Edge or Brave.
+- **Stuck agent alert**: nothing new for 8 minutes, or 3 failed actions in a row.
+- **Live page** (Settings → 🟢 Live): open AI apps and every running agent, with its model, its context and what fills it.
+- **Click the bubble or a tab** to bring that session's window to the front, browser included.
+
+### ✋ Stay in control
+
+- **Approvals**: when Claude Code asks for a permission, a card shows the command or file with **Allow / Always / Deny**. No answer within 55 s? Claude Code asks you as usual.
+- **Stop dangerous commands**: before an `rm -rf`, a `git push --force`, a `git reset --hard` or a disk format, the ghost crosses its arms and asks "Are you sure?". No answer within 55 s and it's blocked, even in auto mode.
+- **Do not disturb**: no sounds or cards for 30 min, 1 h, until tomorrow morning or with no end. It turns itself back on.
+
+### 🔔 Alerts
+
+- **Done ping**: the ghost jumps, the bubble says "Claudio is done! · Done in 45 s" with what the task cost in tokens.
+- **Windows notifications** when a task finishes and you're not on your editor, and when a plan limit goes over 80%.
+- **Sound off?** If Boofer's sounds are off or the PC is muted, a notification tells you anyway.
+- **Three sound themes**: chimes, soft or retro 8-bit.
 - **Day summary** around 6 pm (or right-click → My day).
-- **History**: today's finished tasks, the agents' working time and the changed files, plus the week as a chart, in the settings.
-- **Unobtrusive**: clicks go through the empty areas, and it closes with the × button, the right-click menu or the tray icon.
+
+### 📊 Usage and tokens
+
+- **Model usage** (Settings → 📊 Models): which AIs you really use, their share, 14 days of activity, what it would cost at API prices, and your Codex plan limits. Everything is read locally.
+- **Daily limit per AI**: a token cap for Claude, Gemini and GPT, alerts at 80% and 100%, and "⚡ ahead / 🐢 behind" your pace.
+- **Save tokens** (Settings → ✂️ Tokens): make Claude Code compact earlier, ask for short answers.
+- **Reprompt** (right-click or Ctrl+Alt+P): the copied prompt rewritten just for the AI, shorter, locally or with Claude Haiku.
+
+### 👻 The ghost
+
+- **A real companion**: its eyes follow the mouse, it waves on hover, loves being petted (click), falls asleep when you stop moving and does little spins.
+- **Where it lives**: on your editor only, or anywhere on the desktop. **Follow me** makes it jump onto the window you're in.
+- **Little phrases**: "Hi there!", "Ta-da! ✨", "Psst… it needs you".
+- **It grows with you**: every finished task gives XP. Level 3 a glow, level 5 a golden halo, level 8 a golden aura. Tired when the context is full, relieved after a compaction.
+- **Unobtrusive**: clicks go through the empty areas. Lost off screen? Tray → Bring the ghost back.
+
+### 🎨 Customization
+
+- **8 skins**: Classic, Strawberry, Mint, Sky, Pumpkin, Jelly, Gold, Night.
+- **6 accessories**: bow, hat, crown, headphones, sprout, glasses, plus seasonal outfits (a witch hat for Halloween, a Santa hat in December).
+- **Theme and size**: light, dark or auto, from 70% to 140%.
+- **Animations to taste**: turn everything off for a still ghost, or only what bothers you.
+- **Stream mode**: always shown on a green background, ready for OBS's chroma key.
+
+### ⚙️ The app
+
+- **Settings by category**: 🎨 Look, 👻 Ghost, 🔔 Alerts, 🤖 Agents, 📅 Today, ⚙️ General, 📊 Models, 🟢 Live, ✂️ Tokens. Maximize the window for a sidebar and two columns.
+- **Open it**: double-click Boofer, click the tray icon, or right-click the ghost → Settings.
+- **Start with Windows**, quietly.
+- **Shortcuts**: Ctrl+Alt+B show / hide, Ctrl+Alt+M model usage, Ctrl+Alt+P reprompt.
+- **Automatic updates**: installed over the old version, never while an agent is working, then Boofer shows **What's new**.
+- **Today**: finished tasks, the agents' working time, changed files and the week as a chart.
+- **🧪 Try it**: simulate a task, two sessions, a compaction, a request or a stop.
 
 ## Build it yourself (developers)
 
