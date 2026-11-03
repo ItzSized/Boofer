@@ -42,6 +42,9 @@
     "windows": {
       "webviewInstallMode": {
         "type": "downloadBootstrapper"
+      },
+      "wix": {
+        "upgradeCode": "6172e6ed-ef84-53d3-bfdb-619757522397"
       }
     },
     "icon": [
