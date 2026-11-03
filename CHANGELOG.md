@@ -4,6 +4,9 @@ Written automatically from the git history at every build.
 
 ## 0.4.1 · 2026-11-03
 
+- See which commit your Boofer is built from
+  - Next to the version in the settings: the commit of your build, a click opens it on GitHub ("local build" for a copy built on your PC).
+  - When an update is available, the list of the new commits it brings, each one clickable.
 - New features arrive without a new version number
   - "Check for updates" also finds a newer build of the same version: every push to GitHub is offered to installed copies, as "Install the new features".
   - Automatic updates take these builds too, at a calm moment like any update.
