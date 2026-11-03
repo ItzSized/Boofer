@@ -106,7 +106,7 @@ kbd {
   }
 }
 
-/* Nouveautés: one version's list. */
+/* What's new: one version's list. */
 .news-list {
   @apply space-y-1 text-xs text-zinc-600 dark:text-zinc-300;
 }

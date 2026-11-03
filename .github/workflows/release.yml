@@ -1,4 +1,4 @@
-name: Build Windows (installeur .msi, .exe et version portable)
+name: Build Windows (.msi and .exe installers, portable version)
 
 # Each push to main rebuilds Boofer and refreshes the GitHub release of the current version
 # (tauri.conf.json → "version"): people download it ready to use, nothing to compile.
@@ -37,7 +37,7 @@ jobs:
 
       - run: npm ci
 
-      # « Nouveautés » of this version, from the commits since the last release (scripts/changelog.mjs).
+      # "What's new" of this version, from the commits since the last release (scripts/changelog.mjs).
       - name: Release notes
         id: notes
         shell: bash
@@ -58,22 +58,22 @@ jobs:
         with:
           tagName: v__VERSION__
           releaseName: "Boofer v__VERSION__"
-          # Also the « notes » of latest.json, shown in the app before an update.
+          # Also the "notes" of latest.json, shown in the app before an update.
           releaseBody: |
-            ## ✨ Nouveautés
+            ## ✨ What's new
             ${{ steps.notes.outputs.body }}
 
-            Tout l'historique : [CHANGELOG.md](https://github.com/ItzSized/Boofer/blob/main/CHANGELOG.md), ou Réglages → Nouveautés dans l'appli.
+            Full history: [CHANGELOG.md](https://github.com/ItzSized/Boofer/blob/main/CHANGELOG.md), or Settings → What's new in the app.
 
             ---
-            **Windows 10 / 11**, au choix :
-            - `Boofer_x.y.z_x64-setup.exe` : installeur (recommandé), sans droits administrateur
-            - `Boofer_x.y.z_x64_en-US.msi` : installeur MSI, pour tout le PC
-            - `Boofer.exe` : version portable, rien à installer, double-clic et c'est parti
+            **Windows 10 / 11**, pick one:
+            - `Boofer_x.y.z_x64-setup.exe`: installer (recommended), no admin rights needed
+            - `Boofer_x.y.z_x64_en-US.msi`: MSI installer, for the whole PC
+            - `Boofer.exe`: portable version, nothing to install, double-click and go
 
-            Les installeurs ajoutent WebView2 s'il manque. Rien d'autre à installer : ni Node, ni Rust.
-            Déjà installé ? Boofer se met à jour tout seul (Réglages → Rechercher des mises à jour).
-            Pour Claude Code : Réglages → Claude Code → Connecter.
+            The installers add WebView2 if it's missing. Nothing else to install: no Node, no Rust.
+            Already installed? Boofer updates itself (Settings → Check for updates).
+            For Claude Code: Settings → Claude Code → Connect.
           # Copies that don't say how they were installed update with the setup.exe (per user, no admin).
           updaterJsonPreferNsis: true
           releaseDraft: false

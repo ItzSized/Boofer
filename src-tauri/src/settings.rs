@@ -194,7 +194,7 @@ pub(crate) fn read_user_file(path: &Path, name: &str) -> Result<Option<String>, 
     match std::fs::read_to_string(path) {
         Ok(text) => Ok(Some(text)),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
-        Err(e) => Err(format!("{name} illisible, rien n'a été modifié : {e}")),
+        Err(e) => Err(format!("{name} is unreadable, nothing was changed: {e}")),
     }
 }
 
@@ -279,12 +279,12 @@ fn install_hooks_at(path: &Path) -> Result<(), String> {
     };
     let template: serde_json::Value = serde_json::from_str(HOOKS_TEMPLATE).map_err(|e| e.to_string())?;
 
-    let root_obj = root.as_object_mut().ok_or("~/.claude/settings.json n'est pas un objet JSON")?;
+    let root_obj = root.as_object_mut().ok_or("~/.claude/settings.json is not a JSON object")?;
     let hooks = root_obj
         .entry("hooks")
         .or_insert_with(|| serde_json::json!({}))
         .as_object_mut()
-        .ok_or("« hooks » n'est pas un objet")?;
+        .ok_or("\"hooks\" is not an object")?;
 
     for (event, entries) in template["hooks"].as_object().into_iter().flatten() {
         let list = hooks.entry(event.clone()).or_insert_with(|| serde_json::json!([]));
@@ -300,7 +300,7 @@ fn install_hooks_at(path: &Path) -> Result<(), String> {
     if let Some(text) = &existing {
         // Only once: an upgrade (new hooks) must not replace the original with a copy holding ours.
         let backup = path.with_extension("json.booffer-backup");
-        let failed = |e: std::io::Error| format!("copie de sauvegarde impossible, rien n'a été modifié : {e}");
+        let failed = |e: std::io::Error| format!("couldn't make a backup copy, nothing was changed: {e}");
         match std::fs::OpenOptions::new().write(true).create_new(true).open(&backup) {
             Ok(mut file) => {
                 if let Err(e) = file.write_all(text.as_bytes()) {

@@ -50,7 +50,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   const tracker = new Tracker(bus);
   const mascotEl = document.getElementById("mascot");
   const mascot = createMascot(mascotEl);
-  const eta = new EtaEstimator(); // shared by the bubble and the « 🟢 En direct » page
+  const eta = new EtaEstimator(); // shared by the bubble and the "🟢 Live" page
   const bubble = createBubble(document.getElementById("bubble"), { eta });
   const usageBar = createUsageBar(document.getElementById("usage-bar"), {
     isTauri,
@@ -65,12 +65,12 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   const card = createPermissionCard(document.getElementById("ask"), {
     agentName: claudeCode.name,
     color: claudeCode.color,
-    // Negative ids are local test requests (settings → « 🧪 Essayer »).
+    // Negative ids are local test requests (settings → "🧪 Try it").
     resolve: (id, decision) => id >= 0 && invoke("resolve_permission", { id, decision }),
     onChange: () => onCardsChange(),
   });
 
-  // « Stop ! » before a dangerous command (src-tauri/src/guard.rs): arms crossed until the user picks.
+  // "Stop!" before a dangerous command (src-tauri/src/guard.rs): arms crossed until the user picks.
   const guard = createGuardCard(document.getElementById("guard"), {
     agentName: claudeCode.name,
     resolve: (id, allow) => id >= 0 && invoke("resolve_guard", { id, allow }),
@@ -94,7 +94,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   bubbleEl.addEventListener("click", () => focusSession(selectedSession()));
 
   // Brings the session's window to the front: the browser window of an AI chat (found by
-  // web.rs, its id is « w<window> »), or the editor whose title shows the project.
+  // web.rs, its id is "w<window>"), or the editor whose title shows the project.
   function focusSession(session) {
     if (!isTauri || !session) return;
     const hwnd = session.key.match(/^web-[^:]+:w(\d+)$/)?.[1];
@@ -180,13 +180,13 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   let trayText = "Boofer";
   function trayStatus(selected, state) {
     const parts = [settings.dnd ? "Boofer 🌙" : "Boofer"];
-    if (asking()) parts.push(guard.isOpen() ? "« Stop ! » : une commande attend ta réponse" : "Une demande attend ta réponse");
+    if (asking()) parts.push(guard.isOpen() ? "\"Stop!\": a command is waiting for your answer" : "A request is waiting for your answer");
     else if (selected && state !== State.IDLE) {
-      const pct = typeof selected.progress === "number" ? ` · ${Math.round(selected.progress * 100)} %` : "";
+      const pct = typeof selected.progress === "number" ? ` · ${Math.round(selected.progress * 100)}%` : "";
       const left = state === State.DONE ? null : eta.remaining(selected);
-      const rest = left == null ? "" : left < 5000 ? " · presque fini" : ` · reste ${approx(left)}`;
-      parts.push(`${selected.project || selected.agent} : ${selected.label}${pct}${rest}`);
-    } else parts.push("rien en cours");
+      const rest = left == null ? "" : left < 5000 ? " · almost done" : ` · ${approx(left)} left`;
+      parts.push(`${selected.project || selected.agent}: ${selected.label}${pct}${rest}`);
+    } else parts.push("nothing running");
     const busy = sessions.filter((s) => s.state !== State.IDLE).length;
     if (busy > 1) parts.push(`${busy} sessions`);
     // Windows cuts tooltips at 127 UTF-16 units: shorten by whole characters (emoji included).
@@ -220,9 +220,9 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
       if ((!silent && !failing) || warned.has(turn)) continue;
       warned.add(turn);
       const who = s.project || s.agent;
-      const text = silent ? `${who} ne bouge plus depuis 8 min : il est peut-être bloqué` : `${who} a raté 3 actions : il tourne peut-être en rond`;
+      const text = silent ? `${who} hasn't moved for 8 min: it may be stuck` : `${who} failed 3 actions: it may be going in circles`;
       speech.tell(`🤔 ${text}`, 8000);
-      if (isTauri) invoke("notify", { title: "Agent bloqué ?", body: text, force: true });
+      if (isTauri) invoke("notify", { title: "Agent stuck?", body: text, force: true });
     }
   }, 30_000);
 
@@ -241,7 +241,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     // silent: no ping from Boofer → Rust shows the notification even with the editor in front
     // (it also checks whether the PC itself is muted).
     const silent = !settings.sounds || settings.volume <= 0;
-    if (isTauri) invoke("notify", { title: session.headline ?? `${session.project || session.agent} a fini !`, body: notifyBody(session), silent });
+    if (isTauri) invoke("notify", { title: session.headline ?? `${session.project || session.agent} is done!`, body: notifyBody(session), silent });
     if (compactOnly) return;
     if (session.details?.webUsage) recordWebAnswer(session.details.webUsage);
     // What it cost (bubble, history): needs fresh usage numbers, so it comes a moment later.
@@ -252,7 +252,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     });
     const levelUp = gainXp();
     showLevel();
-    if (levelUp) setTimeout(() => speech.tell(`Niveau ${levelUp.level} ! ${levelUp.title} 🎉`), 2800);
+    if (levelUp) setTimeout(() => speech.tell(`Level ${levelUp.level}! ${levelUp.title} 🎉`), 2800);
   });
 
   function onWindowTitle(title) {
@@ -362,7 +362,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     }
   }
 
-  /** Every session, for the « 🟢 En direct » page of the settings window. */
+  /** Every session, for the "🟢 Live" page of the settings window. */
   function liveSnapshot() {
     const now = Date.now();
     return sessions.map((s) => {
@@ -390,12 +390,12 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   }
 
   // Fake session to check animations and sounds without a real agent.
-  async function runDemo(project = "démo", delay = 0, source = "generic", model = null) {
+  async function runDemo(project = "demo", delay = 0, source = "generic", model = null) {
     const id = `demo-${project}-${Date.now()}`;
     const startedAt = Date.now();
     const details = (steps, files) => ({
-      prompt: "Ajoute un mode sombre à l'app", startedAt, steps, files, ...(model ? { model } : {}),
-      step: { index: Math.min(3, 1 + Math.floor(steps / 3)), count: 3, name: "Écrit les styles", progress: (steps % 3) / 3 + 0.15, startedAt },
+      prompt: "Add a dark mode to the app", startedAt, steps, files, ...(model ? { model } : {}),
+      step: { index: Math.min(3, 1 + Math.floor(steps / 3)), count: 3, name: "Writing the styles", progress: (steps % 3) / 3 + 0.15, startedAt },
     });
     const step = (state, extra = {}) => ingest(source, { id, project, state, ...(model ? { model } : {}), ...extra });
     await new Promise((r) => setTimeout(r, delay));
@@ -403,13 +403,13 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
 
     step(State.THINKING, { details: details(0, 0), progress: 0.03 });
     await wait(1800);
-    step(State.TOOL, { label: "Lit style.css", details: details(1, 0), progress: 0.1 });
+    step(State.TOOL, { label: "Reading style.css", details: details(1, 0), progress: 0.1 });
     await wait(1500);
     for (let i = 2; i <= 9; i++) {
-      step(State.TOOL, { label: `Modifie theme-${i}.css`, details: details(i, i - 1), progress: i / 10 });
+      step(State.TOOL, { label: `Editing theme-${i}.css`, details: details(i, i - 1), progress: i / 10 });
       await wait(700);
     }
-    step(State.DONE, { headline: `${project} a fini !`, label: "Terminé en 9 s", details: details(9, 8) });
+    step(State.DONE, { headline: `${project} is done!`, label: "Done in 9 s", details: details(9, 8) });
   }
 
   // Fake Claude Code compaction: what the hooks send for a /compact.
@@ -426,17 +426,17 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     id: -Date.now(),
     payload: {
       session_id: "test",
-      cwd: "C:/Users/me/projet",
+      cwd: "C:/Users/me/project",
       tool_name: "Bash",
-      tool_input: { command: "npm run build", description: "Compile le projet" },
+      tool_input: { command: "npm run build", description: "Build the project" },
       permission_suggestions: [{ type: "addRules", rules: [{ toolName: "Bash", ruleContent: "npm run build" }], behavior: "allow", destination: "localSettings" }],
     },
   });
 
   const TEST_GUARD = () => ({
     id: -Date.now(),
-    danger: "supprimer définitivement des dossiers entiers (sans passer par la corbeille)",
-    payload: { session_id: "test", cwd: "C:/Users/me/projet", tool_name: "Bash", tool_input: { command: "rm -rf src build", description: "Nettoie le projet" } },
+    danger: "permanently delete whole folders (skipping the recycle bin)",
+    payload: { session_id: "test", cwd: "C:/Users/me/project", tool_name: "Bash", tool_input: { command: "rm -rf src build", description: "Clean the project" } },
   });
 
   const quit = () => (isTauri ? invoke("quit") : window.close());
@@ -452,18 +452,18 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     document.documentElement.classList.toggle("stream", Boolean(settings.streamMode));
     const dndEl = document.getElementById("dnd");
     dndEl.classList.toggle("hidden", !settings.dnd);
-    dndEl.title = settings.dnd && settings.dndUntil ? `Ne pas déranger jusqu'à ${clockTime(settings.dndUntil)}` : "Ne pas déranger";
+    dndEl.title = settings.dnd && settings.dndUntil ? `Do not disturb until ${clockTime(settings.dndUntil)}` : "Do not disturb";
     setTheme(settings.theme);
     applyAnimations(settings.animationsOff);
     document.documentElement.style.zoom = String(settings.size); // the window is resized to match
     mascotEl.dataset.skin = settings.skin;
     mascotEl.dataset.accessory = seasonalAccessory(settings) ?? settings.accessory;
     usageBar.rerender();
-    render(); // the tray tooltip shows « Ne pas déranger » too
+    render(); // the tray tooltip shows "Do not disturb" too
   }
 
-  // « Ne pas déranger » for a while ("30", "60", "morning"), with no end ("on"), or "off". The tray
-  // and this menu end up here: only this window knows the local time for « demain matin ».
+  // "Do not disturb" for a while ("30", "60", "morning"), with no end ("on"), or "off". The tray
+  // and this menu end up here: only this window knows the local time for "tomorrow morning".
   function setDnd(choice) {
     const now = new Date();
     const morning = new Date(now);
@@ -477,7 +477,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   setInterval(() => {
     if (settings.dnd && settings.dndUntil && Date.now() >= settings.dndUntil) {
       setDnd("off");
-      speech.tell("🔔 Fin du « Ne pas déranger » : sons et demandes réactivés", 5000);
+      speech.tell("🔔 \"Do not disturb\" is over: sounds and requests are back", 5000);
     }
   }, 15_000);
 
@@ -486,7 +486,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   function notifyBody(session) {
     const d = session.details ?? {};
     const model = d.model ? ` · ${describeModel(d.model).name}` : "";
-    return [session.label + model, d.prompt ? `« ${d.prompt} »` : ""].filter(Boolean).join("\n");
+    return [session.label + model, d.prompt ? `“${d.prompt}”` : ""].filter(Boolean).join("\n");
   }
 
   function showLevel() {
@@ -503,21 +503,21 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     for (const limit of usage.limits ?? []) {
       if (!(limit.resetsAt > now) || limit.usedPercent < 80) continue;
       if (!once(`booffer.limit.${limit.tool}.${limit.windowMinutes}.${limit.resetsAt}`)) continue;
-      const span = limit.windowMinutes >= 1440 ? "de la semaine" : `de ${Math.round(limit.windowMinutes / 60)} h`;
-      const text = `${limit.tool} : ${Math.round(limit.usedPercent)} % de ta limite ${span}, recharge dans ${roughly(limit.resetsAt - now)}`;
+      const span = limit.windowMinutes >= 1440 ? "weekly" : `${Math.round(limit.windowMinutes / 60)} h`;
+      const text = `${limit.tool}: ${Math.round(limit.usedPercent)}% of your ${span} limit, resets in ${roughly(limit.resetsAt - now)}`;
       speech.tell(`⚠️ ${text}`, 8000);
-      if (isTauri) invoke("notify", { title: "Limite bientôt atteinte", body: text, force: true });
+      if (isTauri) invoke("notify", { title: "Limit almost reached", body: text, force: true });
     }
-    // The user's own daily limits (settings → 📊 Modèles): at 80 % and when over, once a day each.
+    // The user's own daily limits (settings → 📊 Models): at 80% and when over, once a day each.
     const rows = withWebUsage(usage.rows);
     for (const b of dailyBudgets(rows, limitsFromPercent(rows, settings.dailyLimitPct))) {
       const step = b.pct >= 1 ? 100 : b.pct >= 0.8 ? 80 : 0;
       if (!step || !once(`booffer.budget.${b.family}.${step}.${localDay(0)}`)) continue;
       const text = step === 100
-        ? `${b.name} : limite du jour dépassée (${compact(b.used)} / ${compact(b.limit)} tokens)`
-        : `${b.name} : ${Math.round(b.pct * 100)} % de ta limite du jour${b.delta > 5 ? `, en avance de ${b.delta} %` : ""}`;
+        ? `${b.name}: daily limit exceeded (${compact(b.used)} / ${compact(b.limit)} tokens)`
+        : `${b.name}: ${Math.round(b.pct * 100)}% of your daily limit${b.delta > 5 ? `, ${b.delta}% ahead of pace` : ""}`;
       speech.tell(`${step === 100 ? "⛔" : "⚠️"} ${text}`, 8000);
-      if (isTauri) invoke("notify", { title: step === 100 ? "Limite du jour dépassée" : "Limite du jour bientôt atteinte", body: text, force: true });
+      if (isTauri) invoke("notify", { title: step === 100 ? "Daily limit exceeded" : "Daily limit almost reached", body: text, force: true });
     }
   }
 
@@ -525,7 +525,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     const min = Math.round(ms / 60_000);
     if (min < 60) return `${Math.max(1, min)} min`;
     if (min < 48 * 60) return `${Math.round(min / 60)} h`;
-    return `${Math.round(min / 1440)} j`;
+    return `${Math.round(min / 1440)} d`;
   }
 
   function once(key) {
@@ -542,11 +542,11 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     const stats = todayStats(loadHistory());
     const top = summarize(withWebUsage(latestUsage.rows), localDay(0))[0];
     const parts = [
-      `${stats.tasks} tâche${stats.tasks > 1 ? "s" : ""}`,
+      `${stats.tasks} task${stats.tasks > 1 ? "s" : ""}`,
       stats.ms ? duration(stats.ms) : "",
-      top ? `surtout ${top.name}` : "",
+      top ? `mostly ${top.name}` : "",
     ].filter(Boolean);
-    speech.tell(`📅 Aujourd'hui : ${parts.join(" · ")}`, 7000);
+    speech.tell(`📅 Today: ${parts.join(" · ")}`, 7000);
   }
 
   // The day summary pops once, at the first calm moment after 18 h.
@@ -557,8 +557,8 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     }
   }, 60_000);
 
-  // A new release on GitHub? Checked at launch and every 6 h. With « Mettre à jour
-  // automatiquement », it installs over this version at a calm moment, then Boofer restarts.
+  // A new release on GitHub? Checked at launch and every 6 h. With "Update
+  // automatically", it installs over this version at a calm moment, then Boofer restarts.
   let updating = false;
   async function checkUpdate() {
     if (!isTauri || updating) return;
@@ -570,18 +570,18 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     }
     if (!update) return;
     if (settings.autoUpdate === false) {
-      if (once(`booffer.update.${update.version}`)) speech.tell(`✨ Boofer ${update.version} est dispo ! Réglages → Rechercher des mises à jour`, 8000);
+      if (once(`booffer.update.${update.version}`)) speech.tell(`✨ Boofer ${update.version} is out! Settings → Check for updates`, 8000);
       return;
     }
     const calm = () => !sessions.some((s) => s.state !== State.IDLE && s.state !== State.DONE) && !asking();
     if (!calm()) return setTimeout(checkUpdate, 5 * 60_000); // an agent is working: later
     updating = true;
-    speech.tell(`⬇️ Mise à jour vers ${update.version}… je reviens tout de suite !`, 15_000);
+    speech.tell(`⬇️ Updating to ${update.version}… be right back!`, 15_000);
     try {
       await installUpdate(update);
     } catch {
       updating = false;
-      speech.tell("😕 La mise à jour a échoué, je réessaierai plus tard", 6000);
+      speech.tell("😕 The update failed, I'll try again later", 6000);
     }
   }
   setTimeout(checkUpdate, 20_000);
@@ -589,18 +589,18 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
 
   // Reprompt: the clipboard's prompt, rewritten for the AI only (local, or Claude Haiku if chosen).
   async function reprompt(text) {
-    if (!text?.trim()) return speech.tell("📋 Copie d'abord ton prompt, puis Ctrl+Alt+P", 4000);
+    if (!text?.trim()) return speech.tell("📋 Copy your prompt first, then Ctrl+Alt+P", 4000);
     const before = estimateTokens(text);
     let result = null;
     if (settings.repromptAi) {
-      speech.tell("🔁 Je reformule avec Haiku…", 15000);
+      speech.tell("🔁 Rewriting with Haiku…", 15000);
       result = await invoke("compress_with_claude", { text }).catch(() => null);
     }
     result ||= repromptForAI(text);
     await invoke("write_clipboard", { text: result });
     const after = estimateTokens(result);
     const saved = Math.max(0, Math.round((1 - after / before) * 100));
-    speech.tell(`🔁 Reprompt prêt : −${saved} % (${before} → ${after} tokens). Colle-le !`, 5000);
+    speech.tell(`🔁 Reprompt ready: −${saved}% (${before} → ${after} tokens). Paste it!`, 5000);
   }
 
   async function repromptClipboard() {
@@ -612,51 +612,51 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     const project = selectedSession()?.project;
     await invoke("write_clipboard", { text: "/compact" });
     const focused = project ? await invoke("focus_project", { project }) : false;
-    speech.tell(focused ? "📋 /compact copié : colle-le (Ctrl+V) puis Entrée" : "📋 /compact copié : colle-le dans Claude Code", 6000);
+    speech.tell(focused ? "📋 /compact copied: paste it (Ctrl+V), then Enter" : "📋 /compact copied: paste it in Claude Code", 6000);
   }
 
-  // Demos to try the animations and cards without a real agent: settings → « 🧪 Essayer »
+  // Demos to try the animations and cards without a real agent: settings → "🧪 Try it"
   // in the app, the right-click menu in the browser preview (npm run dev).
   const DEMOS = {
-    task: { label: "✨ Simuler une tâche", run: () => runDemo("Boofer", 0, "antigravity", "Gemini 3.1 Pro") },
-    sessions: { label: "👻 Simuler 2 sessions", run: () => (runDemo("site-web", 0, "antigravity", "Gemini 3.1 Pro"), runDemo("api", 2500, "claude-api")) },
-    compact: { label: "🧹 Simuler un compactage", run: () => runCompactDemo() },
-    request: { label: "🔐 Simuler une demande", run: () => card.add(TEST_REQUEST()) },
-    guard: { label: "🛑 Simuler un stop", run: () => guard.add(TEST_GUARD()) },
+    task: { label: "✨ Simulate a task", run: () => runDemo("Boofer", 0, "antigravity", "Gemini 3.1 Pro") },
+    sessions: { label: "👻 Simulate 2 sessions", run: () => (runDemo("website", 0, "antigravity", "Gemini 3.1 Pro"), runDemo("api", 2500, "claude-api")) },
+    compact: { label: "🧹 Simulate a compaction", run: () => runCompactDemo() },
+    request: { label: "🔐 Simulate a request", run: () => card.add(TEST_REQUEST()) },
+    guard: { label: "🛑 Simulate a stop", run: () => guard.add(TEST_GUARD()) },
   };
   const demoItems = (ids) => (isTauri ? [] : ids.map((id) => ({ label: DEMOS[id].label, action: DEMOS[id].run })));
 
   const menu = createMenu(document.getElementById("menu"), [
     ...demoItems(["task", "sessions", "compact"]),
-    { label: "📅 Ma journée", action: () => daySummary() },
+    { label: "📅 My day", action: () => daySummary() },
     ...(isTauri
       ? [
-        { label: "🧹 Compacter maintenant", action: () => compactNow() },
-        { label: "🔁 Reprompt (presse-papier)", action: () => repromptClipboard() },
-        { label: "✂️ Économiser des tokens", action: () => invoke("open_settings", { page: "tokens" }) },
-        { label: "🟢 Agents en direct", action: () => invoke("open_settings", { page: "live" }) },
+        { label: "🧹 Compact now", action: () => compactNow() },
+        { label: "🔁 Reprompt (clipboard)", action: () => repromptClipboard() },
+        { label: "✂️ Save tokens", action: () => invoke("open_settings", { page: "tokens" }) },
+        { label: "🟢 Live agents", action: () => invoke("open_settings", { page: "live" }) },
       ]
       : []),
     ...demoItems(["request", "guard"]),
     ...(isTauri
       ? [
-        { label: "⚙️ Réglages", action: () => invoke("open_settings") },
-        { label: "📊 Usage des modèles", action: () => invoke("open_settings", { page: "models" }) },
+        { label: "⚙️ Settings", action: () => invoke("open_settings") },
+        { label: "📊 Model usage", action: () => invoke("open_settings", { page: "models" }) },
         {
-          label: () => (settings.follow ? "🐾 Reste ici" : "🐾 Suis-moi (de fenêtre en fenêtre)"),
+          label: () => (settings.follow ? "🐾 Stay here" : "🐾 Follow me (window to window)"),
           action: () => invoke("set_follow", { enabled: !settings.follow }),
         },
-        { label: "🌙 Ne pas déranger 1 h", visible: () => !settings.dnd, action: () => setDnd("60") },
-        { label: "🌙 Ne pas déranger jusqu'à demain matin", visible: () => !settings.dnd, action: () => setDnd("morning") },
+        { label: "🌙 Do not disturb for 1 h", visible: () => !settings.dnd, action: () => setDnd("60") },
+        { label: "🌙 Do not disturb until tomorrow morning", visible: () => !settings.dnd, action: () => setDnd("morning") },
         {
-          label: () => `🔔 Réactiver sons et demandes${settings.dndUntil ? ` (prévu à ${clockTime(settings.dndUntil)})` : ""}`,
+          label: () => `🔔 Turn sounds and requests back on${settings.dndUntil ? ` (planned at ${clockTime(settings.dndUntil)})` : ""}`,
           visible: () => settings.dnd,
           action: () => setDnd("off"),
         },
-        { label: "🙈 Me cacher (icône de la barre)", action: () => invoke("set_hidden", { hidden: true }) },
+        { label: "🙈 Hide me (tray icon)", action: () => invoke("set_hidden", { hidden: true }) },
       ]
       : []),
-    { label: "👋 Quitter", action: quit },
+    { label: "👋 Quit", action: quit },
   ], { onToggle: () => pet?.refresh() });
   document.addEventListener("contextmenu", (e) => {
     e.preventDefault();
@@ -688,8 +688,8 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     listen("live-request", () => emit("live-sessions", liveSnapshot()));
     listen("guard-expired", ({ payload }) => guard.expire(payload));
     listen("settings-changed", ({ payload }) => applySettings(payload));
-    listen("dnd-choice", ({ payload }) => setDnd(payload)); // tray → « Ne pas déranger »
-    listen("demo", ({ payload }) => DEMOS[payload]?.run()); // settings → « 🧪 Essayer »
+    listen("dnd-choice", ({ payload }) => setDnd(payload)); // tray → "Do not disturb"
+    listen("demo", ({ payload }) => DEMOS[payload]?.run()); // settings → "🧪 Try it"
     // Ctrl+Alt+P: the prompt in the clipboard comes back rewritten for the AI.
     listen("compress-clipboard", ({ payload }) => reprompt(payload));
     invoke("get_settings").then((loaded) => {

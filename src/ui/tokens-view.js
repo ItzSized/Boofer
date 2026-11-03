@@ -9,7 +9,7 @@ const WINDOWS = [
 ];
 
 /**
- * « ✂️ Tokens » page of the settings window: compact earlier, concise answers,
+ * "✂️ Tokens" page of the settings window: compact earlier, concise answers,
  * and a prompt compressor (local and free, or rewritten by Claude Haiku).
  */
 export function createTokensView({ call, isTauri }) {
@@ -26,9 +26,9 @@ export function createTokensView({ call, isTauri }) {
       try {
         await call("set_compact_window", { tokens });
         savers.compactWindow = tokens;
-        $("compact-note").textContent = "✓ Enregistré. Pris en compte au prochain lancement de Claude Code.";
+        $("compact-note").textContent = "✓ Saved. Applies the next time Claude Code starts.";
       } catch (error) {
-        $("compact-note").textContent = `Impossible : ${error}`;
+        $("compact-note").textContent = `Couldn't do it: ${error}`;
       }
       render();
     }),
@@ -40,7 +40,7 @@ export function createTokensView({ call, isTauri }) {
       savers.concise = e.target.checked;
     } catch (error) {
       e.target.checked = savers.concise;
-      $("concise-note").textContent = `Impossible : ${error}`;
+      $("concise-note").textContent = `Couldn't do it: ${error}`;
     }
   });
 
@@ -53,7 +53,7 @@ export function createTokensView({ call, isTauri }) {
     output.value = text;
     const after = estimateTokens(text);
     const saved = before ? Math.max(0, Math.round((1 - after / before) * 100)) : 0;
-    stats.textContent = text ? `≈ ${before} → ${after} tokens (−${saved} %)` : "";
+    stats.textContent = text ? `≈ ${before} → ${after} tokens (−${saved}%)` : "";
     $("prompt-copy").disabled = !text;
   }
 
@@ -67,23 +67,23 @@ export function createTokensView({ call, isTauri }) {
     if (!input.value.trim()) return;
     const btn = $("prompt-ai");
     btn.disabled = true;
-    btn.textContent = "Haiku réfléchit…";
+    btn.textContent = "Haiku is thinking…";
     try {
       const text = isTauri ? await call("compress_with_claude", { text: input.value }) : `${input.value.slice(0, 40)}… (Haiku)`;
       showResult(text, estimateTokens(input.value));
     } catch (error) {
-      stats.textContent = `Haiku indisponible : ${error}`;
+      stats.textContent = `Haiku unavailable: ${error}`;
     } finally {
       btn.disabled = false;
-      btn.textContent = "✨ Reformuler avec Haiku";
+      btn.textContent = "✨ Rewrite with Haiku";
     }
   });
 
   $("prompt-copy").addEventListener("click", async () => {
     if (isTauri) await call("write_clipboard", { text: output.value });
     else await navigator.clipboard?.writeText(output.value);
-    $("prompt-copy").textContent = "✓ Copié";
-    setTimeout(() => ($("prompt-copy").textContent = "📋 Copier"), 1500);
+    $("prompt-copy").textContent = "✓ Copied";
+    setTimeout(() => ($("prompt-copy").textContent = "📋 Copy"), 1500);
   });
 
   function render() {

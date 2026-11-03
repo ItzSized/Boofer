@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Réglages · Boofer</title>
+  <title>Settings · Boofer</title>
 </head>
 
 <body class="min-h-screen bg-zinc-100 dark:bg-zinc-950 text-zinc-800 dark:text-zinc-100 antialiased select-none">
@@ -18,9 +18,9 @@
       class="order-1 flex items-center gap-4 rounded-2xl bg-gradient-to-br from-violet-100 dark:from-violet-950 to-white dark:to-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
       <div id="hero" data-state="idle" class="mascot hero shrink-0"></div>
       <div class="min-w-0 flex-1">
-        <h1 class="text-lg font-bold">Réglages de Boofer</h1>
-        <p class="text-xs text-zinc-500 dark:text-zinc-400">Tout s'applique tout de suite, et reste enregistré.</p>
-        <div id="level" class="mt-2 text-xs" title="1 tâche finie = 1 XP">
+        <h1 class="text-lg font-bold">Boofer settings</h1>
+        <p class="text-xs text-zinc-500 dark:text-zinc-400">Everything applies right away and is saved.</p>
+        <div id="level" class="mt-2 text-xs" title="1 finished task = 1 XP">
           <div class="flex items-baseline justify-between gap-2">
             <span><strong id="level-num"></strong> · <span id="level-title"></span></span>
             <span id="level-xp" class="tabular-nums text-zinc-500 dark:text-zinc-400"></span>
@@ -34,9 +34,9 @@
     </header>
 
     <nav class="order-2 flex gap-1 lg:flex-col rounded-2xl bg-white p-1 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
-      <button data-page="settings" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">⚙️ Réglages</button>
-      <button data-page="models" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">📊 Modèles</button>
-      <button data-page="live" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">🟢 Direct</button>
+      <button data-page="settings" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">⚙️ Settings</button>
+      <button data-page="models" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">📊 Models</button>
+      <button data-page="live" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">🟢 Live</button>
       <button data-page="tokens" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">✂️ Tokens</button>
     </nav>
 
@@ -44,19 +44,19 @@
       <div class="flex items-center justify-between gap-3">
         <div class="min-w-0">
           <p class="text-sm font-medium">👻 Boofer <span id="version">0.3.9</span></p>
-          <p id="update-status" class="text-xs text-zinc-500 dark:text-zinc-400">Les mises à jour s'installent par-dessus, sans rien désinstaller.</p>
+          <p id="update-status" class="text-xs text-zinc-500 dark:text-zinc-400">Updates install over this version, nothing to uninstall.</p>
         </div>
         <button id="update-check"
           class="shrink-0 rounded-lg bg-violet-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-600 disabled:opacity-60">
-          Rechercher des mises à jour</button>
+          Check for updates</button>
       </div>
       <div id="update-bar" class="mt-3 hidden h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
         <div id="update-fill" class="h-full w-0 rounded-full bg-violet-500 transition-[width]"></div>
       </div>
       <div class="mt-3 flex items-center justify-between gap-4 border-t border-zinc-100 pt-3 dark:border-zinc-800">
         <div>
-          <p class="text-sm font-medium">Mettre à jour automatiquement</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Au démarrage et toutes les 6 h, quand aucun agent ne travaille.</p>
+          <p class="text-sm font-medium">Update automatically</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">At startup and every 6 h, when no agent is working.</p>
         </div>
         <label class="toggle"><input id="auto-update" type="checkbox" /><span></span></label>
       </div>
@@ -64,12 +64,12 @@
 
     <section id="news" class="order-5 rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
       <div class="flex items-baseline justify-between gap-2">
-        <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">✨ Nouveautés</h2>
-        <span id="news-badge" class="hidden rounded-full bg-violet-500 px-2 py-0.5 text-[10px] font-semibold text-white">Nouveau</span>
+        <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">✨ What's new</h2>
+        <span id="news-badge" class="hidden rounded-full bg-violet-500 px-2 py-0.5 text-[10px] font-semibold text-white">New</span>
       </div>
       <div id="news-latest" class="mt-2"></div>
       <details id="news-more" class="mt-2">
-        <summary class="cursor-pointer text-xs font-medium text-violet-600 hover:underline dark:text-violet-300">Toutes les versions</summary>
+        <summary class="cursor-pointer text-xs font-medium text-violet-600 hover:underline dark:text-violet-300">All versions</summary>
         <div id="news-all" class="mt-2 space-y-3"></div>
       </details>
     </section>
@@ -83,22 +83,22 @@
     <div id="page-settings" class="page-grid">
 
     <section id="appearance" class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
-      <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Apparence</h2>
+      <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Appearance</h2>
       <div class="flex items-center justify-between gap-4 pb-3">
-        <p class="text-sm font-medium">Thème</p>
+        <p class="text-sm font-medium">Theme</p>
         <div class="flex gap-1.5">
           <button data-theme-choice="auto"
             class="segment rounded-lg px-3 py-1 text-xs ring-1 ring-black/10 dark:ring-white/15">🌗 Auto</button>
           <button data-theme-choice="light"
-            class="segment rounded-lg px-3 py-1 text-xs ring-1 ring-black/10 dark:ring-white/15">☀️ Clair</button>
+            class="segment rounded-lg px-3 py-1 text-xs ring-1 ring-black/10 dark:ring-white/15">☀️ Light</button>
           <button data-theme-choice="dark"
-            class="segment rounded-lg px-3 py-1 text-xs ring-1 ring-black/10 dark:ring-white/15">🌙 Sombre</button>
+            class="segment rounded-lg px-3 py-1 text-xs ring-1 ring-black/10 dark:ring-white/15">🌙 Dark</button>
         </div>
       </div>
       <div id="skins-block"></div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">Taille</p>
+          <p class="text-sm font-medium">Size</p>
           <p class="text-xs text-zinc-500 dark:text-zinc-400" id="size-label"></p>
         </div>
         <input id="size" type="range" min="0.7" max="1.4" step="0.1" class="w-40 accent-violet-500" />
@@ -106,126 +106,126 @@
     </section>
 
     <section class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
-      <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Où vit Boofer</h2>
+      <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Where Boofer lives</h2>
       <div class="grid grid-cols-2 gap-2">
         <button data-display="editor"
           class="display-card rounded-xl p-3 text-left ring-1 ring-black/10 dark:ring-white/15">
-          <p class="text-sm font-semibold">💻 Sur mon éditeur</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Visible seulement quand l'éditeur est au premier plan.</p>
+          <p class="text-sm font-semibold">💻 On my editor</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Only visible when the editor is in front.</p>
         </button>
         <button data-display="everywhere"
           class="display-card rounded-xl p-3 text-left ring-1 ring-black/10 dark:ring-white/15">
-          <p class="text-sm font-semibold">🖥️ Partout</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Reste sur le bureau, là où tu le poses.</p>
+          <p class="text-sm font-semibold">🖥️ Everywhere</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Stays on the desktop, where you put it.</p>
         </button>
       </div>
       <div id="editors-block" class="mt-3">
-        <p class="mb-1.5 text-xs text-zinc-500 dark:text-zinc-400">Éditeurs :</p>
+        <p class="mb-1.5 text-xs text-zinc-500 dark:text-zinc-400">Editors:</p>
         <div id="editors" class="flex flex-wrap gap-1.5"></div>
-        <input id="custom-editor" placeholder="Autre : nom de l'exécutable (ex. zed), puis Entrée"
+        <input id="custom-editor" placeholder="Other: executable name (e.g. zed), then Enter"
           class="mt-2 w-full rounded-lg bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 text-xs outline-none ring-violet-400 focus:ring-2" />
       </div>
     </section>
 
     <section
       class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
-      <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Comportement</h2>
+      <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Behavior</h2>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">Lancer au démarrage de Windows</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400" id="autostart-text">Boofer s'ouvre tout seul quand tu
-            allumes le PC.</p>
+          <p class="text-sm font-medium">Start with Windows</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400" id="autostart-text">Boofer opens by itself when you
+            turn on the PC.</p>
         </div>
         <label class="toggle"><input id="autostart" type="checkbox" /><span></span></label>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">🐾 Suis-moi</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Il saute sur la fenêtre où tu es, quelle que soit l'appli. Sinon il reste où tu le poses.</p>
+          <p class="text-sm font-medium">🐾 Follow me</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">It jumps onto the window you're in, whatever the app. Otherwise it stays where you put it.</p>
         </div>
         <label class="toggle"><input id="follow" type="checkbox" /><span></span></label>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">Glisser vers la souris</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Il glisse vers ton curseur quand tu t'éloignes.</p>
+          <p class="text-sm font-medium">Glide to the mouse</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">It glides toward your cursor when you move away.</p>
         </div>
         <label class="toggle"><input id="glide" type="checkbox" /><span></span></label>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">S'endort après</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Sans mouvement de souris, quand aucun agent ne travaille.
+          <p class="text-sm font-medium">Falls asleep after</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">With no mouse movement, when no agent is working.
           </p>
         </div>
         <select id="sleep" class="rounded-lg bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-sm outline-none"></select>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">💬 Petites phrases</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">« Coucou ! », « Tadaa ! », « Psst… il a besoin de toi ».
+          <p class="text-sm font-medium">💬 Little phrases</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">"Hi there!", "Ta-da!", "Psst… it needs you".
           </p>
         </div>
         <label class="toggle"><input id="speech-toggle" type="checkbox" /><span></span></label>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">🌙 Ne pas déranger</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Pas de sons ni de cartes : Claude Code te demande
-            lui-même.<span id="dnd-until" class="font-medium text-violet-500"></span></p>
+          <p class="text-sm font-medium">🌙 Do not disturb</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">No sounds or cards: Claude Code asks you
+            itself.<span id="dnd-until" class="font-medium text-violet-500"></span></p>
         </div>
         <label class="toggle"><input id="dnd-toggle" type="checkbox" /><span></span></label>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">🔔 Notifications Windows</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Quand une tâche finit et que tu n'es pas sur ton éditeur.</p>
+          <p class="text-sm font-medium">🔔 Windows notifications</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">When a task finishes and you're not on your editor.</p>
         </div>
         <label class="toggle"><input id="notifications" type="checkbox" /><span></span></label>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">🔕 Prévenir quand le son est coupé</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Si les sons de Boofer sont coupés ou si le PC est en muet, une notification te dit quand une tâche finit, même sur ton éditeur.</p>
+          <p class="text-sm font-medium">🔕 Notify when the sound is off</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">If Boofer's sounds are off or the PC is muted, a notification tells you when a task finishes, even on your editor.</p>
         </div>
         <label class="toggle"><input id="notify-silent" type="checkbox" /><span></span></label>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">⌨️ Raccourcis</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd> afficher / cacher ·
-            <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> usage des modèles · <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> reprompt</p>
+          <p class="text-sm font-medium">⌨️ Shortcuts</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd> show / hide ·
+            <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> model usage · <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> reprompt</p>
         </div>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">🎥 Mode stream</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Toujours affiché, sur fond vert : dans OBS, capture la fenêtre « Boofer » et ajoute un filtre « Incrustation chromatique ».</p>
+          <p class="text-sm font-medium">🎥 Stream mode</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Always shown, on a green background: in OBS, capture the "Boofer" window and add a "Chroma Key" filter.</p>
         </div>
         <label class="toggle"><input id="stream-mode" type="checkbox" /><span></span></label>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">🎃 Tenues de saison</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Chapeau de sorcière pour Halloween, bonnet de Noël en décembre (sans accessoire choisi).</p>
+          <p class="text-sm font-medium">🎃 Seasonal outfits</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">A witch hat for Halloween, a Santa hat in December (when no accessory is chosen).</p>
         </div>
         <label class="toggle"><input id="seasonal" type="checkbox" /><span></span></label>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">Son de fin</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Quand une tâche ou une réponse est prête.</p>
+          <p class="text-sm font-medium">Done sound</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">When a task or an answer is ready.</p>
         </div>
         <select id="sound-theme" class="rounded-lg bg-zinc-100 px-2 py-1 text-sm outline-none dark:bg-zinc-800">
-          <option value="classique">✨ Clochettes</option>
-          <option value="doux">🌙 Doux</option>
-          <option value="retro">👾 Rétro 8-bit</option>
+          <option value="classique">✨ Chimes</option>
+          <option value="doux">🌙 Soft</option>
+          <option value="retro">👾 Retro 8-bit</option>
         </select>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">Sons</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Ping de fin, demande d'attention, caresses.</p>
+          <p class="text-sm font-medium">Sounds</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Done ping, attention request, petting.</p>
         </div>
         <label class="toggle"><input id="sounds" type="checkbox" /><span></span></label>
       </div>
@@ -235,7 +235,7 @@
           <input id="volume" type="range" min="0" max="1" step="0.05" class="w-32 accent-violet-500" />
           <button id="test-sound"
             class="rounded-lg bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-xs hover:bg-zinc-200 dark:hover:bg-zinc-700">▶
-            Tester</button>
+            Test</button>
         </div>
       </div>
     </section>
@@ -245,70 +245,70 @@
       <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Animations</h2>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">Animer le fantôme</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Coupe tout pour un fantôme immobile : son humeur reste visible à ses yeux et à sa couleur.</p>
+          <p class="text-sm font-medium">Animate the ghost</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Turn everything off for a still ghost: its mood still shows in its eyes and color.</p>
         </div>
         <label class="toggle"><input id="anim-all" type="checkbox" /><span></span></label>
       </div>
       <div class="py-2.5" id="anim-groups-block">
-        <p class="text-sm font-medium">Choisir lesquelles</p>
-        <p class="mb-2 text-xs text-zinc-500 dark:text-zinc-400" id="anim-hint">Clique pour couper ou remettre une animation.</p>
+        <p class="text-sm font-medium">Choose which ones</p>
+        <p class="mb-2 text-xs text-zinc-500 dark:text-zinc-400" id="anim-hint">Click to turn an animation off or back on.</p>
         <div id="anim-groups" class="flex flex-wrap gap-1.5"></div>
       </div>
     </section>
 
     <section class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
-      <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">🧪 Essayer</h2>
-      <p class="mt-1 mb-2 text-xs text-zinc-500 dark:text-zinc-400">Voir le fantôme en action sans lancer de vrai agent.</p>
+      <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">🧪 Try it</h2>
+      <p class="mt-1 mb-2 text-xs text-zinc-500 dark:text-zinc-400">See the ghost in action without running a real agent.</p>
       <div class="flex flex-wrap gap-1.5">
-        <button class="chip" data-demo="task">✨ Une tâche</button>
+        <button class="chip" data-demo="task">✨ A task</button>
         <button class="chip" data-demo="sessions">👻 2 sessions</button>
-        <button class="chip" data-demo="compact">🧹 Un compactage</button>
-        <button class="chip" data-demo="request">🔐 Une demande</button>
-        <button class="chip" data-demo="guard">🛑 Un stop</button>
+        <button class="chip" data-demo="compact">🧹 A compaction</button>
+        <button class="chip" data-demo="request">🔐 A request</button>
+        <button class="chip" data-demo="guard">🛑 A stop</button>
       </div>
     </section>
 
     <section
       class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
-      <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Agents IA (Antigravity &amp; Claude
+      <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">AI agents (Antigravity &amp; Claude
         Code)</h2>
       <div class="py-2.5">
         <div class="flex items-center justify-between gap-4">
           <div>
-            <p class="text-sm font-medium text-blue-600 dark:text-blue-400">✓ Antigravity est connecté automatiquement
+            <p class="text-sm font-medium text-blue-600 dark:text-blue-400">✓ Antigravity is connected automatically
             </p>
             <p class="text-xs text-zinc-500 dark:text-zinc-400">
-              Suit tes sessions en direct depuis <code
+              Follows your sessions live from <code
                 class="rounded bg-zinc-100 dark:bg-zinc-800 px-1">~/.gemini/antigravity</code>.
             </p>
           </div>
           <span
-            class="shrink-0 rounded-full bg-blue-50 dark:bg-blue-950/70 px-2.5 py-1 text-[11px] font-semibold text-blue-600 dark:text-blue-300">Actif</span>
+            class="shrink-0 rounded-full bg-blue-50 dark:bg-blue-950/70 px-2.5 py-1 text-[11px] font-semibold text-blue-600 dark:text-blue-300">Active</span>
         </div>
       </div>
       <div class="py-2.5">
-        <p class="text-sm font-medium text-blue-600 dark:text-blue-400">✓ IA du navigateur suivies automatiquement</p>
+        <p class="text-sm font-medium text-blue-600 dark:text-blue-400">✓ Browser AIs followed automatically</p>
         <p class="text-xs text-zinc-500 dark:text-zinc-400">
-          ChatGPT, Gemini, Claude, Grok, Perplexity, DeepSeek, Le Chat et Copilot dans Chrome, Edge ou Brave, sans rien
-          installer : statut en direct, un bip et une notification quand la réponse est prête, l'historique. Coche
-          « ChatGPT, Gemini… (navigateur) » dans les éditeurs pour qu'il s'affiche sur ces onglets.
+          ChatGPT, Gemini, Claude, Grok, Perplexity, DeepSeek, Le Chat and Copilot in Chrome, Edge or Brave, with nothing
+          to install: live status, a beep and a notification when the answer is ready, the history. Tick
+          "ChatGPT, Gemini… (browser)" in the editors so it shows up on those tabs.
         </p>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">Approuver depuis Boofer (Claude Code)</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Autoriser / Refuser les demandes de permission depuis la
-            carte.</p>
+          <p class="text-sm font-medium">Approve from Boofer (Claude Code)</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Allow / Deny permission requests from the
+            card.</p>
         </div>
         <label class="toggle"><input id="approvals" type="checkbox" /><span></span></label>
       </div>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">🛑 Bloquer les commandes dangereuses</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Avant un <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">rm -rf</code>,
-            un <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">git push --force</code>, un formatage… Boofer croise les bras et te demande
-            de confirmer. Sans réponse en 55 s, c'est bloqué. Marche même en mode auto de Claude Code.</p>
+          <p class="text-sm font-medium">🛑 Block dangerous commands</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Before an <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">rm -rf</code>,
+            a <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">git push --force</code>, a format… Boofer crosses its arms and asks you
+            to confirm. No answer within 55 s and it's blocked. Works even in Claude Code's auto mode.</p>
         </div>
         <label class="toggle"><input id="guard-toggle" type="checkbox" /><span></span></label>
       </div>
@@ -319,36 +319,36 @@
         </div>
         <button id="install-hooks"
           class="shrink-0 rounded-lg bg-violet-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-600">
-          Connecter
+          Connect
         </button>
       </div>
     </section>
 
     <section class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
       <div class="mb-2 flex items-center justify-between">
-        <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Aujourd'hui</h2>
-        <button id="clear-history" class="text-[11px] text-zinc-400 hover:text-rose-500">Effacer l'historique</button>
+        <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Today</h2>
+        <button id="clear-history" class="text-[11px] text-zinc-400 hover:text-rose-500">Clear history</button>
       </div>
       <div class="grid grid-cols-3 gap-2 text-center">
         <div class="rounded-xl bg-violet-50 py-2 dark:bg-violet-950/50">
           <p id="stat-tasks" class="text-xl font-bold text-violet-600 dark:text-violet-300">0</p>
-          <p class="text-[11px] text-zinc-500 dark:text-zinc-400">tâches finies</p>
+          <p class="text-[11px] text-zinc-500 dark:text-zinc-400">tasks done</p>
         </div>
         <div class="rounded-xl bg-emerald-50 py-2 dark:bg-emerald-950/50">
           <p id="stat-time" class="text-xl font-bold text-emerald-600 dark:text-emerald-300">0 s</p>
-          <p class="text-[11px] text-zinc-500 dark:text-zinc-400">de travail des agents</p>
+          <p class="text-[11px] text-zinc-500 dark:text-zinc-400">of agent work</p>
         </div>
         <div class="rounded-xl bg-amber-50 py-2 dark:bg-amber-950/50">
           <p id="stat-files" class="text-xl font-bold text-amber-600 dark:text-amber-300">0</p>
-          <p class="text-[11px] text-zinc-500 dark:text-zinc-400">fichiers modifiés</p>
+          <p class="text-[11px] text-zinc-500 dark:text-zinc-400">files changed</p>
         </div>
       </div>
       <div class="mt-3 flex items-baseline justify-between">
-        <p class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Cette semaine</p>
+        <p class="text-xs font-medium text-zinc-500 dark:text-zinc-400">This week</p>
         <p id="week-total" class="text-[11px] tabular-nums text-zinc-400"></p>
       </div>
       <div id="week" class="mt-1.5 grid h-20 grid-cols-7 items-end gap-1.5"></div>
-      <p class="mt-3 mb-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">Dernières tâches</p>
+      <p class="mt-3 mb-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">Latest tasks</p>
       <ul id="history" class="divide-y divide-zinc-100 dark:divide-zinc-800"></ul>
     </section>
 
@@ -357,103 +357,103 @@
     <div id="page-models" class="page-grid hidden">
       <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 class="text-sm font-bold">Quelles IA tu utilises</h2>
+          <h2 class="text-sm font-bold">Which AIs you use</h2>
           <div class="flex gap-1">
-            <button data-range="today" class="segment rounded-lg px-2 py-0.5 text-[11px] ring-1 ring-black/10 dark:ring-white/15">Aujourd'hui</button>
-            <button data-range="7d" class="segment rounded-lg px-2 py-0.5 text-[11px] ring-1 ring-black/10 dark:ring-white/15">7 jours</button>
-            <button data-range="30d" class="segment rounded-lg px-2 py-0.5 text-[11px] ring-1 ring-black/10 dark:ring-white/15">30 jours</button>
-            <button data-range="all" class="segment rounded-lg px-2 py-0.5 text-[11px] ring-1 ring-black/10 dark:ring-white/15">Tout</button>
+            <button data-range="today" class="segment rounded-lg px-2 py-0.5 text-[11px] ring-1 ring-black/10 dark:ring-white/15">Today</button>
+            <button data-range="7d" class="segment rounded-lg px-2 py-0.5 text-[11px] ring-1 ring-black/10 dark:ring-white/15">7 days</button>
+            <button data-range="30d" class="segment rounded-lg px-2 py-0.5 text-[11px] ring-1 ring-black/10 dark:ring-white/15">30 days</button>
+            <button data-range="all" class="segment rounded-lg px-2 py-0.5 text-[11px] ring-1 ring-black/10 dark:ring-white/15">All</button>
           </div>
         </div>
-        <div id="usage-tools" class="mb-3 flex flex-wrap gap-1" aria-label="Outil"></div>
+        <div id="usage-tools" class="mb-3 flex flex-wrap gap-1" aria-label="Tool"></div>
         <div id="usage-loading" class="flex items-center gap-2 py-6 text-xs text-zinc-500 dark:text-zinc-400">
-          <span class="spinner"></span> Lecture de tes historiques (Claude Code, Antigravity, Codex)…
+          <span class="spinner"></span> Reading your histories (Claude Code, Antigravity, Codex)…
         </div>
         <div id="usage-body" class="hidden">
           <div class="grid grid-cols-3 gap-2 text-center">
             <div class="rounded-xl bg-zinc-50 py-2 dark:bg-zinc-800/60">
               <p id="usage-calls" class="text-lg font-bold tabular-nums">0</p>
-              <p class="text-[11px] text-zinc-500 dark:text-zinc-400">réponses d'IA</p>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400">AI replies</p>
             </div>
             <div class="rounded-xl bg-zinc-50 py-2 dark:bg-zinc-800/60">
               <p id="usage-models-count" class="text-lg font-bold tabular-nums">0</p>
-              <p class="text-[11px] text-zinc-500 dark:text-zinc-400">modèles utilisés</p>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400">models used</p>
             </div>
             <div class="rounded-xl bg-zinc-50 py-2 dark:bg-zinc-800/60">
               <p id="usage-tokens" class="text-lg font-bold tabular-nums">0</p>
-              <p class="text-[11px] text-zinc-500 dark:text-zinc-400">tokens (lus + écrits)</p>
-              <p id="usage-cost" class="text-[10px] tabular-nums text-zinc-400" title="Ce que ces tokens coûteraient au prix de l'API, sans abonnement : un ordre d'idée, pas une facture."></p>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400">tokens (read + written)</p>
+              <p id="usage-cost" class="text-[10px] tabular-nums text-zinc-400" title="What these tokens would cost at API prices, without a subscription: a ballpark, not a bill."></p>
             </div>
           </div>
-          <p class="mt-4 mb-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">Répartition des réponses</p>
+          <p class="mt-4 mb-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">Share of replies</p>
           <div id="usage-share" class="flex h-3 gap-0.5 overflow-hidden rounded-full"></div>
           <div id="usage-legend" class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs"></div>
         </div>
       </section>
 
       <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
-        <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">🎯 Ma limite par jour</h2>
+        <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">🎯 My daily limit</h2>
         <p class="mt-0.5 text-[11px] text-zinc-400">
-          Un plafond par IA, en % de ta journée moyenne (7 derniers jours) : Boofer te prévient à 80 % et à 100 %, et te dit
-          si tu es en avance ou en retard sur ton rythme (limite répartie de 8 h à minuit).
+          A cap per AI, as a % of your average day (last 7 days): Boofer warns you at 80% and 100%, and tells you
+          whether you are ahead of or behind your pace (limit spread from 8 am to midnight).
         </p>
         <div id="budget-rows" class="mt-3 space-y-3"></div>
       </section>
 
       <section id="usage-limits-block" class="hidden rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
-        <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Limites de ton abonnement</h2>
+        <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Your plan's limits</h2>
         <div id="usage-limits" class="space-y-2.5"></div>
       </section>
 
       <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
-        <h2 class="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">Par modèle</h2>
+        <h2 class="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">By model</h2>
         <ul id="usage-models" class="divide-y divide-zinc-100 dark:divide-zinc-800"></ul>
       </section>
 
       <p class="px-2 text-center text-[11px] leading-relaxed text-zinc-400">
-        Lu directement dans les fichiers de tes outils, rien ne quitte ton PC.<br />
-        Une « réponse » = un message de l'IA. Les tokens d'Antigravity sont approximatifs.
+        Read straight from your tools' files, nothing leaves your PC.<br />
+        A "reply" = one message from the AI. Antigravity's tokens are approximate.
       </p>
     </div>
 
     <div id="page-live" class="page-grid hidden">
       <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
-        <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Applis d'IA ouvertes</h2>
+        <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Open AI apps</h2>
         <div id="live-apps" class="flex flex-wrap gap-1.5"></div>
       </section>
       <section class="rounded-2xl bg-white px-4 pt-3 pb-1 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
         <div class="flex items-baseline justify-between gap-2">
-          <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Agents en direct</h2>
+          <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Live agents</h2>
           <span id="live-summary" class="text-[11px] text-zinc-400"></span>
         </div>
         <ul id="live-sessions" class="divide-y divide-zinc-100 dark:divide-zinc-800"></ul>
       </section>
       <p class="px-2 text-center text-[11px] leading-relaxed text-zinc-400">
-        Mis à jour en continu. Le contexte (🧠) est connu pour Claude Code ; le temps restant vient de tes tâches passées.
+        Updated continuously. The context (🧠) is known for Claude Code; the time left comes from your past tasks.
       </p>
     </div>
 
     <div id="page-tokens" class="page-grid hidden">
       <section class="divide-y divide-zinc-100 rounded-2xl bg-white px-4 py-2 ring-1 ring-black/5 dark:divide-zinc-800 dark:bg-zinc-900 dark:ring-white/10">
-        <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Économiser des tokens avec Claude Code</h2>
+        <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Save tokens with Claude Code</h2>
         <div class="py-3">
-          <p class="text-sm font-medium">🧹 Compacter plus tôt</p>
+          <p class="text-sm font-medium">🧹 Compact earlier</p>
           <p class="text-xs text-zinc-500 dark:text-zinc-400">
-            À chaque message, Claude relit tout le contexte de la session : c'est là que partent presque tous tes tokens.
-            En gardant le contexte plus petit, chaque message coûte moins. Il oublie juste plus vite les détails anciens.
+            With every message, Claude rereads the whole session context: that's where almost all your tokens go.
+            Keeping the context smaller makes each message cheaper. It just forgets old details sooner.
           </p>
           <div class="mt-2 flex items-center gap-1.5">
-            <span class="text-xs text-zinc-500 dark:text-zinc-400">Compacter vers :</span>
+            <span class="text-xs text-zinc-500 dark:text-zinc-400">Compact at:</span>
             <div id="compact-windows" class="flex gap-1"></div>
           </div>
-          <p id="compact-note" class="mt-1 text-[11px] text-zinc-400">« Normal » = quand le contexte est plein (jusqu'à 1 M de tokens pour Opus 5.5).</p>
+          <p id="compact-note" class="mt-1 text-[11px] text-zinc-400">"Normal" = when the context is full (up to 1M tokens for Opus 5.5).</p>
         </div>
         <div class="flex items-center justify-between gap-4 py-3">
           <div>
-            <p class="text-sm font-medium">✍️ Réponses courtes</p>
+            <p class="text-sm font-medium">✍️ Short answers</p>
             <p id="concise-note" class="text-xs text-zinc-500 dark:text-zinc-400">
-              Demande à Claude d'aller droit au but : pas de récap, pas de code recopié pour rien.
-              Ajoute 4 lignes à <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">~/.claude/CLAUDE.md</code>, retirées si tu décoches.
+              Asks Claude to get to the point: no recap, no code copied for nothing.
+              Adds 4 lines to <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">~/.claude/CLAUDE.md</code>, removed if you untick it.
             </p>
           </div>
           <label class="toggle"><input id="concise" type="checkbox" /><span></span></label>
@@ -463,36 +463,36 @@
       <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
         <h2 class="text-sm font-bold">🔁 Reprompt</h2>
         <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-          Écris ta demande normalement : Boofer la réécrit en « code IA », rien que pour l'IA. Chaque partie va sous une
-          balise courte : <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#do</code> les étapes (séparées par &gt;),
-          <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#not</code> ce qu'il ne faut pas faire,
-          <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#must</code> ce qui doit rester vrai,
-          <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#out</code> la réponse attendue,
-          <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#ctx</code> le contexte. Illisible pour un humain, mais l'IA
-          comprend tout de suite et lit moins de tokens.
+          Write your request normally: Boofer rewrites it as "AI code", just for the AI. Each part goes under a
+          short tag: <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#do</code> the steps (separated by &gt;),
+          <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#not</code> what not to do,
+          <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#must</code> what must stay true,
+          <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#out</code> the expected answer,
+          <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">#ctx</code> the context. Unreadable for a human, but the AI
+          gets it right away and reads fewer tokens.
         </p>
-        <textarea id="prompt-in" rows="4" placeholder="Ex. : Salut ! Est-ce que tu peux stp corriger le bug du fichier pet.rs et ensuite lancer les tests ?"
+        <textarea id="prompt-in" rows="4" placeholder="E.g.: Hi! Could you please fix the bug in pet.rs and then run the tests?"
           class="mt-2 w-full resize-y rounded-lg bg-zinc-100 px-3 py-2 text-xs outline-none ring-violet-400 focus:ring-2 dark:bg-zinc-800"></textarea>
         <div class="mt-1 flex items-center justify-between gap-2">
           <span id="prompt-stats" class="text-xs font-semibold tabular-nums text-violet-600 dark:text-violet-300"></span>
-          <button id="prompt-ai" class="hidden rounded-lg bg-zinc-100 px-2.5 py-1 text-xs hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700">✨ Reformuler avec Haiku</button>
+          <button id="prompt-ai" class="hidden rounded-lg bg-zinc-100 px-2.5 py-1 text-xs hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700">✨ Rewrite with Haiku</button>
         </div>
-        <textarea id="prompt-out" rows="3" readonly placeholder="Version code IA"
+        <textarea id="prompt-out" rows="3" readonly placeholder="AI code version"
           class="mt-1 w-full resize-y rounded-lg bg-violet-50 px-3 py-2 font-mono text-xs outline-none dark:bg-violet-950/40"></textarea>
         <div class="mt-1 flex items-center justify-between gap-2">
-          <p class="text-[11px] text-zinc-400">Partout : copie ton prompt, <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd>, puis colle la version IA.</p>
-          <button id="prompt-copy" disabled class="shrink-0 rounded-lg bg-violet-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-600 disabled:opacity-40">📋 Copier</button>
+          <p class="text-[11px] text-zinc-400">Anywhere: copy your prompt, <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd>, then paste the AI version.</p>
+          <button id="prompt-copy" disabled class="shrink-0 rounded-lg bg-violet-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-600 disabled:opacity-40">📋 Copy</button>
         </div>
         <div id="reprompt-ai-row" class="mt-3 flex items-center justify-between gap-4 rounded-xl bg-zinc-50 px-3 py-2 dark:bg-zinc-800/60">
           <div>
-            <p class="text-xs font-medium">✨ <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> avec Haiku</p>
-            <p class="text-[11px] text-zinc-500 dark:text-zinc-400">Réécriture plus maline (≈ 5 s) au lieu de la compression locale instantanée.</p>
+            <p class="text-xs font-medium">✨ <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> with Haiku</p>
+            <p class="text-[11px] text-zinc-500 dark:text-zinc-400">Smarter rewrite (≈ 5 s) instead of the instant local compression.</p>
           </div>
           <label class="toggle"><input id="reprompt-ai" type="checkbox" /><span></span></label>
         </div>
         <p class="mt-2 text-[11px] leading-relaxed text-zinc-400">
-          Compression locale : gratuite et instantanée. Haiku : plus malin (peut passer en anglais, plus court), mais lancé avec ton compte Claude Code, donc ça coûte un tout petit peu.
-          Ton prompt ne pèse que quelques dizaines de tokens à côté du contexte : les deux options du haut économisent bien plus.
+          Local compression: free and instant. Haiku: smarter (may switch to English, shorter), but it runs with your Claude Code account, so it costs a tiny bit.
+          Your prompt is only a few dozen tokens next to the context: the two options above save much more.
         </p>
       </section>
     </div>

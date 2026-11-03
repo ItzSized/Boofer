@@ -39,7 +39,7 @@ export class CodexAdapter extends AgentAdapter {
       }
       case "thinking": {
         const turn = this.#turn(id);
-        return out(turn, { state: State.THINKING, label: "Réfléchit…", progress: this.#progress(turn) });
+        return out(turn, { state: State.THINKING, label: "Thinking…", progress: this.#progress(turn) });
       }
       case "tool": {
         const turn = this.#turn(id);
@@ -49,15 +49,15 @@ export class CodexAdapter extends AgentAdapter {
       }
       case "compacted": {
         const turn = this.#turn(id);
-        return out(turn, { state: State.THINKING, label: "Contexte compacté, reprend…", progress: this.#progress(turn) });
+        return out(turn, { state: State.THINKING, label: "Context compacted, resuming…", progress: this.#progress(turn) });
       }
       case "done":
       case "aborted": {
         const turn = this.#turn(id);
         this.#turns.delete(id);
         const took = duration(Date.now() - turn.startedAt);
-        if (p.kind === "aborted") return out(turn, { state: State.DONE, headline: "Codex s'est arrêté", label: `Interrompu après ${took}` });
-        return out(turn, { state: State.DONE, headline: `${p.project || this.name} a fini !`, label: `Terminé en ${took}` });
+        if (p.kind === "aborted") return out(turn, { state: State.DONE, headline: "Codex stopped", label: `Interrupted after ${took}` });
+        return out(turn, { state: State.DONE, headline: `${p.project || this.name} is done!`, label: `Done in ${took}` });
       }
       default:
         return null;
@@ -65,7 +65,7 @@ export class CodexAdapter extends AgentAdapter {
   }
 
   #newTurn(id) {
-    const turn = { startedAt: Date.now(), prompt: "", steps: 0, files: new Set(), progress: 0.03, label: "Réfléchit…" };
+    const turn = { startedAt: Date.now(), prompt: "", steps: 0, files: new Set(), progress: 0.03, label: "Thinking…" };
     this.#turns.set(id, turn);
     return turn;
   }
@@ -101,20 +101,20 @@ function describe(name, input, turn) {
   if (file) turn.files.add(file.trim());
   switch (tool) {
     case "apply_patch":
-      return file ? `Modifie ${basename(file)}` : "Modifie des fichiers";
+      return file ? `Editing ${basename(file)}` : "Editing files";
     case "exec_command":
     case "shell":
     case "local_shell": {
       const cmd = input.match(/cmd\s*:\s*"((?:[^"\\]|\\.)*)"/)?.[1] ?? input.match(/"command"\s*:\s*\[?"([^"]*)/)?.[1];
-      return cmd ? `Lance : ${truncate(cmd.replace(/\\\\/g, "\\"), 34)}` : "Lance une commande";
+      return cmd ? `Running: ${truncate(cmd.replace(/\\\\/g, "\\"), 34)}` : "Running a command";
     }
     case "web__run":
     case "web_search":
-      return "Cherche sur le web";
+      return "Searching the web";
     case "view_image":
-      return "Regarde une image";
+      return "Looking at an image";
     default:
-      return tool ? `Utilise ${tool.replace(/__/g, " ")}` : "Travaille…";
+      return tool ? `Using ${tool.replace(/__/g, " ")}` : "Working…";
   }
 }
 

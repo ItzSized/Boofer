@@ -46,9 +46,9 @@ pub fn resolve(app: &AppHandle, id: u64, allow: bool) {
     let entry = app.state::<Guards>().pending.lock().unwrap().remove(&id);
     if let Some((_, request)) = entry {
         let reason = if allow {
-            "Confirmé par l'utilisateur dans Boofer."
+            "Confirmed by the user in Boofer."
         } else {
-            "Boofer a bloqué cette commande dangereuse : l'utilisateur a refusé. Ne la relance pas, propose une alternative sûre ou demande-lui."
+            "Boofer blocked this dangerous command: the user refused. Don't run it again; suggest a safe alternative or ask them."
         };
         respond(request, allow, reason);
     }
@@ -73,7 +73,7 @@ pub fn start_reaper(app: AppHandle) {
             respond(
                 request,
                 false,
-                "Boofer a bloqué cette commande dangereuse : l'utilisateur n'a pas confirmé à temps. Demande-lui avant de réessayer.",
+                "Boofer blocked this dangerous command: the user didn't confirm in time. Ask them before trying again.",
             );
             let _ = app.emit("guard-expired", id);
         }
@@ -108,18 +108,18 @@ pub fn check(command: &str) -> Option<&'static str> {
 
     // Patterns that span several commands.
     if (has("curl ") || has("wget ")) && (has("| sh ") || has("| bash ") || has("|sh ") || has("|bash ")) {
-        return Some("exécuter un script téléchargé sur internet, sans le lire");
+        return Some("run a script downloaded from the internet without reading it");
     }
     if (has("iex") || has("invoke-expression"))
         && (has("iwr") || has("irm ") || has("invoke-webrequest") || has("invoke-restmethod") || has("downloadstring"))
     {
-        return Some("exécuter un script téléchargé sur internet, sans le lire");
+        return Some("run a script downloaded from the internet without reading it");
     }
     if has("drop table") || has("drop database") || has("drop schema") || has("truncate table") {
-        return Some("supprimer des tables ou une base de données entière");
+        return Some("drop tables or a whole database");
     }
     if has("delete from ") && !has(" where ") {
-        return Some("vider toute une table de la base de données");
+        return Some("empty a whole database table");
     }
 
     command
@@ -157,7 +157,7 @@ fn check_segment(tokens: &[&str]) -> Option<&'static str> {
     // `-rf`, `-fR`, `-r`: short flag clusters (not PowerShell's `-Force`).
     let short = |letter: char| flag(&|a| a.len() <= 5 && a.starts_with('-') && !a.starts_with("--") && a[1..].chars().all(|c| c.is_ascii_alphabetic()) && a.contains(letter));
 
-    const WIPE: &str = "supprimer définitivement des dossiers entiers (sans passer par la corbeille)";
+    const WIPE: &str = "permanently delete whole folders (skipping the recycle bin)";
     match program {
         "rm" if short('r') || flag(&|a| a == "--recursive" || a.starts_with("-rec")) => Some(WIPE),
         "remove-item" | "ri" | "rmdir" | "rd" | "del" | "erase" | "rm"
@@ -166,24 +166,24 @@ fn check_segment(tokens: &[&str]) -> Option<&'static str> {
             Some(WIPE)
         }
         "remove-item" | "remove-itemproperty" if flag(&|a| a.starts_with("hklm:") || a.starts_with("hkcu:")) => {
-            Some("supprimer des clés du registre Windows")
+            Some("delete Windows registry keys")
         }
         "rimraf" => Some(WIPE),
-        "reg" if args.first() == Some(&"delete") => Some("supprimer des clés du registre Windows"),
-        "format" | "diskpart" | "format-volume" | "clear-disk" | "initialize-disk" => Some("effacer un disque entier"),
-        p if p.starts_with("mkfs") => Some("effacer un disque entier"),
-        "dd" if flag(&|a| a.starts_with("of=/dev/")) => Some("écraser un disque entier"),
+        "reg" if args.first() == Some(&"delete") => Some("delete Windows registry keys"),
+        "format" | "diskpart" | "format-volume" | "clear-disk" | "initialize-disk" => Some("wipe a whole disk"),
+        p if p.starts_with("mkfs") => Some("wipe a whole disk"),
+        "dd" if flag(&|a| a.starts_with("of=/dev/")) => Some("overwrite a whole disk"),
         "shutdown" | "stop-computer" | "restart-computer" | "reboot" | "poweroff" | "halt" => {
-            Some("éteindre ou redémarrer le PC")
+            Some("shut down or restart the PC")
         }
         "chmod" | "chown" if short('r') || flag(&|a| a == "--recursive") => {
-            Some("changer les droits de tout un dossier d'un coup")
+            Some("change the permissions of a whole folder at once")
         }
         "npm" | "pnpm" | "yarn" | "cargo" if args.first() == Some(&"publish") => {
-            Some("publier un paquet en ligne, visible par tout le monde")
+            Some("publish a package online, visible to everyone")
         }
-        "gh" if args.len() >= 2 && args[1] == "delete" => Some("supprimer quelque chose sur GitHub (dépôt, release…)"),
-        "docker" if flag(&|a| a == "prune") => Some("supprimer des conteneurs, images ou volumes Docker"),
+        "gh" if args.len() >= 2 && args[1] == "delete" => Some("delete something on GitHub (repository, release…)"),
+        "docker" if flag(&|a| a == "prune") => Some("delete Docker containers, images or volumes"),
         "git" => check_git(original),
         _ => None,
     }
@@ -204,21 +204,21 @@ fn check_git(args: &[&str]) -> Option<&'static str> {
 
     match sub.to_lowercase().as_str() {
         "push" if flag(&|a| a.starts_with("--force") || a == "--mirror" || a.starts_with('+')) || short('f') => {
-            Some("écraser l'historique du dépôt en ligne (GitHub) : des commits peuvent être perdus")
+            Some("overwrite the online repository history (GitHub): commits may be lost")
         }
         "push" if flag(&|a| a == "--delete" || a == "-d" || (a.starts_with(':') && a.len() > 1)) => {
-            Some("supprimer une branche sur le dépôt en ligne")
+            Some("delete a branch on the online repository")
         }
-        "reset" if flag(&|a| a == "--hard") => Some("effacer tous tes changements pas encore commités"),
-        "clean" if short('f') || flag(&|a| a == "--force") => Some("supprimer les fichiers que git ne suit pas"),
-        "checkout" if flag(&|a| a == ".") => Some("annuler toutes tes modifications en cours"),
-        "restore" if !flag(&|a| a == "--staged") => Some("annuler tes modifications en cours"),
+        "reset" if flag(&|a| a == "--hard") => Some("erase all your uncommitted changes"),
+        "clean" if short('f') || flag(&|a| a == "--force") => Some("delete the files git doesn't track"),
+        "checkout" if flag(&|a| a == ".") => Some("discard all your current changes"),
+        "restore" if !flag(&|a| a == "--staged") => Some("discard your current changes"),
         // `-d` refuses to delete unmerged work; `-D` (or `-d --force`) doesn't.
         "branch" if short('D') || ((short('d') || flag(&|a| a == "--delete")) && (short('f') || flag(&|a| a == "--force"))) => {
-            Some("supprimer une branche avec son travail non fusionné")
+            Some("delete a branch with its unmerged work")
         }
-        "stash" if matches!(args.first(), Some(&"drop") | Some(&"clear")) => Some("jeter le travail mis de côté (stash)"),
-        "filter-branch" | "filter-repo" => Some("réécrire tout l'historique du dépôt"),
+        "stash" if matches!(args.first(), Some(&"drop") | Some(&"clear")) => Some("throw away stashed work"),
+        "filter-branch" | "filter-repo" => Some("rewrite the whole repository history"),
         _ => None,
     }
 }

@@ -37,7 +37,7 @@ function tone(freq, start, { duration = 0.6, volume = 0.22, type = "sine", glide
   osc.stop(start + duration + 0.05);
 }
 
-/** Bright little major arpeggio — "c'est prêt !" */
+/** Bright little major arpeggio — "it's ready!" */
 export function playDone() {
   const t = audio().currentTime + 0.02;
   if (theme === "doux") {
@@ -47,7 +47,7 @@ export function playDone() {
     return;
   }
   if (theme === "retro") {
-    // 8-bit « coin ».
+    // 8-bit "coin".
     tone(988, t, { duration: 0.08, type: "square", volume: 0.07 });
     tone(1319, t + 0.08, { duration: 0.35, type: "square", volume: 0.07 });
     return;

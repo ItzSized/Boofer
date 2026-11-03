@@ -3,7 +3,7 @@
  * The API key stays in your script; Boofer never sees it.
  *
  *   const stream = client.messages.stream({ ... });
- *   trackStream(stream, { label: "Résumé du PDF" });
+ *   trackStream(stream, { label: "PDF summary" });
  *   const message = await stream.finalMessage();
  */
 const BOOFFER_URL = process.env.BOOFFER_URL ?? "http://127.0.0.1:47823/event/claude-api";
@@ -36,7 +36,7 @@ export function trackStream(stream, { label, expectedTokens = 800, url = BOOFFER
     (message) =>
       send(
         message.stop_reason === "refusal"
-          ? { state: "error", label: "Requête refusée" }
+          ? { state: "error", label: "Request refused" }
           : { state: "done", tokens: message.usage.output_tokens },
       ),
     () => send({ state: "error" }),

@@ -1,4 +1,4 @@
-//! Which AI apps are open right now (« 🟢 En direct » page), from the Windows process list.
+//! Which AI apps are open right now ("🟢 Live" page), from the Windows process list.
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]

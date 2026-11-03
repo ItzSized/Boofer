@@ -1,15 +1,15 @@
 const LINES = {
-  hello: ["Coucou !", "Me revoilà 👻", "Prêt à coder ?", "Boo ! 👋"],
-  done: ["Tadaa ! ✨", "Et voilà !", "Mission accomplie !", "C'est dans la boîte !", "Fini ! Bravo à vous deux"],
-  attention: ["Psst… il a besoin de toi", "Hé ho ! Une question ?", "Ta validation, stp 🙏"],
-  error: ["Oups…", "Aïe, ça a raté", "On réessaie ?"],
-  pat: ["Hihi !", "Encore !", "♥", "Ça chatouille !", "Boo ♥"],
-  sleep: ["Zzz…", "Petite sieste…", "*bâille*"],
-  wake: ["Hein ? Je dormais pas !", "Mmh… déjà ?", "Ah, te revoilà !"],
-  relieved: ["Ahh, ça va mieux 😮‍💨", "Tête toute légère !", "Plus de place !"],
-  tired: ["J'ai la tête pleine…", "Ouf, beaucoup d'infos…"],
-  follow: ["Je te suis ! 🐾", "On y va ?", "Attends-moi !"],
-  stop: ["Stop ! ✋", "Hop hop hop ! ✋", "Pas si vite ! 🛑"],
+  hello: ["Hi there!", "I'm back 👻", "Ready to code?", "Boo! 👋"],
+  done: ["Ta-da! ✨", "There you go!", "Mission accomplished!", "That's a wrap!", "Done! Well done, you two"],
+  attention: ["Psst… it needs you", "Hey! A question?", "Your approval, please 🙏"],
+  error: ["Oops…", "Ouch, that failed", "Try again?"],
+  pat: ["Hehe!", "More!", "♥", "That tickles!", "Boo ♥"],
+  sleep: ["Zzz…", "Quick nap…", "*yawns*"],
+  wake: ["Huh? I wasn't sleeping!", "Mmh… already?", "Oh, you're back!"],
+  relieved: ["Ahh, much better 😮‍💨", "My head feels so light!", "More room!"],
+  tired: ["My head is full…", "Phew, so much info…"],
+  follow: ["Following you! 🐾", "Shall we?", "Wait for me!"],
+  stop: ["Stop! ✋", "Whoa whoa whoa! ✋", "Not so fast! 🛑"],
 };
 const SHOW_MS = 2600;
 const MIN_GAP_MS = 1200;

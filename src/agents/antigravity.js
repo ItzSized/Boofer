@@ -68,7 +68,7 @@ export class AntigravityAdapter extends AgentAdapter {
 
       case "CHECKPOINT": {
         const turn = this.#turn(id, saved);
-        turn.label = "Compacte le contexte…";
+        turn.label = "Compacting the context…";
         return this.#out(id, turn, { state: State.THINKING, label: turn.label, progress: this.#progress(turn) });
       }
 
@@ -97,7 +97,7 @@ export class AntigravityAdapter extends AgentAdapter {
             turn.label = this.#describeTool(tc.name, args);
           }
           if (calls.some((tc) => tc.name === "ask_question")) {
-            return this.#out(id, turn, { state: State.ATTENTION, label: "A besoin de ta réponse !" });
+            return this.#out(id, turn, { state: State.ATTENTION, label: "Needs your answer!" });
           }
           return this.#out(id, turn, { state: State.TOOL, label: turn.label, progress: this.#progress(turn) });
         }
@@ -113,16 +113,16 @@ export class AntigravityAdapter extends AgentAdapter {
           return this.#out(id, turn, {
             state: State.DONE,
             headline: `${who} a fini !`,
-            label: `Terminé en ${duration(Date.now() - turn.startedAt)}`,
+            label: `Done in ${duration(Date.now() - turn.startedAt)}`,
           });
         }
-        return this.#out(id, turn, { state: State.STREAMING, label: "Écrit…", progress: this.#progress(turn) });
+        return this.#out(id, turn, { state: State.STREAMING, label: "Writing…", progress: this.#progress(turn) });
       }
 
       case "SYSTEM_MESSAGE": {
         const turn = this.#turn(id, saved);
         turn.backgroundRunning = false;
-        return this.#out(id, turn, { state: State.THINKING, label: "Analyse le résultat…", progress: this.#progress(turn) });
+        return this.#out(id, turn, { state: State.THINKING, label: "Reading the result…", progress: this.#progress(turn) });
       }
 
       case "GENERIC":
@@ -136,7 +136,7 @@ export class AntigravityAdapter extends AgentAdapter {
         }
         if (p.status === "ERROR") {
           turn.errors++;
-          return this.#out(id, turn, { state: State.THINKING, label: `Échec : ${turn.label}`, progress: this.#progress(turn) });
+          return this.#out(id, turn, { state: State.THINKING, label: `Failed: ${turn.label}`, progress: this.#progress(turn) });
         }
         return this.#out(id, turn, { state: State.THINKING, label: turn.label, progress: this.#progress(turn) });
       }
@@ -168,7 +168,7 @@ export class AntigravityAdapter extends AgentAdapter {
       errors: 0,
       subagents: 0,
       progress: 0.04,
-      label: "Réfléchit…",
+      label: "Thinking…",
       backgroundRunning: false,
     };
     this.#turns.set(id, turn);
@@ -205,31 +205,31 @@ export class AntigravityAdapter extends AgentAdapter {
       case "multi_edit":
       case "replace_file_content":
       case "multi_replace_file_content":
-        return `Modifie ${file || "un fichier"}`;
+        return `Editing ${file || "a file"}`;
       case "write_file":
       case "write_to_file":
-        return `Écrit ${file || "un fichier"}`;
+        return `Writing ${file || "a file"}`;
       case "read_file":
       case "view_file":
       case "view_file_outline":
       case "view_code_item":
-        return `Lit ${file || "un fichier"}`;
+        return `Reading ${file || "a file"}`;
       case "run_command":
-        return args.toolSummary ? truncate(args.toolSummary) : `Lance : ${truncate(args.CommandLine ?? "")}`;
+        return args.toolSummary ? truncate(args.toolSummary) : `Running: ${truncate(args.CommandLine ?? "")}`;
       case "grep_search":
-        return `Cherche « ${truncate(args.Query ?? "", 24)} »`;
+        return `Searching “${truncate(args.Query ?? "", 24)}”`;
       case "list_dir":
       case "find_by_name":
-        return `Explore ${file || "le dossier"}`;
+        return `Exploring ${file || "the folder"}`;
       case "search_web":
       case "read_url_content":
-        return `Cherche : ${truncate(args.query ?? args.Url ?? "", 30)}`;
+        return `Searching: ${truncate(args.query ?? args.Url ?? "", 30)}`;
       case "invoke_subagent":
-        return `Délègue : ${truncate(args.Role ?? args.TypeName ?? "sous-agent")}`;
+        return `Delegating: ${truncate(args.Role ?? args.TypeName ?? "subagent")}`;
       case "call_mcp_tool":
-        return `Utilise ${args.ServerName ?? args.ToolName ?? "MCP"}`;
+        return `Using ${args.ServerName ?? args.ToolName ?? "MCP"}`;
       default:
-        return args.toolSummary ? truncate(args.toolSummary) : name ? `Utilise ${name}` : "Travaille…";
+        return args.toolSummary ? truncate(args.toolSummary) : name ? `Using ${name}` : "Working…";
     }
   }
 }

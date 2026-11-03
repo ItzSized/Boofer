@@ -67,4 +67,4 @@ for (const dir of destinations) {
 
 // The new exe closes any older Boofer still running when it starts.
 spawn(path.join(root, "Boofer.exe"), { detached: true, stdio: "ignore" }).unref();
-console.log("✔ Boofer relancé (dernière version)");
+console.log("✔ Boofer restarted (latest build)");

@@ -1,7 +1,7 @@
 import { FAMILIES, compact, describeModel, familyColor, localDay, summarize } from "../core/models.js";
 import { PACE_HELP, dailyAverage, dailyBudgets, limitsFromPercent, paceLabel, windowDelta } from "../core/budget.js";
 import { withWebUsage } from "../core/web-usage.js";
-import { costOf, euros } from "../core/prices.js";
+import { costOf, dollars } from "../core/prices.js";
 
 /** Daily limits offered, as a % of the user's average day (0 = none). */
 const BUDGETS = [0, 25, 50, 75, 100, 125, 150, 200];
@@ -17,30 +17,30 @@ const RANGE_KEY = "booffer.usageRange";
 const TOOL_KEY = "booffer.usageTool";
 /** Tools read from files on the PC; anything else comes from the browser. */
 const APP_TOOLS = ["Claude Code", "Antigravity", "Codex"];
-const toolGroup = (tool) => (APP_TOOLS.includes(tool) ? tool : "Navigateur");
+const toolGroup = (tool) => (APP_TOOLS.includes(tool) ? tool : "Browser");
 const SPARK_DAYS = 14;
 
 const esc = (text) => String(text).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
-const plural = (n, word) => `${n.toLocaleString("fr-FR")} ${word}${n > 1 ? "s" : ""}`;
+const plural = (n, word) => `${n.toLocaleString("en-US")} ${word}${n === 1 ? "" : "s"}`;
 
 function lastUsed(day) {
-  if (day === localDay(0)) return "aujourd'hui";
-  if (day === localDay(1)) return "hier";
-  for (let i = 2; i < 7; i++) if (day === localDay(i)) return `il y a ${i} jours`;
+  if (day === localDay(0)) return "today";
+  if (day === localDay(1)) return "yesterday";
+  for (let i = 2; i < 7; i++) if (day === localDay(i)) return `${i} days ago`;
   const [y, m, d] = day.split("-").map(Number);
-  return `le ${new Date(y, m - 1, d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`;
+  return new Date(y, m - 1, d).toLocaleDateString("en-US", { day: "numeric", month: "short" });
 }
 
 function timeLeft(ms) {
   const min = Math.max(1, Math.round(ms / 60_000));
   if (min < 60) return `${min} min`;
   const h = Math.floor(min / 60);
-  if (h < 24) return `${h} h ${String(min % 60).padStart(2, "0")}`;
-  return `${Math.round(h / 24)} j`;
+  if (h < 24) return `${h} h ${String(min % 60).padStart(2, "0")} min`;
+  return `${Math.round(h / 24)} d`;
 }
 
 /**
- * « 📊 Modèles » page of the settings window: which AI models were used, how much,
+ * "📊 Models" page of the settings window: which AI models were used, how much,
  * and the plan limits we know of. Only models found in the local files are listed.
  */
 export function createUsageView({ call, settings, save }) {
@@ -91,11 +91,11 @@ export function createUsageView({ call, settings, save }) {
     $("usage-body").classList.toggle("hidden", !data);
     if (!data) return;
 
-    // « Tout » or one tool: the tiles, the share, the models and the plan limits follow.
+    // "All" or one tool: the tiles, the share, the models and the plan limits follow.
     const groups = [...new Set(data.rows.map((r) => toolGroup(r.tool)))].sort((a, b) => APP_TOOLS.indexOf(a) - APP_TOOLS.indexOf(b));
     if (tool !== "all" && !groups.includes(tool)) tool = "all";
     $("usage-tools").innerHTML = ["all", ...groups]
-      .map((g) => `<button data-tool="${esc(g)}" class="segment rounded-lg px-2 py-0.5 text-[11px] ring-1 ring-black/10 dark:ring-white/15 ${g === tool ? "selected" : ""}">${g === "all" ? "Tout" : esc(g)}</button>`)
+      .map((g) => `<button data-tool="${esc(g)}" class="segment rounded-lg px-2 py-0.5 text-[11px] ring-1 ring-black/10 dark:ring-white/15 ${g === tool ? "selected" : ""}">${g === "all" ? "All" : esc(g)}</button>`)
       .join("");
     $("usage-tools").classList.toggle("hidden", groups.length < 2);
     const rows = tool === "all" ? data.rows : data.rows.filter((r) => toolGroup(r.tool) === tool);
@@ -107,7 +107,7 @@ export function createUsageView({ call, settings, save }) {
     $("usage-calls").textContent = compact(calls);
     $("usage-models-count").textContent = String(models.length);
     $("usage-tokens").textContent = compact(tokens);
-    $("usage-cost").textContent = tokens ? `${euros(models.reduce((sum, m) => sum + costOf(m.family, m.name, m.input, m.output), 0))} au prix API` : "";
+    $("usage-cost").textContent = tokens ? `${dollars(models.reduce((sum, m) => sum + costOf(m.family, m.name, m.input, m.output), 0))} at API prices` : "";
 
     // Share of answers per family: few, stable colors, labelled with their percentage.
     const families = Object.keys(FAMILIES)
@@ -119,7 +119,7 @@ export function createUsageView({ call, settings, save }) {
         Object.assign(document.createElement("div"), {
           className: "h-full first:rounded-l-full last:rounded-r-full",
           style: `flex:${f.calls} 1 0;min-width:4px;background:${familyColor(f.family)}`,
-          title: `${FAMILIES[f.family].name} : ${plural(f.calls, "réponse")} (${pct(f.calls)} %)`,
+          title: `${FAMILIES[f.family].name} : ${plural(f.calls, "reply")} (${pct(f.calls)}%)`,
         }),
       ),
     );
@@ -128,7 +128,7 @@ export function createUsageView({ call, settings, save }) {
         (f) => `<span class="flex items-center gap-1.5">
           <span class="size-2.5 rounded-sm" style="background:${familyColor(f.family)}"></span>
           <span class="font-medium">${FAMILIES[f.family].name}</span>
-          <span class="tabular-nums text-zinc-500 dark:text-zinc-400">${pct(f.calls)} %</span>
+          <span class="tabular-nums text-zinc-500 dark:text-zinc-400">${pct(f.calls)}%</span>
         </span>`,
       )
       .join("");
@@ -147,7 +147,7 @@ export function createUsageView({ call, settings, save }) {
       const b = budgets.find((x) => x.family === family);
       const average = dailyAverage(data?.rows, family);
       const options = BUDGETS.map(
-        (n) => `<option value="${n}" ${n === chosen ? "selected" : ""}>${n ? `${n} % de ma moyenne` : "Pas de limite"}</option>`,
+        (n) => `<option value="${n}" ${n === chosen ? "selected" : ""}>${n ? `${n}% of my average` : "No limit"}</option>`,
       ).join("");
       const pct = b ? Math.round(b.pct * 100) : 0;
       const pace = b ? paceLabel(b.delta) : null;
@@ -156,15 +156,15 @@ export function createUsageView({ call, settings, save }) {
         <div class="flex items-center gap-2 text-xs">
           <span class="size-2.5 shrink-0 rounded-full" style="background:${familyColor(family)}"></span>
           <span class="font-semibold">${FAMILIES[family].name}</span>
-          <span class="truncate text-[11px] text-zinc-400">moy. ${compact(average)} / jour</span>
-          <select data-budget="${family}" ${average ? "" : "disabled title=\"Pas encore assez d'historique sur 7 jours\""} class="ml-auto rounded-lg bg-zinc-100 px-1.5 py-0.5 text-xs outline-none disabled:opacity-40 dark:bg-zinc-800">${options}</select>
+          <span class="truncate text-[11px] text-zinc-400">avg. ${compact(average)} / day</span>
+          <select data-budget="${family}" ${average ? "" : "disabled title=\"Not enough history over 7 days yet\""} class="ml-auto rounded-lg bg-zinc-100 px-1.5 py-0.5 text-xs outline-none disabled:opacity-40 dark:bg-zinc-800">${options}</select>
         </div>
         ${b ? `
         <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
           <div class="h-full rounded-full ${bar}" style="width:${Math.min(100, pct)}%;${bar ? "" : `background:${familyColor(family)}`}"></div>
         </div>
         <div class="mt-0.5 flex items-baseline justify-between gap-2 text-[11px]">
-          <span class="tabular-nums text-zinc-500 dark:text-zinc-400">${compact(b.used)} / ${compact(b.limit)} · <strong>${pct} %</strong>${pct >= 100 ? " · ⛔ dépassée" : ""}</span>
+          <span class="tabular-nums text-zinc-500 dark:text-zinc-400">${compact(b.used)} / ${compact(b.limit)} · <strong>${pct}%</strong>${pct >= 100 ? " · ⛔ exceeded" : ""}</span>
           <span class="font-semibold ${PACE_TONE[pace.tone]}" title="${esc(PACE_HELP)}">${pace.text}</span>
         </div>` : ""}
       </div>`;
@@ -183,7 +183,7 @@ export function createUsageView({ call, settings, save }) {
   function renderModels(models, total, rows) {
     const list = $("usage-models");
     if (models.length === 0) {
-      list.innerHTML = `<li class="py-4 text-center text-xs text-zinc-400">Aucune IA utilisée sur cette période.</li>`;
+      list.innerHTML = `<li class="py-4 text-center text-xs text-zinc-400">No AI used in this period.</li>`;
       return;
     }
     const sparkDays = Array.from({ length: SPARK_DAYS }, (_, i) => localDay(SPARK_DAYS - 1 - i));
@@ -197,7 +197,7 @@ export function createUsageView({ call, settings, save }) {
         const bars = sparkDays
           .map((d) => {
             const n = days.get(d) ?? 0;
-            const label = `${lastUsed(d)} : ${plural(n, "réponse")}`;
+            const label = `${lastUsed(d)}: ${plural(n, "reply")}`;
             return n
               ? `<i style="height:${Math.max(12, Math.round((n / peak) * 100))}%;background:${color}" title="${esc(label)}"></i>`
               : `<i class="empty" title="${esc(label)}"></i>`;
@@ -212,15 +212,15 @@ export function createUsageView({ call, settings, save }) {
               <span class="shrink-0 rounded bg-zinc-100 px-1.5 py-px text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">${esc(m.tool)}</span>
             </div>
             <p class="text-xs text-zinc-600 dark:text-zinc-300">
-              <span class="font-semibold tabular-nums">${plural(m.calls, "réponse")}</span>
-              <span class="text-zinc-400" title="Au prix de l'API, sans abonnement">· ${euros(costOf(m.family, m.name, m.input, m.output))}</span>
-              <span class="text-zinc-400">· ${share} %</span>
+              <span class="font-semibold tabular-nums">${plural(m.calls, "reply")}</span>
+              <span class="text-zinc-400" title="At API prices, without a subscription">· ${dollars(costOf(m.family, m.name, m.input, m.output))}</span>
+              <span class="text-zinc-400">· ${share}%</span>
             </p>
-            <p class="truncate text-[11px] text-zinc-400" title="Tokens lus (contexte, cache compris) · tokens écrits">
-              ${compact(m.input)} lus · ${compact(m.output)} écrits · ${lastUsed(m.lastDay)}
+            <p class="truncate text-[11px] text-zinc-400" title="Tokens read (context, cache included) · tokens written">
+              ${compact(m.input)} read · ${compact(m.output)} written · ${lastUsed(m.lastDay)}
             </p>
           </div>
-          <div class="activity shrink-0" aria-label="Activité sur 14 jours">${bars}</div>
+          <div class="activity shrink-0" aria-label="Activity over 14 days">${bars}</div>
         </li>`;
       })
       .join("");
@@ -234,21 +234,21 @@ export function createUsageView({ call, settings, save }) {
       .map((l) => {
         const reset = l.resetsAt && l.resetsAt > now;
         const used = reset ? Math.min(100, Math.round(l.usedPercent)) : 0; // window over: back to zero
-        const window = l.windowMinutes >= 1440 ? "semaine" : `${Math.round(l.windowMinutes / 60)} h`;
-        const status = used >= 90 ? "⛔ presque tout utilisé" : used >= 70 ? "⚠️ attention" : "";
+        const window = l.windowMinutes >= 1440 ? "weekly" : `${Math.round(l.windowMinutes / 60)} h`;
+        const status = used >= 90 ? "⛔ almost all used" : used >= 70 ? "⚠️ careful" : "";
         const pace = reset ? paceLabel(windowDelta(l, now)) : null;
         const bar = used >= 90 ? "bg-rose-500" : used >= 70 ? "bg-amber-500" : "bg-emerald-500";
         return `<div>
           <div class="flex items-baseline justify-between gap-2 text-xs">
-            <span><span class="font-semibold">${esc(l.tool)}</span> · limite ${window} ${status ? `<span class="text-zinc-500 dark:text-zinc-400">${status}</span>` : ""}</span>
-            <span class="font-semibold tabular-nums">${used} %</span>
+            <span><span class="font-semibold">${esc(l.tool)}</span> · ${window} limit ${status ? `<span class="text-zinc-500 dark:text-zinc-400">${status}</span>` : ""}</span>
+            <span class="font-semibold tabular-nums">${used}%</span>
           </div>
           <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
             <div class="h-full rounded-full ${bar}" style="width:${used}%"></div>
           </div>
           <div class="mt-0.5 flex items-baseline justify-between gap-2 text-[11px]">
-            <span class="text-zinc-400">${reset ? `Se recharge dans ${timeLeft(l.resetsAt - now)}` : "Rechargée depuis ta dernière session"}</span>
-            ${pace ? `<span class="font-semibold ${PACE_TONE[pace.tone]}" title="En avance = tu consommes plus vite que le temps qui passe jusqu'à la recharge.">${pace.text}</span>` : ""}
+            <span class="text-zinc-400">${reset ? `Resets in ${timeLeft(l.resetsAt - now)}` : "Reset since your last session"}</span>
+            ${pace ? `<span class="font-semibold ${PACE_TONE[pace.tone]}" title="Ahead = you are using it faster than time passes until the reset.">${pace.text}</span>` : ""}
           </div>
         </div>`;
       })

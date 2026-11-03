@@ -1,12 +1,12 @@
 import { State } from "../core/states.js";
 
 const DEFAULT_LABELS = {
-  [State.THINKING]: "Réfléchit…",
-  [State.TOOL]: "Travaille…",
-  [State.STREAMING]: "Écrit…",
-  [State.COMPACTING]: "Compacte le contexte…",
+  [State.THINKING]: "Thinking…",
+  [State.TOOL]: "Working…",
+  [State.STREAMING]: "Writing…",
+  [State.COMPACTING]: "Compacting the context…",
   [State.ATTENTION]: "A besoin de toi !",
-  [State.DONE]: "Terminé !",
+  [State.DONE]: "Done!",
   [State.ERROR]: "Oups, erreur",
 };
 

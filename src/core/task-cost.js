@@ -1,6 +1,6 @@
 /**
- * What a task cost: tokens from the user's request to « fini », and the share of the
- * daily limit (settings → 📊 Modèles) they represent. Counted like the limits: input + output.
+ * What a task cost: tokens from the user's request to "done", and the share of the
+ * daily limit (settings → 📊 Models) they represent. Counted like the limits: input + output.
  *
  * - Claude Code: exact, from its transcript (src-tauri/src/session_stats.rs), subagents included.
  * - AI chats in the browser: the estimate made for that answer (details.webUsage).
@@ -24,19 +24,19 @@ export function describeCost(tokens, model, limits) {
   if (!(tokens > 0)) return null;
   const limit = model ? limits?.[describeModel(model).family] : null;
   const pct = limit ? tokens / limit : null;
-  const pctText = pct === null ? "" : ` · ${pct < 0.01 ? "< 1" : Math.round(pct * 100)} % de ta limite du jour`;
+  const pctText = pct === null ? "" : ` · ${pct < 0.01 ? "< 1" : Math.round(pct * 100)}% of your daily limit`;
   return { tokens, pct, label: `💰 ${compact(tokens)} tokens${pctText}` };
 }
 
 /** Names of the context parts sent by `claude_session_stats`, with their color. */
 export const CONTEXT_PARTS = {
-  system: ["⚙️ Système et instructions", "#a1a1aa"],
-  prompts: ["💬 Tes messages", "#8b5cf6"],
-  replies: ["🤖 Réponses de l'IA", "#3b82f6"],
-  toolCalls: ["🛠️ Appels d'outils", "#06b6d4"],
-  files: ["📄 Fichiers lus", "#f59e0b"],
-  commands: ["⌨️ Commandes", "#10b981"],
-  search: ["🔎 Recherches et web", "#ec4899"],
-  otherTools: ["🧩 Autres outils", "#64748b"],
-  summary: ["🧹 Résumé du compactage", "#c084fc"],
+  system: ["⚙️ System and instructions", "#a1a1aa"],
+  prompts: ["💬 Your messages", "#8b5cf6"],
+  replies: ["🤖 AI replies", "#3b82f6"],
+  toolCalls: ["🛠️ Tool calls", "#06b6d4"],
+  files: ["📄 Files read", "#f59e0b"],
+  commands: ["⌨️ Commands", "#10b981"],
+  search: ["🔎 Searches and web", "#ec4899"],
+  otherTools: ["🧩 Other tools", "#64748b"],
+  summary: ["🧹 Compaction summary", "#c084fc"],
 };

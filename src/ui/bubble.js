@@ -11,14 +11,14 @@ const CONTEXT_WARN = 0.8;
 /**
  * Status bubble under the mascot:
  *   ● Claudio · Claude Code       Total 42%
- *   « Ajoute le mode sombre »
- *   Étape 2/5 · Écrit les tests          70%
+ *   “Add dark mode”
+ *   Step 2/5 · Writing the tests          70%
  *   ▔▔▔▔▔▔▔▔▔▔▔▔▔▔ (step)
- *   ▸ Modifie pet.js
- *   ⏱ 1 min 20 · reste ≈ 2 min · 12 actions · 3 fichiers
- *   🧠 Contexte ▓▓▓░░ 64 %          (Claude Code)
+ *   ▸ Editing pet.js
+ *   ⏱ 1 min 20 · ≈ 2 min left · 12 actions · 3 files
+ *   🧠 Context ▓▓▓░░ 64%          (Claude Code)
  *   ▓▓▓▓▓▓░░░░░░ (total)
- * While the context is being compacted, the step row becomes « 🧹 Compactage » with
+ * While the context is being compacted, the step row becomes "🧹 Compacting" with
  * its own progress, based on how long compactions usually take.
  */
 export function createBubble(el, { eta = new EtaEstimator() } = {}) {
@@ -47,7 +47,7 @@ export function createBubble(el, { eta = new EtaEstimator() } = {}) {
     <div data-label class="truncate pl-3.5 text-[11px] font-medium leading-4 text-zinc-600 dark:text-zinc-300"></div>
     <div data-meta class="truncate pl-3.5 text-[10px] leading-4 text-zinc-400"></div>
     <div data-context class="flex items-center gap-1.5 pl-3.5 text-[10px] leading-4 text-zinc-400">
-      <span class="shrink-0">🧠 Contexte</span>
+      <span class="shrink-0">🧠 Context</span>
       <div class="h-1 flex-1 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
         <div data-context-bar class="h-full rounded-full transition-[width] duration-500"></div>
       </div>
@@ -93,23 +93,23 @@ export function createBubble(el, { eta = new EtaEstimator() } = {}) {
       ui.pct.textContent = done ? "✨" : known ? `${total}%` : session.tokens ? `${session.tokens} tok` : "";
       ui["total-label"].classList.toggle("hidden", done || !known || !d.step);
 
-      ui.prompt.textContent = d.prompt ? `« ${d.prompt} »` : "";
+      ui.prompt.textContent = d.prompt ? `“${d.prompt}”` : "";
       ui.prompt.classList.toggle("hidden", !d.prompt);
 
       const step = !done && !compacting ? d.step : null;
       ui.step.classList.toggle("hidden", !step && !(compacting && !onlyCompacting));
       if (compacting && !onlyCompacting) {
-        ui["step-name"].textContent = "🧹 Compactage du contexte (auto)";
+        ui["step-name"].textContent = "🧹 Compacting the context (auto)";
         ui["step-pct"].textContent = `${compactPct}%`;
         ui["step-bar"].style.width = `${compactPct}%`;
       } else if (step) {
         const stepPct = Math.round(step.progress * 100);
-        ui["step-name"].textContent = `Étape ${step.index}/${step.count}${step.name ? ` · ${step.name}` : ""}`;
+        ui["step-name"].textContent = `Step ${step.index}/${step.count}${step.name ? ` · ${step.name}` : ""}`;
         ui["step-pct"].textContent = `${stepPct}%`;
         ui["step-bar"].style.width = `${stepPct}%`;
       }
 
-      ui.label.textContent = compacting ? "🧹 Compacte le contexte…" : (done ? "" : "▸ ") + session.label;
+      ui.label.textContent = compacting ? "🧹 Compacting the context…" : (done ? "" : "▸ ") + session.label;
 
       const elapsed = d.startedAt ? Date.now() - d.startedAt : 0;
       const left = compacting
@@ -117,11 +117,11 @@ export function createBubble(el, { eta = new EtaEstimator() } = {}) {
         : done ? null : eta.remaining(session);
       const facts = [
         !done && elapsed ? `⏱ ${duration(elapsed)}` : "",
-        left === null ? "" : left < 5000 ? "presque fini…" : `reste ${approx(left)}`,
+        left === null ? "" : left < 5000 ? "almost done…" : `${approx(left)} left`,
         d.steps ? `${d.steps} action${d.steps > 1 ? "s" : ""}` : "",
-        d.files ? `${d.files} fichier${d.files > 1 ? "s" : ""}` : "",
-        d.subagents ? `${d.subagents} sous-agent${d.subagents > 1 ? "s" : ""}` : "",
-        d.errors ? `⚠ ${d.errors} échec${d.errors > 1 ? "s" : ""}` : "",
+        d.files ? `${d.files} file${d.files > 1 ? "s" : ""}` : "",
+        d.subagents ? `${d.subagents} subagent${d.subagents > 1 ? "s" : ""}` : "",
+        d.errors ? `⚠ ${d.errors} failure${d.errors > 1 ? "s" : ""}` : "",
         done && d.cost ? d.cost.label : "",
       ].filter(Boolean);
       ui.meta.textContent = facts.join(" · ");
@@ -133,8 +133,8 @@ export function createBubble(el, { eta = new EtaEstimator() } = {}) {
         const warn = fill >= CONTEXT_WARN;
         ui["context-bar"].style.width = `${Math.round(fill * 100)}%`;
         ui["context-bar"].style.background = warn ? "#f59e0b" : "#a1a1aa";
-        ui["context-pct"].textContent = `${Math.round(fill * 100)} %${warn ? " · compactage bientôt" : ""}`;
-        ui.context.title = `${compact(context.tokens)} tokens sur ${compact(context.window)}`;
+        ui["context-pct"].textContent = `${Math.round(fill * 100)}%${warn ? " · compacting soon" : ""}`;
+        ui.context.title = `${compact(context.tokens)} of ${compact(context.window)} tokens`;
       }
 
       ui.bar.classList.toggle("bar-indeterminate", !known);

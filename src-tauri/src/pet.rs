@@ -29,7 +29,7 @@ pub struct PetState {
     pub attention: AtomicBool,
     /// The window in front is one of the editors: no need for a Windows notification.
     pub editor_in_front: AtomicBool,
-    /// Tray « Ramener le fantôme »: forget where it sat, put it back in sight.
+    /// Tray "Bring the ghost back": forget where it sat, put it back in sight.
     pub recall: AtomicBool,
     /// The browser window in front shows ChatGPT, Gemini, Claude… (web.rs).
     pub web_ai: AtomicBool,
@@ -115,7 +115,7 @@ pub fn start(window: WebviewWindow) {
             foreground.poll(&targets, follow_windows, state.web_ai.load(Relaxed));
             state.editor_in_front.store(foreground.editor.is_some(), Relaxed);
             let target = if everywhere && !follow_windows { None } else { foreground.target() };
-            // « Ramener le fantôme »: every window's spot is forgotten, so it lands back in the
+            // "Bring the ghost back": every window's spot is forgotten, so it lands back in the
             // default corner of the one it sits on (placed below, or further down on the desktop).
             let recall = state.recall.swap(false, Relaxed);
             if recall {

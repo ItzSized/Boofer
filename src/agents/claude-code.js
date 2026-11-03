@@ -61,7 +61,7 @@ export class ClaudeCodeAdapter extends AgentAdapter {
       case "PostToolUseFailure": {
         const turn = this.#turn(id);
         turn.errors++;
-        return out(turn, { state: State.THINKING, label: `Échec : ${turn.label}`, progress: this.#progress(turn) });
+        return out(turn, { state: State.THINKING, label: `Failed: ${turn.label}`, progress: this.#progress(turn) });
       }
       case "SubagentStart":
       case "SubagentStop": {
@@ -72,14 +72,14 @@ export class ClaudeCodeAdapter extends AgentAdapter {
       case "Notification": {
         // "Waiting for your input" arrives a minute after Stop: not worth a ping.
         if (p.notification_type === "idle_prompt" || /waiting for your input/i.test(p.message ?? "")) return null;
-        return out(this.#turn(id), { state: State.ATTENTION, label: "A besoin de toi !" });
+        return out(this.#turn(id), { state: State.ATTENTION, label: "Needs you!" });
       }
       case "PreCompact": {
         const turn = this.#turn(id);
         // /compact typed by the user (it may come with its own UserPromptSubmit): never mid-task.
         if (p.trigger !== "auto") turn.compactOnly = true;
         turn.compact = { startedAt: Date.now(), trigger: p.trigger === "auto" ? "auto" : "manual" };
-        return out(turn, { state: State.COMPACTING, label: "Compacte le contexte…", progress: turn.progress });
+        return out(turn, { state: State.COMPACTING, label: "Compacting the context…", progress: turn.progress });
       }
       case "SessionStart": {
         const turn = this.#turns.get(id);
@@ -88,9 +88,9 @@ export class ClaudeCodeAdapter extends AgentAdapter {
         turn.compact = null;
         if (turn.compactOnly) {
           this.#turns.delete(id);
-          return out(turn, { state: State.DONE, headline: "Contexte compacté !", label: `Compacté en ${took}` });
+          return out(turn, { state: State.DONE, headline: "Context compacted!", label: `Compacted in ${took}` });
         }
-        turn.label = `Contexte compacté en ${took}, reprend…`;
+        turn.label = `Context compacted in ${took}, resuming…`;
         return out(turn, { state: State.THINKING, label: turn.label, progress: this.#progress(turn) });
       }
       case "Stop": {
@@ -99,7 +99,7 @@ export class ClaudeCodeAdapter extends AgentAdapter {
         return out(turn, {
           state: State.DONE,
           headline: `${project || this.name} a fini !`,
-          label: `Terminé en ${duration(Date.now() - turn.startedAt)}`,
+          label: `Done in ${duration(Date.now() - turn.startedAt)}`,
         });
       }
       case "SessionEnd":
@@ -120,7 +120,7 @@ export class ClaudeCodeAdapter extends AgentAdapter {
       errors: 0,
       subagents: 0,
       progress: 0.03,
-      label: "Réfléchit…",
+      label: "Thinking…",
       task: null, // { key, startSteps, startedAt } of the in-progress todo
     };
     this.#turns.set(id, turn);
@@ -187,31 +187,31 @@ export class ClaudeCodeAdapter extends AgentAdapter {
       case "Edit":
       case "MultiEdit":
       case "NotebookEdit":
-        return `Modifie ${file}`;
+        return `Editing ${file}`;
       case "Write":
-        return `Écrit ${file}`;
+        return `Writing ${file}`;
       case "Read":
-        return `Lit ${file}`;
+        return `Reading ${file}`;
       case "Bash":
       case "PowerShell":
-        return input.description ? truncate(input.description) : `Lance : ${truncate(input.command ?? "")}`;
+        return input.description ? truncate(input.description) : `Running: ${truncate(input.command ?? "")}`;
       case "Grep":
       case "Glob":
-        return `Cherche « ${truncate(input.pattern ?? "", 24)} »`;
+        return `Searching “${truncate(input.pattern ?? "", 24)}”`;
       case "WebSearch":
-        return `Cherche : ${truncate(input.query ?? "", 30)}`;
+        return `Searching: ${truncate(input.query ?? "", 30)}`;
       case "WebFetch":
-        return `Lit ${hostname(input.url)}`;
+        return `Reading ${hostname(input.url)}`;
       case "Agent":
       case "Task":
-        return `Délègue : ${truncate(input.description ?? "sous-agent")}`;
+        return `Delegating: ${truncate(input.description ?? "subagent")}`;
       case "TodoWrite": {
         const current = turn.todos?.find((t) => t.status === "in_progress");
-        return current ? truncate(current.activeForm ?? current.content) : "Planifie les tâches";
+        return current ? truncate(current.activeForm ?? current.content) : "Planning the tasks";
       }
       default:
-        if (tool?.startsWith("mcp__")) return `Utilise ${tool.split("__")[1]}`;
-        return tool ? `Utilise ${tool}` : "Travaille…";
+        if (tool?.startsWith("mcp__")) return `Using ${tool.split("__")[1]}`;
+        return tool ? `Using ${tool}` : "Working…";
     }
   }
 }
@@ -224,7 +224,7 @@ function hostname(url) {
   try {
     return new URL(url).hostname;
   } catch {
-    return "une page web";
+    return "a web page";
   }
 }
 

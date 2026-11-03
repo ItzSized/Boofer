@@ -240,7 +240,7 @@ body {
   fill: #ffffff;
 }
 
-/* « Mode stream »: a flat green for OBS's chroma key (settings → Comportement). */
+/* "Stream mode": a flat green for OBS's chroma key (settings → Behavior). */
 html.stream,
 html.stream body {
   background: #00ff00;
@@ -1074,7 +1074,7 @@ html.stream body {
   cursor: pointer;
 }
 
-/* ---------- « Stop ! » : a dangerous command waits for the user (ui/guard-card.js) ---------- */
+/* ---------- "Stop!": a dangerous command waits for the user (ui/guard-card.js) ---------- */
 
 .brows,
 .arms-crossed,
@@ -1139,7 +1139,7 @@ html.stream body {
   animation: stop-pop 1.8s ease-in-out infinite;
 }
 
-/* Shakes its head « non non » then holds still, arms crossed. */
+/* Shakes its head "no no" then holds still, arms crossed. */
 @keyframes stop-no {
   0%, 45%, 100% { rotate: 0deg; }
   10% { rotate: -5deg; }
@@ -1153,7 +1153,7 @@ html.stream body {
   50% { scale: 1.18; }
 }
 
-/* The « Stop ! » card. */
+/* The "Stop!" card. */
 #guard-card .guard-timer {
   transition: width 1s linear;
 }

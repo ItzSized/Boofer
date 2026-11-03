@@ -16,14 +16,14 @@ export function isNewer(a, b) {
   return false;
 }
 
-/** A time later today or tomorrow: « 15:30 », « demain 08:00 ». */
+/** A time later today or tomorrow: "15:30", "tomorrow 08:00". */
 export function clockTime(ms, now = Date.now()) {
   const d = new Date(ms);
-  const hhmm = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-  return d.toDateString() === new Date(now).toDateString() ? hhmm : `demain ${hhmm}`;
+  const hhmm = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  return d.toDateString() === new Date(now).toDateString() ? hhmm : `tomorrow ${hhmm}`;
 }
 
-/** Rough remaining time: « ≈ 40 s », « ≈ 3 min ». */
+/** Rough remaining time: "≈ 40 s", "≈ 3 min". */
 export function approx(ms) {
   const s = Math.max(5, Math.round(ms / 1000));
   if (s < 60) return `≈ ${Math.round(s / 5) * 5} s`;

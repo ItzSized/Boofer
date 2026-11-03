@@ -118,7 +118,7 @@ const svg = (gradientId) => `
     <path class="mouth mouth-grin" d="M53 75 Q60 87 67 75 Z" />
     <path class="mouth mouth-frown" d="M55 80 Q60 75 65 80" />
 
-    <!-- « Stop ! » (dangerous command): frowning, arms crossed. -->
+    <!-- "Stop!" (dangerous command): frowning, arms crossed. -->
     <g class="brows">
       <path d="M40 49 L53 54" />
       <path d="M80 49 L67 54" />

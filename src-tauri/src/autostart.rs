@@ -1,4 +1,4 @@
-//! "Lancer au démarrage":
+//! "Start with Windows":
 //! - Windows: HKCU\Software\Microsoft\Windows\CurrentVersion\Run\Boofer
 //! - macOS:   ~/Library/LaunchAgents/dev.booffer.desktop.plist
 //! - Linux:   ~/.config/autostart/booffer.desktop
@@ -80,7 +80,7 @@ mod os {
         match status {
             0 => Ok(()),
             ERROR_FILE_NOT_FOUND if !enabled => Ok(()),
-            code => Err(format!("le registre a refusé (code {code})")),
+            code => Err(format!("the registry refused (code {code})")),
         }
     }
 }
@@ -159,7 +159,7 @@ mod os {
                 std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
             }
             let entry = format!(
-                "[Desktop Entry]\nType=Application\nName=Boofer\nComment=Compagnon IA sur ton bureau\nExec=\"{}\"\nTerminal=false\nX-GNOME-Autostart-enabled=true\n",
+                "[Desktop Entry]\nType=Application\nName=Boofer\nComment=AI companion on your desktop\nExec=\"{}\"\nTerminal=false\nX-GNOME-Autostart-enabled=true\n",
                 exe.display()
             );
             std::fs::write(path, entry).map_err(|e| e.to_string())
@@ -177,6 +177,6 @@ mod os {
         false
     }
     pub fn set(_: bool) -> Result<(), String> {
-        Err("plateforme non supportée".into())
+        Err("unsupported platform".into())
     }
 }

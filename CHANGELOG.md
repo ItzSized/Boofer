@@ -1,9 +1,21 @@
-# Nouveautés de Boofer
+# What's new in Boofer
 
-Écrit tout seul à partir de l'historique, à chaque build.
+Written automatically from the git history at every build.
 
 ## 0.3.9 · 2026-11-02
 
+- Changelog everywhere and a big-screen settings layout
+  - Release notes are written from the commits and added to every GitHub release; CHANGELOG.md lists every version.
+  - Settings → What's new: your version's changes, all the previous ones, highlighted right after an update.
+  - Maximized settings window: sidebar with the profile, tabs and version, pages in two columns.
+  - Updates for copies that don't know how they were installed now use the setup.exe (no admin rights).
+- Double-click opens Boofer: the shortcut, the exe and the tray icon
+  - Launching Boofer by hand (or clicking it again while it runs) opens its window, not only the ghost.
+  - Left click on the tray icon opens Boofer; the menu moves to the right click.
+  - Starting with Windows stays quiet: the login entry is rewritten with an --autostart flag.
+- Updates no longer lose the app after the Booffer → Boofer rename
+  - An update never creates shortcuts, and the old « Booffer » ones were removed: the new version was installed but impossible to find. The Start menu shortcut (and the desktop one if there was one) is now recreated at launch when missing.
+  - The MSI upgrade code is pinned, so a future rename can't install a second copy.
 - Coût en € au prix API, alerte agent bloqué, semaine en graphique, mode stream, tenues de saison, sons au choix
 
 ## 0.3.8 · 2026-11-02

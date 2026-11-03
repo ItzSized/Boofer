@@ -1,6 +1,6 @@
 //! ChatGPT, Gemini, Claude, Grok… in the browser, with nothing to install: every second, the
 //! tab shown in each Chrome / Edge / Brave window is read through Windows UI Automation (the
-//! accessibility API screen readers use). Its address says which AI it is; a « Stop » button
+//! accessibility API screen readers use). Its address says which AI it is; a "Stop" button
 //! on the page means the AI is answering. Each answer becomes the same events as the agents'
 //! ("agent-event", source "web-<site>", see src/agents/web.js), so the ghost shows it, beeps at
 //! the end, and keeps it in the history.
@@ -29,7 +29,7 @@ const SITES: &[(&str, &[&str])] = &[
 
 const BROWSERS: &[&str] = &["chrome.exe", "msedge.exe", "brave.exe", "opera.exe", "vivaldi.exe"];
 const POLL: Duration = Duration::from_secs(1);
-/// The « Stop » button flickers between steps (search, thinking…): gone this long = finished.
+/// The "Stop" button flickers between steps (search, thinking…): gone this long = finished.
 const SETTLE: Duration = Duration::from_millis(1800);
 const PROGRESS_EVERY: Duration = Duration::from_secs(3);
 
@@ -39,7 +39,7 @@ fn site_for(address: &str) -> Option<&'static str> {
     SITES.iter().find(|(_, hosts)| hosts.iter().any(|h| host == *h || host.ends_with(&format!(".{h}")))).map(|(id, _)| *id)
 }
 
-/// "Recette de crêpes - Google Chrome" → "Recette de crêpes".
+/// "Pancake recipe - Google Chrome" → "Pancake recipe".
 fn tab_title(window_title: &str) -> String {
     let title = window_title.rsplit_once(" - ").map_or(window_title, |(t, _)| t);
     title.chars().take(50).collect()
@@ -140,7 +140,7 @@ mod uia {
         UIA_EditControlTypeId, UIA_NamePropertyId, UIA_ValueValuePropertyId,
     };
 
-    /// Words in the name of the button that stops an answer (« Stop streaming », « Arrêter la réponse »…).
+    /// Words in the name of the button that stops an answer ("Stop streaming", the French "Arrêter la réponse"…).
     const STOP_WORDS: &[&str] = &["stop", "arrêter", "interrompre"];
 
     pub struct Reader {
@@ -224,7 +224,7 @@ mod tests {
         assert_eq!(site_for("www.perplexity.ai/search?q=x"), Some("perplexity"));
         assert_eq!(site_for("youtube.com/watch?v=chatgpt.com"), None);
         assert_eq!(site_for("google.com/search?q=claude.ai"), None);
-        assert_eq!(tab_title("Recette de crêpes - Google Chrome"), "Recette de crêpes");
+        assert_eq!(tab_title("Pancake recipe - Google Chrome"), "Pancake recipe");
     }
 }
 

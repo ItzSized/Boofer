@@ -18,23 +18,23 @@ import "./style.css";
 import "./settings.css";
 
 const SKINS = [
-  { id: "classique", name: "Classique" },
-  { id: "fraise", name: "Fraise" },
-  { id: "menthe", name: "Menthe" },
-  { id: "ciel", name: "Ciel" },
-  { id: "citrouille", name: "Citrouille" },
-  { id: "gelee", name: "Gelée" },
-  { id: "or", name: "Or" },
-  { id: "nuit", name: "Nuit" },
+  { id: "classique", name: "Classic" },
+  { id: "fraise", name: "Strawberry" },
+  { id: "menthe", name: "Mint" },
+  { id: "ciel", name: "Sky" },
+  { id: "citrouille", name: "Pumpkin" },
+  { id: "gelee", name: "Jelly" },
+  { id: "or", name: "Gold" },
+  { id: "nuit", name: "Night" },
 ];
 const ACCESSORIES = [
-  { id: "aucun", name: "Aucun" },
-  { id: "noeud", name: "🎀 Nœud" },
-  { id: "chapeau", name: "🎩 Chapeau" },
-  { id: "couronne", name: "👑 Couronne" },
-  { id: "casque", name: "🎧 Casque" },
-  { id: "pousse", name: "🌱 Pousse" },
-  { id: "lunettes", name: "👓 Lunettes" },
+  { id: "aucun", name: "None" },
+  { id: "noeud", name: "🎀 Bow" },
+  { id: "chapeau", name: "🎩 Hat" },
+  { id: "couronne", name: "👑 Crown" },
+  { id: "casque", name: "🎧 Headphones" },
+  { id: "pousse", name: "🌱 Sprout" },
+  { id: "lunettes", name: "👓 Glasses" },
 ];
 const EDITORS = [
   { id: "antigravity", name: "Antigravity" },
@@ -44,7 +44,7 @@ const EDITORS = [
   // Claude Code and Codex in Windows Terminal (WindowsTerminal.exe).
   { id: "windowsterminal", name: "Terminal" },
   // Chrome / Edge / Brave, only while an AI chat tab is in front (src-tauri/src/web.rs).
-  { id: "web-ai", name: "ChatGPT, Gemini… (navigateur)" },
+  { id: "web-ai", name: "ChatGPT, Gemini… (browser)" },
 ];
 const SLEEP_CHOICES = [
   [30, "30 s"],
@@ -52,7 +52,7 @@ const SLEEP_CHOICES = [
   [60, "1 min"],
   [120, "2 min"],
   [300, "5 min"],
-  [0, "Jamais"],
+  [0, "Never"],
 ];
 
 // In a plain browser (npm run dev), fake the Rust side so the page can be designed.
@@ -106,7 +106,7 @@ const skinsBlock = $("skins-block");
 skinsBlock.innerHTML = `
   <p class="mb-1.5 text-sm font-medium">Skin</p>
   <div id="skins" class="grid grid-cols-4 gap-2"></div>
-  <p class="mt-3 mb-1.5 text-sm font-medium">Accessoire</p>
+  <p class="mt-3 mb-1.5 text-sm font-medium">Accessory</p>
   <div id="accessories" class="flex flex-wrap gap-1.5"></div>`;
 const skinButtons = SKINS.map((skin) => {
   const button = document.createElement("button");
@@ -150,13 +150,13 @@ function render() {
   configureSound(settings);
 
   $("size").value = settings.size;
-  $("size-label").textContent = `${Math.round(settings.size * 100)} %`;
+  $("size-label").textContent = `${Math.round(settings.size * 100)}%`;
 
   document.querySelectorAll(".display-card").forEach((card) => {
     card.classList.toggle("selected", card.dataset.display === settings.display);
   });
   $("editors-block").classList.toggle("opacity-40", settings.display !== "editor");
-  // Old "follow" display mode: shown as « Partout » + « Suis-moi ».
+  // Old "follow" display mode: shown as "Everywhere" + "Follow me".
   if (settings.display === "follow") document.querySelector('[data-display="everywhere"]').classList.add("selected");
   renderEditors();
 
@@ -173,7 +173,7 @@ function render() {
   $("guard-toggle").checked = settings.guard !== false;
   $("reprompt-ai").checked = Boolean(settings.repromptAi);
   $("dnd-toggle").checked = settings.dnd;
-  $("dnd-until").textContent = settings.dnd && settings.dndUntil ? ` Jusqu'à ${clockTime(settings.dndUntil)}.` : "";
+  $("dnd-until").textContent = settings.dnd && settings.dndUntil ? ` Until ${clockTime(settings.dndUntil)}.` : "";
   $("speech-toggle").checked = settings.speech;
   $("notifications").checked = settings.notifications !== false;
   $("notify-silent").checked = settings.notifyWhenSilent !== false;
@@ -205,8 +205,8 @@ function renderAnimations() {
   }
   const count = off.filter((id) => id !== "all").length;
   $("anim-hint").textContent = all
-    ? "Tout est coupé : réactive « Animer le fantôme » pour choisir."
-    : count ? `${count} coupée${count > 1 ? "s" : ""}. Clique pour couper ou remettre une animation.` : "Clique pour couper ou remettre une animation.";
+    ? "Everything is off: turn \"Animate the ghost\" back on to choose."
+    : count ? `${count} off. Click to turn an animation off or back on.` : "Click to turn an animation off or back on.";
 }
 
 function renderEditors() {
@@ -242,7 +242,7 @@ function renderHistory() {
     text.className = "min-w-0 flex-1";
     const title = Object.assign(document.createElement("p"), {
       className: "truncate font-medium",
-      textContent: entry.prompt ? `« ${entry.prompt} »` : entry.agent,
+      textContent: entry.prompt ? `“${entry.prompt}”` : entry.agent,
     });
     const meta = Object.assign(document.createElement("p"), {
       className: "truncate text-[11px] text-zinc-400",
@@ -250,7 +250,7 @@ function renderHistory() {
         entry.project,
         entry.ms ? duration(entry.ms) : "",
         entry.files ? `${entry.files} fichier${entry.files > 1 ? "s" : ""}` : "",
-        entry.tokens ? `💰 ${compactTokens(entry.tokens)} tokens${entry.pct === null || entry.pct === undefined ? "" : ` · ${entry.pct < 0.01 ? "< 1" : Math.round(entry.pct * 100)} %`}` : "",
+        entry.tokens ? `💰 ${compactTokens(entry.tokens)} tokens${entry.pct === null || entry.pct === undefined ? "" : ` · ${entry.pct < 0.01 ? "< 1" : Math.round(entry.pct * 100)}%`}` : "",
       ]
         .filter(Boolean)
         .join(" · "),
@@ -258,7 +258,7 @@ function renderHistory() {
     text.append(title, meta);
     const time = Object.assign(document.createElement("span"), {
       className: "shrink-0 text-[11px] tabular-nums text-zinc-400",
-      textContent: new Date(entry.at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+      textContent: new Date(entry.at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
     });
     li.append(dot, text, time);
     return li;
@@ -266,7 +266,7 @@ function renderHistory() {
   if (rows.length === 0) {
     rows.push(Object.assign(document.createElement("li"), {
       className: "py-2 text-xs text-zinc-400",
-      textContent: "Rien pour l'instant : Boofer note ici chaque tâche terminée.",
+      textContent: "Nothing yet: Boofer lists every finished task here.",
     }));
   }
   $("history").replaceChildren(...rows);
@@ -285,18 +285,18 @@ function renderWeek(entries) {
   });
   const peak = Math.max(1, ...days.map((d) => d.tasks));
   const total = days.reduce((sum, d) => sum + d.tasks, 0);
-  $("week-total").textContent = total ? `${total} tâche${total > 1 ? "s" : ""} · ${duration(days.reduce((s, d) => s + d.ms, 0))}` : "";
+  $("week-total").textContent = total ? `${total} task${total > 1 ? "s" : ""} · ${duration(days.reduce((s, d) => s + d.ms, 0))}` : "";
   $("week").replaceChildren(
     ...days.map((d, i) => {
       const col = document.createElement("div");
       col.className = "flex h-full flex-col items-center justify-end gap-1";
-      col.title = `${d.start.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric" })} : ${d.tasks} tâche${d.tasks > 1 ? "s" : ""}${d.ms ? ` · ${duration(d.ms)}` : ""}`;
+      col.title = `${d.start.toLocaleDateString("en-US", { weekday: "long", day: "numeric" })}: ${d.tasks} task${d.tasks > 1 ? "s" : ""}${d.ms ? ` · ${duration(d.ms)}` : ""}`;
       const bar = document.createElement("div");
       bar.className = `w-full rounded-md ${d.tasks ? (i === 6 ? "bg-violet-500" : "bg-violet-300 dark:bg-violet-700") : "bg-zinc-100 dark:bg-zinc-800"}`;
       bar.style.height = d.tasks ? `${Math.max(10, Math.round((d.tasks / peak) * 100))}%` : "4px";
       const label = Object.assign(document.createElement("span"), {
         className: "text-[10px] text-zinc-400",
-        textContent: d.start.toLocaleDateString("fr-FR", { weekday: "narrow" }),
+        textContent: d.start.toLocaleDateString("en-US", { weekday: "narrow" }),
       });
       col.append(bar, label);
       return col;
@@ -307,14 +307,14 @@ function renderWeek(entries) {
 async function refreshHooks() {
   const status = await call("claude_hooks_status");
   const texts = {
-    ok: ["✓ Claude Code est connecté", "Les hooks sont dans ~/.claude/settings.json (statut, demandes, compactage)."],
-    outdated: ["Claude Code : mise à jour dispo", "Ajoute les nouveaux hooks (ex. voir quand le contexte se compacte)."],
-    missing: ["Claude Code n'est pas connecté", "Ajoute les hooks de Boofer à ~/.claude/settings.json (tes réglages sont gardés, une copie de sauvegarde est faite)."],
+    ok: ["✓ Claude Code is connected", "The hooks are in ~/.claude/settings.json (status, requests, compaction)."],
+    outdated: ["Claude Code: update available", "Adds the new hooks (e.g. see when the context is compacted)."],
+    missing: ["Claude Code is not connected", "Adds Boofer's hooks to ~/.claude/settings.json (your settings are kept, a backup copy is made)."],
   };
   const [title, text] = texts[status] ?? texts.missing;
   $("hooks-title").textContent = title;
   $("hooks-text").textContent = text;
-  $("install-hooks").textContent = status === "outdated" ? "Mettre à jour" : "Connecter";
+  $("install-hooks").textContent = status === "outdated" ? "Update" : "Connect";
   $("install-hooks").classList.toggle("hidden", status === "ok");
 }
 
@@ -354,7 +354,7 @@ $("autostart").addEventListener("change", async (e) => {
   try {
     await call("set_autostart", { enabled: e.target.checked });
   } catch (error) {
-    $("autostart-text").textContent = `Impossible : ${error}`;
+    $("autostart-text").textContent = `Couldn't do it: ${error}`;
   }
   e.target.checked = await call("get_autostart");
 });
@@ -390,12 +390,12 @@ window.addEventListener("storage", () => {
 // The ghost grows with every finished task (core/level.js).
 function renderLevel() {
   const lvl = levelFor(loadXp());
-  $("level-num").textContent = `Niveau ${lvl.level}`;
+  $("level-num").textContent = `Level ${lvl.level}`;
   $("level-title").textContent = lvl.title;
   $("level-xp").textContent = lvl.to ? `${lvl.xp} / ${lvl.to} XP` : `${lvl.xp} XP`;
   $("level-bar").style.width = `${Math.round(lvl.progress * 100)}%`;
   const perk = Object.entries(PERKS).find(([level]) => Number(level) > lvl.level);
-  $("level-next").textContent = perk ? `Niveau ${perk[0]} : ${perk[1]}` : "Tout est débloqué ✨";
+  $("level-next").textContent = perk ? `Level ${perk[0]}: ${perk[1]}` : "Everything unlocked ✨";
   hero.dataset.tier = lvl.level >= 8 ? "gold" : lvl.level >= 5 ? "halo" : lvl.level >= 3 ? "glow" : "";
 }
 renderLevel();
@@ -404,25 +404,25 @@ renderLevel();
 const REPO = "https://github.com/ItzSized/Boofer";
 const openUrl = (url) => (isTauri ? call("open_url", { url }) : window.open(url, "_blank"));
 $("repo-link").addEventListener("click", () => openUrl(REPO));
-// Version and updates: « Rechercher » looks, then the same button installs (over this version).
+// Version and updates: "Check" looks, then the same button installs (over this version).
 let pendingUpdate = null;
 const updateStatus = (text) => ($("update-status").textContent = text);
 
 async function checkForUpdate() {
-  if (!isTauri) return updateStatus("Les mises à jour se font dans l'appli installée.");
+  if (!isTauri) return updateStatus("Updates happen in the installed app.");
   const button = $("update-check");
   button.disabled = true;
-  updateStatus("Recherche…");
+  updateStatus("Checking…");
   try {
     pendingUpdate = await findUpdate();
     if (pendingUpdate) {
-      updateStatus(`✨ La version ${pendingUpdate.version} est disponible.`);
-      button.textContent = `Installer ${pendingUpdate.version}`;
+      updateStatus(`✨ Version ${pendingUpdate.version} is available.`);
+      button.textContent = `Install ${pendingUpdate.version}`;
     } else {
-      updateStatus(`✓ Tu as la dernière version (vérifié à ${clockTime(Date.now())}).`);
+      updateStatus(`✓ You have the latest version (checked at ${clockTime(Date.now())}).`);
     }
   } catch {
-    updateStatus("Impossible de vérifier : pas de connexion ?");
+    updateStatus("Couldn't check: no connection?");
   }
   button.disabled = false;
 }
@@ -431,14 +431,14 @@ async function installPending() {
   const button = $("update-check");
   button.disabled = true;
   $("update-bar").classList.remove("hidden");
-  updateStatus(`Téléchargement de la version ${pendingUpdate.version}…`);
+  updateStatus(`Downloading version ${pendingUpdate.version}…`);
   try {
     await installUpdate(pendingUpdate, (p) => {
       $("update-fill").style.width = `${Math.round((p ?? 0.5) * 100)}%`;
-      if (p === 1) updateStatus("Installation… Boofer va redémarrer tout seul.");
+      if (p === 1) updateStatus("Installing… Boofer will restart by itself.");
     });
   } catch (e) {
-    updateStatus(`Échec de la mise à jour : ${e}`);
+    updateStatus(`The update failed: ${e}`);
     $("update-bar").classList.add("hidden");
     button.disabled = false;
   }
@@ -451,17 +451,17 @@ $("update-check").addEventListener("click", () => (pendingUpdate ? installPendin
   renderNews(current);
 })();
 
-// Nouveautés: written from the commits at each build (scripts/changelog.mjs). Just updated?
-// The new version's list is marked « Nouveau » and brought into view, once.
+// What's new: written from the commits at each build (scripts/changelog.mjs). Just updated?
+// The new version's list is marked "New" and brought into view, once.
 function newsBlock({ version, date, items }, current) {
   const box = document.createElement("div");
   const title = document.createElement("p");
   title.className = "mb-1 text-xs font-semibold";
-  const day = date ? new Date(`${date}T12:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }) : "";
-  title.textContent = `${version}${version === current ? " · ta version" : ""}${day ? ` · ${day}` : ""}`;
+  const day = date ? new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { day: "numeric", month: "long" }) : "";
+  title.textContent = `${version}${version === current ? " · your version" : ""}${day ? ` · ${day}` : ""}`;
   const list = document.createElement("ul");
   list.className = "news-list";
-  for (const item of items.length ? items : [{ title: "Corrections et petites améliorations", details: [] }]) {
+  for (const item of items.length ? items : [{ title: "Fixes and small improvements", details: [] }]) {
     const li = document.createElement("li");
     li.textContent = item.title;
     if (item.details.length) {
@@ -499,7 +499,7 @@ setInterval(() => {
   if (page === "models") usage.refresh();
 }, 30_000);
 
-// Two pages: settings, and the usage of each model (tray → « Usage des modèles… »).
+// Two pages: settings, and the usage of each model (tray → "Model usage…").
 let page = "settings";
 function showPage(next) {
   page = ["models", "live", "tokens"].includes(next) ? next : "settings";
@@ -518,9 +518,9 @@ const live = createLiveView({ call, isTauri, emit, listen });
 $("install-hooks").addEventListener("click", async () => {
   try {
     await call("install_claude_hooks");
-    $("hooks-text").textContent = "C'est fait. Relance Claude Code (ou ouvre /hooks) pour qu'il les charge.";
+    $("hooks-text").textContent = "Done. Restart Claude Code (or open /hooks) so it loads them.";
   } catch (error) {
-    $("hooks-text").textContent = `Impossible : ${error}`;
+    $("hooks-text").textContent = `Couldn't do it: ${error}`;
   }
   refreshHooks();
 });

@@ -16,7 +16,7 @@ export const WEB_SITES = [
   { id: "copilot", name: "Copilot", color: "#0078D4" },
 ];
 
-/** « 2.5 Pro » on Gemini → « Gemini 2.5 Pro », so the model lands in the right family. */
+/** "2.5 Pro" on Gemini → "Gemini 2.5 Pro", so the model lands in the right family. */
 function modelName(shown, site) {
   if (!shown) return site;
   return /gemini|gpt|claude|grok|deepseek|mistral|copilot|perplexity|sonar/i.test(shown) ? shown : `${site} ${shown}`;
@@ -54,25 +54,25 @@ export class WebAdapter extends AgentAdapter {
 
     switch (p.kind) {
       case "start":
-        return { id, project, state: State.THINKING, label: "Réfléchit…", details };
+        return { id, project, state: State.THINKING, label: "Thinking…", details };
       case "progress":
         return {
           id,
           project,
           state: State.STREAMING,
-          label: p.chars ? `Écrit la réponse · ${compact(p.chars)} caractères` : "Écrit la réponse…",
+          label: p.chars ? `Writing the answer · ${compact(p.chars)} characters` : "Writing the answer…",
           details,
         };
       case "done": {
         this.#turns.delete(id);
-        // Rough token counts (≈ 4 characters each) for « 📊 Modèles » and the daily limits.
+        // Rough token counts (≈ 4 characters each) for "📊 Models" and the daily limits.
         const usage = { site: this.site, tool: this.name, model: turn.model, input: Math.round((p.promptChars ?? 0) / 4), output: Math.round((p.chars ?? 0) / 4) };
         return {
           id,
           project,
           state: State.DONE,
-          headline: `${this.name} a répondu !`,
-          label: `Répondu en ${duration(p.tookMs || Date.now() - turn.startedAt)}`,
+          headline: `${this.name} answered!`,
+          label: `Answered in ${duration(p.tookMs || Date.now() - turn.startedAt)}`,
           details: { ...details, webUsage: usage },
         };
       }

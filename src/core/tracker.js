@@ -58,7 +58,7 @@ export class Tracker {
       setTimeout(() => {
         const s = this.#sessions.get(key);
         if (s?.updatedAt === session.updatedAt) {
-          this.#sessions.set(key, { ...s, state: State.IDLE, headline: null, label: "En attente de ta demande" });
+          this.#sessions.set(key, { ...s, state: State.IDLE, headline: null, label: "Waiting for your request" });
           this.#publish();
         }
       }, DONE_LINGER_MS);

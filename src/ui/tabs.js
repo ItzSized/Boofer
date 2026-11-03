@@ -28,7 +28,7 @@ export function createTabs(el, { onSelect }) {
         ...sessions.map((s) => {
           const button = document.createElement("button");
           button.dataset.key = s.key;
-          button.title = `Ouvrir la fenêtre de ${s.project || s.agent}`;
+          button.title = `Open the window of ${s.project || s.agent}`;
           const selected = s.key === selectedKey;
           button.className =
             "flex max-w-[112px] items-center gap-1 rounded-full bg-white/95 dark:bg-zinc-900/95 px-2 py-0.5 text-[10px] leading-4 shadow-sm " +

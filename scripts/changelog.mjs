@@ -2,7 +2,7 @@
 // and the version being worked on (tauri.conf.json) gathers everything after the last other tag.
 //   node scripts/changelog.mjs          writes CHANGELOG.md and src/changelog.json (run by `npm run build`)
 //   node scripts/changelog.mjs --notes  prints the notes of the current version (GitHub release body)
-// A commit's subject is one line of the notes, its « - » lines are the details under it.
+// A commit's subject is one line of the notes, its "- " lines are the details under it.
 // Without git (or without the history), the files already there are kept.
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
@@ -26,14 +26,14 @@ function commits(range) {
   const out = git("log", "--first-parent", `--format=%s%n%b${sep}`, range);
   return out.split(sep).map((raw) => raw.trim()).filter(Boolean).flatMap((raw) => {
     let [subject, ...body] = raw.split("\n");
-    // « Merge pull request #7 from … » : its title is the first line of the body.
+    // "Merge pull request #7 from …": its title is the first line of the body.
     if (/^Merge pull request/.test(subject)) subject = body.find((l) => l.trim()) ?? "";
     subject = subject
       .replace(/^Fusionne #\d+ : /, "")
       .replace(/\s*\(v\d+\.\d+\.\d+\)$/, "")
       .trim();
     if (!subject || SKIP.some((re) => re.test(subject))) return [];
-    // « - » lines, with their wrapped continuation lines.
+    // "- " lines, with their wrapped continuation lines.
     const details = [];
     for (const line of body) {
       if (/^(Co-Authored-By|Signed-off-by):/i.test(line)) continue;
@@ -67,7 +67,7 @@ function build() {
 
 function markdown(entry, heading = "##") {
   const lines = [`${heading} ${entry.version} · ${entry.date}`, ""];
-  if (!entry.items.length) lines.push("- Corrections et petites améliorations");
+  if (!entry.items.length) lines.push("- Fixes and small improvements");
   for (const item of entry.items) {
     lines.push(`- ${item.title}`);
     for (const d of item.details) lines.push(`  - ${d}`);
@@ -81,18 +81,18 @@ try {
 } catch {
   // No git or a shallow clone: keep what is there.
   if (process.argv.includes("--notes")) process.exit(0);
-  console.warn("changelog : historique git indisponible, fichiers gardés tels quels");
+  console.warn("changelog: git history unavailable, files kept as they are");
   process.exit(0);
 }
 
 if (process.argv.includes("--notes")) {
   const notes = versions[0].items.length
     ? versions[0].items.map((i) => [`- ${i.title}`, ...i.details.map((d) => `  - ${d}`)].join("\n")).join("\n")
-    : "- Corrections et petites améliorations";
+    : "- Fixes and small improvements";
   process.stdout.write(`${notes}\n`);
 } else {
-  const md = ["# Nouveautés de Boofer", "", "Écrit tout seul à partir de l'historique, à chaque build.", "", ...versions.map((v) => `${markdown(v)}\n`)].join("\n");
+  const md = ["# What's new in Boofer", "", "Written automatically from the git history at every build.", "", ...versions.map((v) => `${markdown(v)}\n`)].join("\n");
   fs.writeFileSync(path.join(root, "CHANGELOG.md"), md);
   fs.writeFileSync(path.join(root, "src/changelog.json"), `${JSON.stringify(versions, null, 1)}\n`);
-  console.log(`✔ CHANGELOG.md : ${versions.length} versions`);
+  console.log(`✔ CHANGELOG.md: ${versions.length} versions`);
 }

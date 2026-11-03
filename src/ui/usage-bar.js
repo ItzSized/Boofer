@@ -8,19 +8,19 @@ const SHOWN = 3;
 
 /**
  * Small card under the ghost: today's top models (falls back to the last 7 days).
- * With daily limits set, one line per AI: « 🎯 Claude 62 % · ⚡ en avance de 12 % ».
- * Clicking it opens the full « 📊 Modèles » page of the settings window.
+ * With daily limits set, one line per AI: "🎯 Claude 62% · ⚡ 12% ahead".
+ * Clicking it opens the full "📊 Models" page of the settings window.
  */
 export function createUsageBar(el, { isTauri, invoke, limits = () => ({}), onData = () => {} }) {
   el.className =
     "pointer-events-auto mt-1.5 w-[224px] cursor-pointer rounded-2xl bg-white/95 px-3 py-2 shadow-md ring-1 ring-black/5 " +
     "transition hover:ring-violet-400 dark:bg-zinc-900/95 dark:ring-white/10";
-  el.title = "Voir l'usage de chaque modèle";
+  el.title = "See the usage of each model";
   el.innerHTML = `
     <div class="flex items-center gap-1.5 text-[10px] leading-4 text-zinc-500 dark:text-zinc-400">
-      <span class="font-semibold text-zinc-700 dark:text-zinc-200">📊 Modèles</span>
+      <span class="font-semibold text-zinc-700 dark:text-zinc-200">📊 Models</span>
       <span data-period></span>
-      <span class="ml-auto">tout voir ›</span>
+      <span class="ml-auto">see all ›</span>
     </div>
     <div data-rows class="mt-1 space-y-1"></div>
     <div data-budgets class="mt-1.5 hidden space-y-0.5 border-t border-zinc-100 pt-1 dark:border-zinc-800"></div>`;
@@ -37,10 +37,10 @@ export function createUsageBar(el, { isTauri, invoke, limits = () => ({}), onDat
   });
 
   function render() {
-    let period = "aujourd'hui";
+    let period = "today";
     let models = summarize(rows, localDay(0));
     if (models.length === 0) {
-      period = "7 jours";
+      period = "7 days";
       models = summarize(rows, localDay(6));
     }
     el.classList.toggle("hidden", models.length === 0);
@@ -55,7 +55,7 @@ export function createUsageBar(el, { isTauri, invoke, limits = () => ({}), onDat
           <div class="flex items-center gap-1.5 text-[10.5px] leading-3.5">
             <span class="size-2 shrink-0 rounded-full ${live ? "animate-pulse" : ""}" style="background:${color}"></span>
             <span class="truncate font-medium text-zinc-700 dark:text-zinc-200">${esc(m.name)}</span>
-            <span class="ml-auto shrink-0 tabular-nums text-[9.5px] text-zinc-500 dark:text-zinc-400">${compact(m.calls)} rép.</span>
+            <span class="ml-auto shrink-0 tabular-nums text-[9.5px] text-zinc-500 dark:text-zinc-400">${compact(m.calls)} rep.</span>
           </div>
           <div class="mt-0.5 h-1 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
             <div class="h-full rounded-full" style="width:${Math.max(6, Math.round((m.calls / peak) * 100))}%;background:${color}"></div>
@@ -74,8 +74,8 @@ export function createUsageBar(el, { isTauri, invoke, limits = () => ({}), onDat
         return `<div class="flex items-center gap-1.5 text-[10px] leading-3.5">
           <span class="size-1.5 shrink-0 rounded-full" style="background:${familyColor(b.family)}"></span>
           <span class="font-medium text-zinc-700 dark:text-zinc-200">${b.name}</span>
-          <span class="tabular-nums font-semibold ${pct >= 80 ? "text-rose-500" : "text-zinc-600 dark:text-zinc-300"}">${pct} %</span>
-          <span class="ml-auto truncate ${tone}">${pct >= 100 ? "⛔ limite dépassée" : pace.text}</span>
+          <span class="tabular-nums font-semibold ${pct >= 80 ? "text-rose-500" : "text-zinc-600 dark:text-zinc-300"}">${pct}%</span>
+          <span class="ml-auto truncate ${tone}">${pct >= 100 ? "⛔ limit exceeded" : pace.text}</span>
         </div>`;
       })
       .join("");

@@ -163,7 +163,7 @@ fn start_event_server(app: AppHandle, server: tiny_http::Server) {
             }
 
             if is_post && read_ok && request.url() == "/permission" {
-                // Hidden, approvals off or "ne pas déranger": don't make Claude Code wait for a card.
+                // Hidden, approvals off or "do not disturb": don't make Claude Code wait for a card.
                 let config = app.state::<SettingsState>();
                 let approvals = {
                     let settings = config.current.lock().unwrap();
@@ -198,11 +198,11 @@ struct TrayItems {
     hidden: CheckMenuItem<Wry>,
 }
 
-/// The tray icon, found by id: a copy kept in TrayItems would leave it in the tray after « Quitter ».
+/// The tray icon, found by id: a copy kept in TrayItems would leave it in the tray after "Quit".
 const TRAY_ID: &str = "booffer";
 
-const DND: &str = "Ne pas déranger";
-const DND_ON: &str = "Ne pas déranger (activé)";
+const DND: &str = "Do not disturb";
+const DND_ON: &str = "Do not disturb (on)";
 
 /// Keeps the tray checkmarks in line with the settings (they can change from any window).
 pub(crate) fn sync_tray(app: &AppHandle, settings: &settings::Settings) {
@@ -239,7 +239,7 @@ fn show_settings(app: &AppHandle, page: &str) -> Result<(), String> {
     }
     let url = format!("settings.html#{page}");
     tauri::WebviewWindowBuilder::new(app, "settings", tauri::WebviewUrl::App(url.into()))
-        .title("Réglages · Boofer")
+        .title("Settings · Boofer")
         .inner_size(500.0, 720.0)
         .min_inner_size(420.0, 480.0)
         .center()
@@ -314,7 +314,7 @@ fn focus_window(hwnd: usize) -> bool {
 #[tauri::command]
 fn open_url(url: String) -> Result<(), String> {
     if !url.starts_with("https://github.com/ItzSized/Boofer") {
-        return Err("lien non autorisé".into());
+        return Err("link not allowed".into());
     }
     #[cfg(windows)]
     let result = std::process::Command::new("explorer").arg(&url).spawn();
@@ -378,28 +378,28 @@ fn quit(app: AppHandle) {
 
 fn build_tray(app: &AppHandle) -> tauri::Result<()> {
     let following = app.state::<SettingsState>().current.lock().unwrap().follows_windows();
-    let follow = CheckMenuItem::with_id(app, "follow", "Suis-moi (de fenêtre en fenêtre)", true, following, None::<&str>)?;
+    let follow = CheckMenuItem::with_id(app, "follow", "Follow me (window to window)", true, following, None::<&str>)?;
     let dnd_on = app.state::<SettingsState>().current.lock().unwrap().dnd;
-    let dnd_off = MenuItem::with_id(app, "dnd-off", "Réactiver sons et demandes", dnd_on, None::<&str>)?;
+    let dnd_off = MenuItem::with_id(app, "dnd-off", "Turn sounds and requests back on", dnd_on, None::<&str>)?;
     let dnd = Submenu::with_id_and_items(
         app,
         "dnd",
         if dnd_on { DND_ON } else { DND },
         true,
         &[
-            &MenuItem::with_id(app, "dnd-30", "Pendant 30 min", true, None::<&str>)?,
-            &MenuItem::with_id(app, "dnd-60", "Pendant 1 h", true, None::<&str>)?,
-            &MenuItem::with_id(app, "dnd-morning", "Jusqu'à demain matin", true, None::<&str>)?,
-            &MenuItem::with_id(app, "dnd-on", "Jusqu'à ce que je le réactive", true, None::<&str>)?,
+            &MenuItem::with_id(app, "dnd-30", "For 30 min", true, None::<&str>)?,
+            &MenuItem::with_id(app, "dnd-60", "For 1 h", true, None::<&str>)?,
+            &MenuItem::with_id(app, "dnd-morning", "Until tomorrow morning", true, None::<&str>)?,
+            &MenuItem::with_id(app, "dnd-on", "Until I turn it back on", true, None::<&str>)?,
             &PredefinedMenuItem::separator(app)?,
             &dnd_off,
         ],
     )?;
-    let hidden = CheckMenuItem::with_id(app, "hidden", "Masquer", true, false, None::<&str>)?;
-    let recall = MenuItem::with_id(app, "recall", "Ramener le fantôme", true, None::<&str>)?;
-    let settings_item = MenuItem::with_id(app, "settings", "Réglages…", true, None::<&str>)?;
-    let models_item = MenuItem::with_id(app, "models", "Usage des modèles…", true, None::<&str>)?;
-    let quit_item = MenuItem::with_id(app, "quit", "Quitter Boofer", true, None::<&str>)?;
+    let hidden = CheckMenuItem::with_id(app, "hidden", "Hide", true, false, None::<&str>)?;
+    let recall = MenuItem::with_id(app, "recall", "Bring the ghost back", true, None::<&str>)?;
+    let settings_item = MenuItem::with_id(app, "settings", "Settings…", true, None::<&str>)?;
+    let models_item = MenuItem::with_id(app, "models", "Model usage…", true, None::<&str>)?;
+    let quit_item = MenuItem::with_id(app, "quit", "Quit Boofer", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&settings_item, &models_item, &follow, &dnd, &recall, &hidden, &quit_item])?;
 
     TrayIconBuilder::with_id(TRAY_ID)

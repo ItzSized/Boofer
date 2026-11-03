@@ -14,10 +14,10 @@ use crate::settings::{claude_settings_path, read_user_file, write_user_file};
 const CONCISE_START: &str = "<!-- booffer:concise -->";
 const CONCISE_END: &str = "<!-- /booffer:concise -->";
 const CONCISE_BLOCK: &str = "<!-- booffer:concise -->
-## Style des réponses (ajouté par Boofer, à retirer depuis ses réglages)
-- Réponds court et direct : pas de récapitulatif final, ne reformule pas la demande.
-- Ne réaffiche pas le code inchangé : seulement les lignes modifiées.
-- Pas d'explication sauf si on la demande.
+## Answer style (added by Boofer, remove it from its settings)
+- Answer short and direct: no final recap, don't restate the request.
+- Don't show unchanged code again: only the changed lines.
+- No explanation unless asked.
 <!-- /booffer:concise -->";
 
 /// Folder the Haiku compression runs in: the ghost ignores sessions started there.
@@ -69,7 +69,7 @@ pub fn set_compact_window(tokens: Option<u64>) -> Result<(), String> {
 
 fn set_compact_window_at(path: &Path, tokens: Option<u64>) -> Result<(), String> {
     let mut root = read_settings_at(path)?;
-    let obj = root.as_object_mut().ok_or("~/.claude/settings.json n'est pas un objet JSON")?;
+    let obj = root.as_object_mut().ok_or("~/.claude/settings.json is not a JSON object")?;
     match tokens {
         Some(t) => {
             obj.insert("autoCompactWindow".into(), t.clamp(100_000, 1_000_000).into());
@@ -137,12 +137,12 @@ pub async fn compress_with_claude(text: String) -> Result<String, String> {
         let dir = std::env::temp_dir().join(COMPRESS_DIR);
         std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
         let prompt = format!(
-            "Réécris ce prompt destiné à une IA en « code IA » : le plus court possible, lisible seulement par une IA. \
-             Format, une ligne par balise, balises vides omises : \
-             #do étapes dans l'ordre séparées par > ; #not ce qu'il ne faut pas faire ; #must ce qui doit rester vrai ; \
-             #out la réponse attendue ; #ctx le contexte utile. Style télégraphique, abréviations courantes, \
-             anglais si c'est plus court, aucune politesse. Garde tous les détails techniques : fichiers, code, \
-             chiffres, contraintes, intention. Réponds UNIQUEMENT avec le prompt réécrit.\n\n<prompt>\n{text}\n</prompt>"
+            "Rewrite this prompt meant for an AI as \"AI code\": as short as possible, readable only by an AI. \
+             Format, one line per tag, empty tags left out: \
+             #do steps in order separated by > ; #not what not to do ; #must what must stay true ; \
+             #out the expected answer ; #ctx the useful context. Telegraphic style, common abbreviations, \
+             no politeness. Keep every technical detail: files, code, \
+             numbers, constraints, intent. Answer ONLY with the rewritten prompt.\n\n<prompt>\n{text}\n</prompt>"
         );
         let mut child = claude_command()
             .args(["-p", "--model", "haiku"])
@@ -151,7 +151,7 @@ pub async fn compress_with_claude(text: String) -> Result<String, String> {
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::piped())
             .spawn()
-            .map_err(|e| format!("impossible de lancer claude : {e}"))?;
+            .map_err(|e| format!("couldn't start claude: {e}"))?;
         child.stdin.take().ok_or("stdin")?.write_all(prompt.as_bytes()).map_err(|e| e.to_string())?;
         let out = child.wait_with_output().map_err(|e| e.to_string())?;
         if !out.status.success() {

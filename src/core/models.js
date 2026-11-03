@@ -25,7 +25,7 @@ export function describeModel(raw) {
   const id = String(raw ?? "").trim();
   const lower = id.toLowerCase();
 
-  if (!id || lower.startsWith("model_placeholder")) return { name: "Modèle auto", family: "other" };
+  if (!id || lower.startsWith("model_placeholder")) return { name: "Auto model", family: "other" };
 
   // claude-opus-5-5, claude-sonnet-4-5-20250929, claude-opus-4-6-thinking, claude-fable-5-1[1m]
   const claude = lower.match(/^claude-([a-z]+)-(\d+)(?:-(\d{1,2}))?(?:-\d{8})?(-thinking)?(\[1m\])?$/);
@@ -47,7 +47,7 @@ export function describeModel(raw) {
   }
 
   if (lower.startsWith("chatgpt")) return { name: id, family: "openai" };
-  if (lower === "codex-auto-review") return { name: "Codex · revue auto", family: "openai" };
+  if (lower === "codex-auto-review") return { name: "Codex · auto review", family: "openai" };
   // gpt-6-astra, gpt-5.6-sol, o3, codex-mini
   const gpt = lower.match(/^gpt-([\d.]+)(?:-(.+))?$/);
   if (gpt) return { name: `GPT-${gpt[1]}${gpt[2] ? ` ${gpt[2].split("-").map(cap).join(" ")}` : ""}`, family: "openai" };
@@ -56,18 +56,18 @@ export function describeModel(raw) {
   return { name: id, family: "other" };
 }
 
-/** 1 234 → « 1,2 k » · 1 755 113 192 → « 1,8 Md » */
+/** 1,234 → "1.2k" · 1,755,113,192 → "1.8B" */
 export function compact(n) {
   if (!n) return "0";
   const units = [
-    [1e9, "Md"],
+    [1e9, "B"],
     [1e6, "M"],
     [1e3, "k"],
   ];
   for (const [size, unit] of units) {
     if (n >= size) {
       const v = n / size;
-      return `${v.toFixed(v >= 100 ? 0 : 1).replace(/\.0$/, "").replace(".", ",")} ${unit}`;
+      return `${v.toFixed(v >= 100 ? 0 : 1).replace(/\.0$/, "")}${unit}`;
     }
   }
   return String(n);

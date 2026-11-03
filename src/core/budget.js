@@ -1,17 +1,17 @@
 /**
- * Daily token limit per AI (settings → 📊 Modèles) and the pace: are you ahead or behind?
+ * Daily token limit per AI (settings → 📊 Models) and the pace: are you ahead or behind?
  *
  * Pace = how much of the limit you should have used by now if you spread it evenly over
- * the working day (8 h → minuit). « En avance de 20 % » means you're burning it faster
+ * the working day (8 am → midnight). "20% ahead" means you're burning it faster
  * than that: at this rate the limit runs out before the evening.
- * For plan limits with a reset time (Codex 5 h / semaine), the pace is the share of the
+ * For plan limits with a reset time (Codex 5 h / weekly), the pace is the share of the
  * window already gone.
  */
 import { FAMILIES, describeModel, localDay } from "./models.js";
 
 const DAY_START_H = 8;
 const DAY_END_H = 24;
-/** Within ±5 points of the pace = « dans le rythme ». */
+/** Within ±5 points of the pace = "on pace". */
 const ON_PACE = 5;
 
 /** Share of today's working day already gone, 0 → 1. */
@@ -71,13 +71,13 @@ export function windowDelta(limit, now = Date.now()) {
   return Math.round(limit.usedPercent - Math.min(1, Math.max(0, elapsed)) * 100);
 }
 
-/** « ⚡ en avance de 18 % » / « 🐢 en retard de 12 % » / « ✓ dans le rythme ». */
+/** "⚡ 18% ahead" / "🐢 12% behind" / "✓ on pace". */
 export function paceLabel(delta) {
   if (delta === null || delta === undefined) return null;
-  if (delta > ON_PACE) return { text: `⚡ en avance de ${delta} %`, tone: "ahead" };
-  if (delta < -ON_PACE) return { text: `🐢 en retard de ${-delta} %`, tone: "behind" };
-  return { text: "✓ dans le rythme", tone: "even" };
+  if (delta > ON_PACE) return { text: `⚡ ${delta}% ahead`, tone: "ahead" };
+  if (delta < -ON_PACE) return { text: `🐢 ${-delta}% behind`, tone: "behind" };
+  return { text: "✓ on pace", tone: "even" };
 }
 
 export const PACE_HELP =
-  "En avance = tu consommes plus vite que prévu pour tenir ta limite (répartie de 8 h à minuit). En retard = il t'en restera.";
+  "Ahead = you are using it faster than your limit allows (spread from 8 am to midnight). Behind = you will have some left.";

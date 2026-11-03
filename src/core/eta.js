@@ -1,5 +1,5 @@
 /**
- * Remaining time of a running session, shown as « reste ≈ 3 min ».
+ * Remaining time of a running session, shown as "≈ 3 min left".
  *
  * Best source first:
  *  1. a todo list with at least one task done: time per task so far × tasks left;

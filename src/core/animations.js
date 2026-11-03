@@ -1,13 +1,13 @@
 // Animation groups the user can switch off (settings → Animations). Each group is a class
 // on <html> (`anim-off-<id>`) that style.css uses to stop the matching CSS animations.
 export const ANIMATION_GROUPS = [
-  { id: "float", name: "🫧 Flotte", hint: "il monte et descend doucement au repos" },
-  { id: "work", name: "⚙️ S'agite au travail", hint: "balancement, points de réflexion, compactage" },
-  { id: "arms", name: "👋 Bras", hint: "balance les bras, fait coucou, applaudit" },
-  { id: "celebrate", name: "🎉 Saut de fin", hint: "saut et étincelles quand une tâche finit" },
-  { id: "tricks", name: "🌀 Pirouettes et câlins", hint: "pirouettes au repos, cœurs quand tu le caresses" },
-  { id: "blink", name: "👀 Cligne des yeux", hint: "clignements et coups d'œil" },
-  { id: "sleep", name: "💤 Zzz", hint: "les Z et la respiration quand il dort" },
+  { id: "float", name: "🫧 Floats", hint: "drifts gently up and down when idle" },
+  { id: "work", name: "⚙️ Busy at work", hint: "swaying, thinking dots, compacting" },
+  { id: "arms", name: "👋 Arms", hint: "swings its arms, waves, claps" },
+  { id: "celebrate", name: "🎉 Victory jump", hint: "jump and sparkles when a task is done" },
+  { id: "tricks", name: "🌀 Spins and cuddles", hint: "spins when idle, hearts when you pet it" },
+  { id: "blink", name: "👀 Blinks", hint: "blinks and glances" },
+  { id: "sleep", name: "💤 Zzz", hint: "the Zs and breathing while it sleeps" },
 ];
 
 /** Applies `settings.animationsOff` (["arms", …] or ["all"]) to the page. */

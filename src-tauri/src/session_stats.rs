@@ -72,7 +72,7 @@ pub async fn claude_session_stats(app: AppHandle, transcript_path: String, since
     let allowed = path.extension().is_some_and(|e| e == "jsonl")
         && path.canonicalize().is_ok_and(|p| claude_dir.canonicalize().is_ok_and(|dir| p.starts_with(dir)));
     if !allowed {
-        return Err("transcript hors de ~/.claude".into());
+        return Err("transcript outside ~/.claude".into());
     }
     tauri::async_runtime::spawn_blocking(move || {
         let cache = app.state::<StatsCache>();

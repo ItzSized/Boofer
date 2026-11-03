@@ -9,21 +9,21 @@ const KEY = "booffer.xp";
 
 /** [level, total XP needed, title] */
 const LEVELS = [
-  [1, 0, "Petit fantôme"],
-  [2, 3, "Fantôme curieux"],
-  [3, 10, "Esprit farceur"],
-  [4, 25, "Spectre bricoleur"],
-  [5, 50, "Revenant expert"],
-  [6, 100, "Esprit des codes"],
-  [7, 200, "Grand spectre"],
-  [8, 400, "Fantôme légendaire"],
+  [1, 0, "Little ghost"],
+  [2, 3, "Curious ghost"],
+  [3, 10, "Prankster spirit"],
+  [4, 25, "Tinkering specter"],
+  [5, 50, "Expert revenant"],
+  [6, 100, "Spirit of code"],
+  [7, 200, "Great specter"],
+  [8, 400, "Legendary ghost"],
 ];
 
 /** What each level unlocks, shown in the settings. */
 export const PERKS = {
-  3: "une douce lueur",
-  5: "une auréole dorée",
-  8: "une aura dorée",
+  3: "a soft glow",
+  5: "a golden halo",
+  8: "a golden aura",
 };
 
 export function loadXp() {
