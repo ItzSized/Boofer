@@ -2,6 +2,16 @@
 
 Written automatically from the git history at every build.
 
+## 0.4.1 · 2026-11-03
+
+- New features arrive without a new version number
+  - "Check for updates" also finds a newer build of the same version: every push to GitHub is offered to installed copies, as "Install the new features".
+  - Automatic updates take these builds too, at a calm moment like any update.
+  - Copies built on your own PC only take new versions, never a GitHub rebuild.
+- Settings sorted into categories
+  - The long settings page becomes nine tabs: Look, Ghost, Alerts, Agents, Today, General, Models, Live and Tokens.
+  - Each tab opens with one line saying what it's for, and groups its options under short headings (Moves, Talk, Notifications, Sounds…).
+
 ## 0.4.0 · 2026-11-03
 
 - Boofer speaks English: the ghost, the settings, the tray and the alerts
