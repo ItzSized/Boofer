@@ -627,36 +627,40 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   };
   const demoItems = (ids) => (isTauri ? [] : ids.map((id) => ({ label: DEMOS[id].label, action: DEMOS[id].run })));
 
+  // Grouped by what you want to do; groups with nothing to show (browser preview) disappear.
+  const appOnly = (items) => (isTauri ? items : []);
   const menu = createMenu(document.getElementById("menu"), [
-    ...demoItems(["task", "sessions", "compact"]),
+    { heading: "Try it" },
+    ...demoItems(["task", "sessions", "compact", "request", "guard"]),
+    { heading: "Agents" },
+    ...appOnly([
+      { label: "🟢 Live agents", action: () => invoke("open_settings", { page: "live" }) },
+      { label: "📊 Model usage", action: () => invoke("open_settings", { page: "models" }) },
+    ]),
     { label: "📅 My day", action: () => daySummary() },
-    ...(isTauri
-      ? [
-        { label: "🧹 Compact now", action: () => compactNow() },
-        { label: "🔁 Reprompt (clipboard)", action: () => repromptClipboard() },
-        { label: "✂️ Save tokens", action: () => invoke("open_settings", { page: "tokens" }) },
-        { label: "🟢 Live agents", action: () => invoke("open_settings", { page: "live" }) },
-      ]
-      : []),
-    ...demoItems(["request", "guard"]),
-    ...(isTauri
-      ? [
-        { label: "⚙️ Settings", action: () => invoke("open_settings") },
-        { label: "📊 Model usage", action: () => invoke("open_settings", { page: "models" }) },
-        {
-          label: () => (settings.follow ? "🐾 Stay here" : "🐾 Follow me (window to window)"),
-          action: () => invoke("set_follow", { enabled: !settings.follow }),
-        },
-        { label: "🌙 Do not disturb for 1 h", visible: () => !settings.dnd, action: () => setDnd("60") },
-        { label: "🌙 Do not disturb until tomorrow morning", visible: () => !settings.dnd, action: () => setDnd("morning") },
-        {
-          label: () => `🔔 Turn sounds and requests back on${settings.dndUntil ? ` (planned at ${clockTime(settings.dndUntil)})` : ""}`,
-          visible: () => settings.dnd,
-          action: () => setDnd("off"),
-        },
-        { label: "🙈 Hide me (tray icon)", action: () => invoke("set_hidden", { hidden: true }) },
-      ]
-      : []),
+    { heading: "Tokens" },
+    ...appOnly([
+      { label: "🧹 Compact now", action: () => compactNow() },
+      { label: "🔁 Reprompt (clipboard)", action: () => repromptClipboard() },
+      { label: "✂️ Save tokens", action: () => invoke("open_settings", { page: "tokens" }) },
+    ]),
+    { heading: "Ghost" },
+    ...appOnly([
+      {
+        label: () => (settings.follow ? "🐾 Stay here" : "🐾 Follow me (window to window)"),
+        action: () => invoke("set_follow", { enabled: !settings.follow }),
+      },
+      { label: "🌙 Do not disturb for 1 h", visible: () => !settings.dnd, action: () => setDnd("60") },
+      { label: "🌙 Do not disturb until tomorrow morning", visible: () => !settings.dnd, action: () => setDnd("morning") },
+      {
+        label: () => `🔔 Turn sounds and requests back on${settings.dndUntil ? ` (planned at ${clockTime(settings.dndUntil)})` : ""}`,
+        visible: () => settings.dnd,
+        action: () => setDnd("off"),
+      },
+      { label: "🙈 Hide me (tray icon)", action: () => invoke("set_hidden", { hidden: true }) },
+    ]),
+    { separator: true },
+    ...appOnly([{ label: "⚙️ Settings", action: () => invoke("open_settings") }]),
     { label: "👋 Quit", action: quit },
   ], { onToggle: () => pet?.refresh() });
   document.addEventListener("contextmenu", (e) => {
