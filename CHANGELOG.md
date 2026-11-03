@@ -4,6 +4,10 @@ Written automatically from the git history at every build.
 
 ## 0.4.1 · 2026-11-03
 
+- Settings with an icon rail in Boofer's night purple
+  - The tabs become an icon rail on the left, in the logo's night purple with a neon glow on the current page; on a wide window the names show next to the icons.
+  - The page is one centered column, also on a big screen.
+  - Version, updates and What's new move to the General tab, which opens by itself after an update.
 - Boofer starts again by itself after an update
   - When the installer doesn't reopen it, Boofer comes back on its own once the update is installed.
 - Right-click menu sorted into groups
