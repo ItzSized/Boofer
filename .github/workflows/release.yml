@@ -87,3 +87,20 @@ jobs:
           version=$(node -p "require('./src-tauri/tauri.conf.json').version")
           cp src-tauri/target/release/boofer.exe Boofer.exe
           gh release upload "v$version" Boofer.exe --clobber
+
+      # Same version, new commit: installed copies compare this build id with their own
+      # (src-tauri/src/updates.rs) and take the new features without a new version number.
+      - name: Mark latest.json with this build
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          gh release download "v$version" -p latest.json -O latest.json --clobber
+          node -e '
+            const fs = require("fs");
+            const json = JSON.parse(fs.readFileSync("latest.json", "utf8"));
+            json.notes = `${(json.notes ?? "").replace(/\s*<!-- build \w+ -->\s*$/, "")}\n\n<!-- build ${process.env.GITHUB_SHA} -->`;
+            fs.writeFileSync("latest.json", JSON.stringify(json, null, 2));
+          '
+          gh release upload "v$version" latest.json --clobber

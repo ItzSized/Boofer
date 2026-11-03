@@ -570,13 +570,14 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     }
     if (!update) return;
     if (settings.autoUpdate === false) {
-      if (once(`booffer.update.${update.version}`)) speech.tell(`✨ Boofer ${update.version} is out! Settings → Check for updates`, 8000);
+      const what = update.rebuild ? "New features are out" : `Boofer ${update.version} is out`;
+      if (once(`booffer.update.${update.version}.${update.rebuild}.${localDay(0)}`)) speech.tell(`✨ ${what}! Settings → Check for updates`, 8000);
       return;
     }
     const calm = () => !sessions.some((s) => s.state !== State.IDLE && s.state !== State.DONE) && !asking();
     if (!calm()) return setTimeout(checkUpdate, 5 * 60_000); // an agent is working: later
     updating = true;
-    speech.tell(`⬇️ Updating to ${update.version}… be right back!`, 15_000);
+    speech.tell(update.rebuild ? "⬇️ Getting the new features… be right back!" : `⬇️ Updating to ${update.version}… be right back!`, 15_000);
     try {
       await installUpdate(update);
     } catch {

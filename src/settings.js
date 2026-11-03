@@ -416,8 +416,8 @@ async function checkForUpdate() {
   try {
     pendingUpdate = await findUpdate();
     if (pendingUpdate) {
-      updateStatus(`✨ Version ${pendingUpdate.version} is available.`);
-      button.textContent = `Install ${pendingUpdate.version}`;
+      updateStatus(pendingUpdate.rebuild ? `✨ New features are available for ${pendingUpdate.version}.` : `✨ Version ${pendingUpdate.version} is available.`);
+      button.textContent = pendingUpdate.rebuild ? "Install the new features" : `Install ${pendingUpdate.version}`;
     } else {
       updateStatus(`✓ You have the latest version (checked at ${clockTime(Date.now())}).`);
     }
@@ -431,7 +431,7 @@ async function installPending() {
   const button = $("update-check");
   button.disabled = true;
   $("update-bar").classList.remove("hidden");
-  updateStatus(`Downloading version ${pendingUpdate.version}…`);
+  updateStatus(pendingUpdate.rebuild ? "Downloading the new features…" : `Downloading version ${pendingUpdate.version}…`);
   try {
     await installUpdate(pendingUpdate, (p) => {
       $("update-fill").style.width = `${Math.round((p ?? 0.5) * 100)}%`;

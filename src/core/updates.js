@@ -1,25 +1,21 @@
-// Updates from the GitHub releases (tauri-plugin-updater): the signed installer of the latest
-// version is downloaded and installed over this one, then Boofer restarts. Nothing to uninstall.
+// Updates from the GitHub releases (src-tauri/src/updates.rs): a newer version, or a newer build
+// of the same version (new features pushed without changing the number). The signed installer is
+// downloaded and installed over this one, then Boofer restarts. Nothing to uninstall.
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 
-/** The available update, or null when Boofer is up to date. Throws when offline. */
-export async function findUpdate() {
-  const { check } = await import("@tauri-apps/plugin-updater");
-  return check();
+/** { version, rebuild } when there is something to install, null when up to date. Throws when offline. */
+export function findUpdate() {
+  return invoke("update_check");
 }
 
-/** Downloads and installs `update`, then restarts. `onProgress(0…1 | null)` while downloading. */
-export async function installUpdate(update, onProgress = () => {}) {
-  let total = 0;
-  let received = 0;
-  await update.downloadAndInstall((event) => {
-    if (event.event === "Started") total = event.data.contentLength ?? 0;
-    if (event.event === "Progress") {
-      received += event.data.chunkLength;
-      onProgress(total ? Math.min(1, received / total) : null);
-    }
-    if (event.event === "Finished") onProgress(1);
-  });
-  // On Windows the installer closes Boofer and opens the new version itself; elsewhere, restart.
-  const { relaunch } = await import("@tauri-apps/plugin-process");
-  await relaunch();
+/** Installs the update found by findUpdate, then restarts. `onProgress(0…1 | null)` while downloading. */
+export async function installUpdate(_update, onProgress = () => {}) {
+  const stop = await listen("update-progress", ({ payload }) => onProgress(payload));
+  try {
+    await invoke("update_install");
+    onProgress(1);
+  } finally {
+    stop();
+  }
 }

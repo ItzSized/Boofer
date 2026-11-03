@@ -10,6 +10,7 @@ mod pet;
 mod session_stats;
 mod settings;
 mod tokens;
+mod updates;
 mod usage;
 mod web;
 
@@ -475,6 +476,7 @@ pub fn run() {
         .manage(guard::Guards::default())
         .manage(usage::UsageCache::default())
         .manage(session_stats::StatsCache::default())
+        .manage(updates::PendingUpdate::default())
         .invoke_handler(tauri::generate_handler![
             settings::get_settings,
             settings::set_settings,
@@ -501,6 +503,8 @@ pub fn run() {
             tokens::write_clipboard,
             tokens::read_clipboard_text,
             open_url,
+            updates::update_check,
+            updates::update_install,
             resolve_permission,
             resolve_guard,
             apps::running_apps,
