@@ -530,6 +530,7 @@ function renderNews(current) {
   } catch {}
   if (seen && seen !== current) {
     $("news-badge").classList.remove("hidden");
+    setTimeout(() => showPage("general")); // after the page code below has run
     setTimeout(() => $("news").scrollIntoView({ behavior: "smooth", block: "center" }), 400);
   }
 }

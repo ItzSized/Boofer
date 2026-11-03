@@ -8,14 +8,30 @@
 </head>
 
 <body class="min-h-screen bg-zinc-100 dark:bg-zinc-950 text-zinc-800 dark:text-zinc-100 antialiased select-none">
-  <!-- Small window: one column. Big screen: a sticky sidebar (profile, tabs, version, news) next to
-       the pages, laid out in two columns when there is room. The sidebar is display:contents when
-       narrow, so its blocks keep their place (order-*) around the pages. -->
-  <main
-    class="mx-auto flex max-w-lg flex-col gap-4 p-5 lg:grid lg:max-w-7xl lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-6 lg:p-8">
-    <aside class="contents lg:sticky lg:top-8 lg:flex lg:max-h-[calc(100vh-4rem)] lg:flex-col lg:gap-4 lg:overflow-y-auto lg:pb-1">
+  <!-- Icon rail on the left (labels show on a wide window, as a tooltip otherwise), the page
+       in one centered column on the right. -->
+  <div class="flex min-h-screen">
+    <nav id="rail" class="rail sticky top-0 flex h-screen w-16 shrink-0 flex-col items-center gap-1 overflow-y-auto py-4 lg:w-52 lg:items-stretch lg:px-3">
+      <div class="mb-3 flex items-center justify-center gap-2 lg:justify-start lg:px-2">
+        <span class="rail-logo text-2xl">👻</span>
+        <span class="hidden text-sm font-extrabold tracking-tight lg:inline">Boofer</span>
+      </div>
+      <button data-page="look" title="Look" class="rail-item"><span class="rail-icon">🎨</span><span class="hidden lg:inline">Look</span></button>
+      <button data-page="ghost" title="Ghost" class="rail-item"><span class="rail-icon">👻</span><span class="hidden lg:inline">Ghost</span></button>
+      <button data-page="alerts" title="Alerts" class="rail-item"><span class="rail-icon">🔔</span><span class="hidden lg:inline">Alerts</span></button>
+      <button data-page="agents" title="Agents" class="rail-item"><span class="rail-icon">🤖</span><span class="hidden lg:inline">Agents</span></button>
+      <button data-page="today" title="Today" class="rail-item"><span class="rail-icon">📅</span><span class="hidden lg:inline">Today</span></button>
+      <button data-page="general" title="General" class="rail-item"><span class="rail-icon">⚙️</span><span class="hidden lg:inline">General</span></button>
+      <div class="my-2 h-px w-8 bg-white/10 lg:w-auto"></div>
+      <button data-page="models" title="Models" class="rail-item"><span class="rail-icon">📊</span><span class="hidden lg:inline">Models</span></button>
+      <button data-page="live" title="Live" class="rail-item"><span class="rail-icon">🟢</span><span class="hidden lg:inline">Live</span></button>
+      <button data-page="tokens" title="Tokens" class="rail-item"><span class="rail-icon">✂️</span><span class="hidden lg:inline">Tokens</span></button>
+    </nav>
+
+    <main class="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-10 lg:py-8">
+    <div class="mx-auto max-w-2xl space-y-4">
     <header
-      class="order-1 flex items-center gap-4 rounded-2xl bg-gradient-to-br from-violet-100 dark:from-violet-950 to-white dark:to-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
+      class="flex items-center gap-4 rounded-2xl bg-gradient-to-br from-violet-100 dark:from-violet-950 to-white dark:to-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
       <div id="hero" data-state="idle" class="mascot hero shrink-0"></div>
       <div class="min-w-0 flex-1">
         <h1 class="text-lg font-bold">Boofer settings</h1>
@@ -33,60 +49,7 @@
       </div>
     </header>
 
-    <nav class="order-2 grid grid-cols-3 gap-1 lg:flex lg:flex-col rounded-2xl bg-white p-1 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
-      <button data-page="look" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">🎨 Look</button>
-      <button data-page="ghost" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">👻 Ghost</button>
-      <button data-page="alerts" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">🔔 Alerts</button>
-      <button data-page="agents" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">🤖 Agents</button>
-      <button data-page="today" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">📅 Today</button>
-      <button data-page="general" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">⚙️ General</button>
-      <button data-page="models" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">📊 Models</button>
-      <button data-page="live" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">🟢 Live</button>
-      <button data-page="tokens" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">✂️ Tokens</button>
-    </nav>
-
-    <section class="order-4 rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
-      <div class="flex items-center justify-between gap-3">
-        <div class="min-w-0">
-          <p class="text-sm font-medium">👻 Boofer <span id="version">0.4.1</span>
-            <button id="build-link" class="hidden font-mono text-[11px] font-normal text-zinc-400 hover:text-violet-500 hover:underline" title="The commit this copy was built from, on GitHub"></button></p>
-          <p id="update-status" class="text-xs text-zinc-500 dark:text-zinc-400">Updates install over this version, nothing to uninstall.</p>
-        </div>
-        <button id="update-check"
-          class="shrink-0 rounded-lg bg-violet-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-600 disabled:opacity-60">
-          Check for updates</button>
-      </div>
-      <ul id="update-commits" class="mt-2 hidden max-h-40 space-y-0.5 overflow-y-auto text-[11px] text-zinc-500 dark:text-zinc-400"></ul>
-      <div id="update-bar" class="mt-3 hidden h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-        <div id="update-fill" class="h-full w-0 rounded-full bg-violet-500 transition-[width]"></div>
-      </div>
-      <div class="mt-3 flex items-center justify-between gap-4 border-t border-zinc-100 pt-3 dark:border-zinc-800">
-        <div>
-          <p class="text-sm font-medium">Update automatically</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">At startup and every 6 h, when no agent is working.</p>
-        </div>
-        <label class="toggle"><input id="auto-update" type="checkbox" /><span></span></label>
-      </div>
-    </section>
-
-    <section id="news" class="order-5 rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
-      <div class="flex items-baseline justify-between gap-2">
-        <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">✨ What's new</h2>
-        <span id="news-badge" class="hidden rounded-full bg-violet-500 px-2 py-0.5 text-[10px] font-semibold text-white">New</span>
-      </div>
-      <div id="news-latest" class="mt-2"></div>
-      <details id="news-more" class="mt-2">
-        <summary class="cursor-pointer text-xs font-medium text-violet-600 hover:underline dark:text-violet-300">All versions</summary>
-        <div id="news-all" class="mt-2 space-y-3"></div>
-      </details>
-    </section>
-
-    <footer class="order-6 pb-2 text-center text-[11px] text-zinc-400">
-      <button id="repo-link" class="hover:text-violet-500 hover:underline">github.com/ItzSized/Boofer</button>
-    </footer>
-    </aside>
-
-    <div id="pages" class="order-3 min-w-0">
+    <div id="pages">
     <div id="page-look" class="page-grid">
     <p class="page-intro px-1 text-xs text-zinc-500 dark:text-zinc-400">How Boofer looks: theme, skin, accessory, size and animations.</p>
     <section id="appearance" class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
@@ -371,7 +334,42 @@
     </div>
 
     <div id="page-general" class="page-grid hidden">
-    <p class="page-intro px-1 text-xs text-zinc-500 dark:text-zinc-400">Startup, shortcuts, and demos to see the ghost in action.</p>
+    <p class="page-intro px-1 text-xs text-zinc-500 dark:text-zinc-400">Version and updates, what's new, startup, shortcuts, and demos to see the ghost in action.</p>
+    <section id="updates" class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
+      <div class="flex items-center justify-between gap-3">
+        <div class="min-w-0">
+          <p class="text-sm font-medium">👻 Boofer <span id="version">0.4.1</span>
+            <button id="build-link" class="hidden font-mono text-[11px] font-normal text-zinc-400 hover:text-violet-500 hover:underline" title="The commit this copy was built from, on GitHub"></button></p>
+          <p id="update-status" class="text-xs text-zinc-500 dark:text-zinc-400">Updates install over this version, nothing to uninstall.</p>
+        </div>
+        <button id="update-check"
+          class="shrink-0 rounded-lg bg-violet-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-600 disabled:opacity-60">
+          Check for updates</button>
+      </div>
+      <ul id="update-commits" class="mt-2 hidden max-h-40 space-y-0.5 overflow-y-auto text-[11px] text-zinc-500 dark:text-zinc-400"></ul>
+      <div id="update-bar" class="mt-3 hidden h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+        <div id="update-fill" class="h-full w-0 rounded-full bg-violet-500 transition-[width]"></div>
+      </div>
+      <div class="mt-3 flex items-center justify-between gap-4 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+        <div>
+          <p class="text-sm font-medium">Update automatically</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">At startup and every 6 h, when no agent is working.</p>
+        </div>
+        <label class="toggle"><input id="auto-update" type="checkbox" /><span></span></label>
+      </div>
+    </section>
+
+    <section id="news" class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
+      <div class="flex items-baseline justify-between gap-2">
+        <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">✨ What's new</h2>
+        <span id="news-badge" class="hidden rounded-full bg-violet-500 px-2 py-0.5 text-[10px] font-semibold text-white">New</span>
+      </div>
+      <div id="news-latest" class="mt-2"></div>
+      <details id="news-more" class="mt-2">
+        <summary class="cursor-pointer text-xs font-medium text-violet-600 hover:underline dark:text-violet-300">All versions</summary>
+        <div id="news-all" class="mt-2 space-y-3"></div>
+      </details>
+    </section>
     <section
       class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
       <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">General</h2>
@@ -550,7 +548,12 @@
 
     </div>
 
-  </main>
+    <footer class="pb-2 pt-2 text-center text-[11px] text-zinc-400">
+      <button id="repo-link" class="hover:text-violet-500 hover:underline">github.com/ItzSized/Boofer</button>
+    </footer>
+    </div>
+    </main>
+  </div>
   <script type="module" src="/src/settings.js"></script>
 </body>
 
