@@ -57,6 +57,41 @@ pub async fn update_check(app: AppHandle) -> Result<Option<UpdateInfo>, String> 
     Ok(info)
 }
 
+/// The installer doesn't always start Boofer again (it depends on how it was installed), so a
+/// hidden helper waits for this process and the installer to be done, then starts the installed
+/// exe unless a Boofer is already running.
+fn relaunch_after_install() {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        const DETACHED_PROCESS: u32 = 0x0000_0008;
+        let Ok(exe) = std::env::current_exe() else { return };
+        let name = exe.file_stem().and_then(|s| s.to_str()).unwrap_or("boofer").to_string();
+        let quote = |s: &str| format!("'{}'", s.replace('\'', "''"));
+        let script = format!(
+            "$exe = {exe}; $name = {name}; $start = Get-Date; \
+             try {{ Wait-Process -Id {pid} -Timeout 120 -ErrorAction Stop }} catch {{}}; \
+             Start-Sleep -Seconds 8; \
+             $deadline = (Get-Date).AddSeconds(90); $last = $null; $stable = 0; \
+             while ((Get-Date) -lt $deadline) {{ \
+               if (Get-Process -Name $name -ErrorAction SilentlyContinue) {{ exit }}; \
+               $t = (Get-Item -LiteralPath $exe -ErrorAction SilentlyContinue).LastWriteTime; \
+               if ($t -and $t -gt $start -and $t -eq $last) {{ $stable++ }} else {{ $stable = 0 }}; \
+               if ($stable -ge 3) {{ break }}; \
+               $last = $t; Start-Sleep -Seconds 2 }}; \
+             if (-not (Get-Process -Name $name -ErrorAction SilentlyContinue) -and (Test-Path -LiteralPath $exe)) {{ Start-Process -FilePath $exe }}",
+            exe = quote(&exe.display().to_string()),
+            name = quote(&name),
+            pid = std::process::id(),
+        );
+        let _ = std::process::Command::new("powershell")
+            .args(["-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", &script])
+            .creation_flags(CREATE_NO_WINDOW | DETACHED_PROCESS)
+            .spawn();
+    }
+}
+
 /// Downloads and installs the pending update ("update-progress": 0…1, or null when the size is
 /// unknown), then restarts. On Windows the installer closes Boofer and opens the new build itself.
 #[tauri::command]
@@ -74,7 +109,7 @@ pub async fn update_install(app: AppHandle) -> Result<(), String> {
                 let progress = (total > 0).then(|| (received as f64 / total as f64).min(1.0));
                 let _ = handle.emit("update-progress", progress);
             },
-            || {},
+            relaunch_after_install,
         )
         .await
         .map_err(|e| e.to_string())?;
