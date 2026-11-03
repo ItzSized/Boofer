@@ -4,6 +4,11 @@ Written automatically from the git history at every build.
 
 ## 0.4.1 · 2026-11-03
 
+- Boofer starts again by itself after an update
+  - When the installer doesn't reopen it, Boofer comes back on its own once the update is installed.
+- Right-click menu sorted into groups
+  - Agents, Tokens and Ghost each get a small title; Settings and Quit stay at the bottom, under a line.
+  - The menu scrolls if it's taller than the ghost's window.
 - See which commit your Boofer is built from
   - Next to the version in the settings: the commit of your build, a click opens it on GitHub ("local build" for a copy built on your PC).
   - When an update is available, the list of the new commits it brings, each one clickable.

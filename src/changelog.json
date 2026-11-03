@@ -4,6 +4,19 @@
   "date": "2026-11-03",
   "items": [
    {
+    "title": "Boofer starts again by itself after an update",
+    "details": [
+     "When the installer doesn't reopen it, Boofer comes back on its own once the update is installed."
+    ]
+   },
+   {
+    "title": "Right-click menu sorted into groups",
+    "details": [
+     "Agents, Tokens and Ghost each get a small title; Settings and Quit stay at the bottom, under a line.",
+     "The menu scrolls if it's taller than the ghost's window."
+    ]
+   },
+   {
     "title": "See which commit your Boofer is built from",
     "details": [
      "Next to the version in the settings: the commit of your build, a click opens it on GitHub (\"local build\" for a copy built on your PC).",
