@@ -3,6 +3,21 @@
 //! - macOS:   ~/Library/LaunchAgents/dev.booffer.desktop.plist
 //! - Linux:   ~/.config/autostart/booffer.desktop
 
+/// Passed by the login entry: Boofer then starts quietly, without opening its window.
+pub const AUTOSTART_FLAG: &str = "--autostart";
+
+/// Started by Windows at login rather than by a double-click.
+pub fn launched_at_login() -> bool {
+    std::env::args().any(|a| a == AUTOSTART_FLAG)
+}
+
+/// Rewrites the login entry with the current exe and the flag (older ones had neither).
+pub fn refresh() {
+    if os::enabled() {
+        let _ = os::set(true);
+    }
+}
+
 #[tauri::command]
 pub fn get_autostart() -> bool {
     os::enabled()
@@ -47,7 +62,8 @@ mod os {
         let (key, name) = (wide(RUN_KEY), wide(VALUE_NAME));
         let status = if enabled {
             let exe = std::env::current_exe().map_err(|e| e.to_string())?;
-            let command = wide(&format!("\"{}\"", exe.display()));
+            // The flag tells a launch at login from a double-click (which opens the settings).
+            let command = wide(&format!("\"{}\" {}", exe.display(), super::AUTOSTART_FLAG));
             unsafe {
                 RegSetKeyValueW(
                     HKEY_CURRENT_USER,

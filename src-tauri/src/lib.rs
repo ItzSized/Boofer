@@ -120,6 +120,8 @@ fn start_event_server(app: AppHandle, server: tiny_http::Server) {
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.show();
                 }
+                // Boofer double-clicked while already running: its window comes up.
+                let _ = show_settings(&app, "settings");
                 let _ = request.respond(tiny_http::Response::from_string(format!("build={}", build_stamp())));
                 continue;
             }
@@ -404,6 +406,21 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
         .icon(app.default_window_icon().cloned().expect("bundle icon"))
         .tooltip("Boofer")
         .menu(&menu)
+        // Left click (or double-click) opens Boofer; the menu is on the right click.
+        .show_menu_on_left_click(false)
+        .on_tray_icon_event(|tray, event| {
+            use tauri::tray::{MouseButton, MouseButtonState, TrayIconEvent};
+            let open = matches!(
+                event,
+                TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. }
+                    | TrayIconEvent::DoubleClick { button: MouseButton::Left, .. }
+            );
+            if open {
+                let app = tray.app_handle();
+                set_hidden(app.clone(), false);
+                let _ = show_settings(app, "settings");
+            }
+        })
         .on_menu_event(|app, event| {
             let state = app.state::<PetState>();
             match event.id.as_ref() {
@@ -496,6 +513,11 @@ pub fn run() {
             settings::apply(app.handle(), &initial);
             build_tray(app.handle())?;
             migrate::remove_old_install();
+            autostart::refresh();
+            // Opened by hand (shortcut, exe, after an update): the window shows, not just the ghost.
+            if cfg!(windows) && !autostart::launched_at_login() {
+                let _ = show_settings(app.handle(), "settings");
+            }
             if let Some(server) = server_cell.lock().unwrap().take() {
                 start_event_server(app.handle().clone(), server);
             }
