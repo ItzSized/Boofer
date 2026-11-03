@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/changelog.mjs && vite build",
+    "changelog": "node scripts/changelog.mjs",
     "tauri": "tauri",
     "release": "node scripts/release.mjs",
     "demo:api": "node examples/claude-api-demo.mjs",

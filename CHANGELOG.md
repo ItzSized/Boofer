@@ -1,0 +1,111 @@
+# Nouveautés de Boofer
+
+Écrit tout seul à partir de l'historique, à chaque build.
+
+## 0.3.9 · 2026-11-02
+
+- Coût en € au prix API, alerte agent bloqué, semaine en graphique, mode stream, tenues de saison, sons au choix
+
+## 0.3.8 · 2026-11-02
+
+- Clic sur un onglet ou la bulle : ouvre la fenêtre de la session, navigateur compris ; IA du navigateur suivies par défaut
+- Direction artistique : couleurs, effets, personnage, typo et mouvement
+
+## 0.3.7 · 2026-11-02
+
+- Le nom s'écrit Boofer, avec un seul f
+  - Nom de l'appli, fenêtres, textes, installeurs, exe et README : Boofer.
+  - Au premier lancement, l'ancienne copie « Booffer » installée à côté est retirée (dossier, raccourcis, entrée des applications installées), et le lancement au démarrage passe au nouveau nom. Réglages, historique et niveau sont gardés.
+- Coût de chaque tâche et détail du contexte
+  - Fin d'une tâche : la bulle affiche ses tokens et sa part de la limite du jour (« 💰 38k tokens · 4 % de ta limite du jour »), gardés dans l'historique.
+  - Page « 🟢 Direct » : les tokens de la tâche en cours montent en direct, et « Ce qui remplit le contexte » détaille tes messages, les réponses, les fichiers lus, les commandes, les recherches, le système…
+  - Compte exact depuis le fichier de la session (sous-agents compris) ; pour Codex et Antigravity, différence des compteurs entre le début et la fin.
+- Yeux : un seul reflet, plus ronds
+
+## 0.3.6 · 2026-11-02
+
+- Nouveau logo et fantôme redessiné
+  - Icône de l'appli, de la barre des tâches et des installeurs : le nouveau logo, avec une version zoomée sur le fantôme pour les petites tailles.
+  - Le fantôme ressemble au logo : grands yeux à double reflet, joues roses, auréole violette lumineuse et lueur autour du corps. L'auréole devient dorée au niveau 5.
+  - Logo en tête du README et favicon du site.
+
+## 0.3.5 · 2026-11-02
+
+- Mises à jour automatiques : installées par-dessus, sans désinstaller
+  - En bas des réglages : la version, un bouton « Rechercher des mises à jour » qui devient « Installer x.y.z », avec la progression du téléchargement.
+  - « Mettre à jour automatiquement » (activé par défaut) : au démarrage et toutes les 6 h, seulement quand aucun agent ne travaille. Booffer redémarre tout seul sur la nouvelle version.
+  - Les fichiers de mise à jour sont signés : une copie installée refuse tout fichier qui n'est pas signé avec la clé du projet.
+
+## 0.3.4 · 2026-11-02
+
+- Notification quand le son est coupé, animations au choix, démos dans les réglages
+  - Son coupé : si les sons de Booffer sont coupés ou si le PC est en muet, une notification annonce la fin d'une tâche, même sur l'éditeur (Réglages → 🔕, activé par défaut).
+  - Animations : un interrupteur pour tout couper, ou des puces pour couper seulement le flottement, l'agitation au travail, les bras, le saut de fin, les pirouettes, les clignements ou les Zzz.
+  - Les « Tester… » quittent le clic droit : ils deviennent « 🧪 Essayer » dans les réglages (toujours dans le clic droit de l'aperçu navigateur).
+
+## 0.3.3 · 2026-11-02
+
+- Sécurité : le serveur local refuse les requêtes venant d'un site web
+
+## 0.3.2 · 2026-11-02
+
+- Limite par jour en % de sa moyenne, choix de l'outil dans Modèles, Reprompt en code IA, fond transparent rétabli tout seul
+
+## 0.3.1 · 2026-11-02
+
+- IA du navigateur sans extension : Booffer lit l'onglet affiché via l'accessibilité de Windows
+
+## 0.3.0 · 2026-11-02
+
+- Extension navigateur : ChatGPT, Gemini, Grok… suivis comme les IDE, avec un bip à la fin
+
+## 0.2.0 · 2026-11-02
+
+- Barre système : Ne pas déranger pour une durée, Ramener le fantôme, statut au survol
+- Éditeurs suivis : case « Terminal »
+- Ne plus jamais écraser les fichiers de réglages de l'agent
+- Clics : le fantôme caché ne les attrape plus
+- Taille : le fantôme n'est plus coupé à 70 % ni à 140 %
+
+## 0.1.0 · 2026-11-01
+
+- Installeurs .msi et .exe construits par GitHub à chaque push, build locale en ~1 min
+- Stop sur les commandes dangereuses, limite par IA, page En direct et Reprompt
+  - Stop : avant un rm -rf, git push --force, git reset --hard, formatage, etc., Booffer croise les bras et demande de confirmer (bloqué sans réponse en 55 s)
+  - Limite de tokens par jour et par IA, avec alerte à 80 % / 100 % et l'écart « en avance / en retard » sur le rythme (aussi pour les limites Codex)
+  - Page « En direct » : applis d'IA ouvertes, sessions, modèle, contexte, temps restant
+  - Reprompt : depuis le menu ou Ctrl+Alt+P, en local ou avec Haiku
+- Temps restant toujours affiché, fantôme seulement sur les éditeurs choisis
+- Économiser des tokens : compacter plus tôt, réponses courtes, compresseur de prompt
+- Fix : sans « Suis-moi », le fantôme reste là où on l'a posé
+- Remplacement de l'ancienne version fiable même si son exe a été écrasé
+- Alertes de limite, résumé du jour et vérification des mises à jour
+- Niveaux, humeur du fantôme et un mini-fantôme par session
+- Notifications Windows, raccourcis Ctrl+Alt+B/M et clic sur la bulle
+- Codex suivi en direct
+- Mode « Me suit partout » : le fantôme se pose sur la fenêtre où tu es
+- Compactage visible, jauge de contexte et temps restant fiable
+- Vue « Modèles » : usage de chaque IA (Gemini, GPT/Codex…), limites Codex
+- Suivi en direct d'Antigravity (Gemini) et fantôme visible pendant le travail
+- Site web Boodev et build multi-OS (GitHub Actions)
+- Historique et stats du jour dans les réglages
+- Petites phrases du fantôme
+- Mode « Ne pas déranger »
+- Option « Lancer au démarrage de Windows » dans les réglages
+- Mode sombre : thème Auto / Clair / Sombre
+- Skins et accessoires personnalisables dans les réglages
+- Réglages : fenêtre dédiée et mode « partout sur le bureau »
+  - Réglages enregistrés en JSON dans le dossier de config, partagés entre fenêtres
+  - Où vit Booffer : sur les éditeurs choisis (Antigravity, VS Code, Cursor, Windsurf ou un exe perso) ou partout sur le bureau
+  - Suivi de la souris, délai avant de s'endormir, sons et volume, taille
+  - Approbations activables, état des hooks de l'agent et bouton pour les installer
+  - Accès par l'icône de la barre système ou le clic droit sur le fantôme
+- Progression : total, pourcentage de l'étape en cours et temps restant estimé
+- Yeux : le reflet blanc suit la souris, aussi pendant que l'IA travaille
+- Booffer: compagnon fantôme pour suivre les agents IA
+  - Fenêtre Tauri 2 transparente, uniquement au-dessus d'Antigravity
+  - Statut en direct via les hooks de l'agent (action, %, durée, fichiers, tâches)
+  - Approbations Autoriser / Toujours / Refuser depuis le fantôme
+  - Plusieurs sessions : une couleur et un onglet par session, sélection auto selon la fenêtre
+  - Animations (yeux qui suivent la souris, caresses, sommeil, pirouettes) et sons
+  - Icône de la barre système, bouton fermer, clics qui traversent les zones vides

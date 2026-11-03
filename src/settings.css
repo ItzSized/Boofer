@@ -94,3 +94,29 @@ kbd {
 .activity i.empty {
   @apply bg-zinc-200 dark:bg-zinc-700;
 }
+
+/* Pages: cards stacked; on a wide screen, in two balanced columns. */
+.page-grid > * {
+  @apply mb-4 break-inside-avoid;
+}
+@media (width >= 80rem) {
+  .page-grid {
+    columns: 2;
+    column-gap: 1rem;
+  }
+}
+
+/* Nouveautés: one version's list. */
+.news-list {
+  @apply space-y-1 text-xs text-zinc-600 dark:text-zinc-300;
+}
+.news-list > li {
+  @apply relative pl-3.5;
+}
+.news-list > li::before {
+  content: "";
+  @apply absolute top-[0.45em] left-0 size-1.5 rounded-full bg-violet-400;
+}
+.news-list ul {
+  @apply mt-0.5 space-y-0.5 text-[11px] text-zinc-500 dark:text-zinc-400;
+}

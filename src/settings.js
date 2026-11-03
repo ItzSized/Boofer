@@ -13,6 +13,7 @@ import { createLiveView } from "./ui/live-view.js";
 import { PERKS, levelFor, loadXp } from "./core/level.js";
 import { clockTime } from "./core/format.js";
 import { compact as compactTokens } from "./core/models.js";
+import CHANGELOG from "./changelog.json";
 import "./style.css";
 import "./settings.css";
 
@@ -445,9 +446,50 @@ async function installPending() {
 
 $("update-check").addEventListener("click", () => (pendingUpdate ? installPending() : checkForUpdate()));
 (async () => {
-  const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : "0.3.9";
+  const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : CHANGELOG[0]?.version ?? "";
   $("version").textContent = current;
+  renderNews(current);
 })();
+
+// Nouveautés: written from the commits at each build (scripts/changelog.mjs). Just updated?
+// The new version's list is marked « Nouveau » and brought into view, once.
+function newsBlock({ version, date, items }, current) {
+  const box = document.createElement("div");
+  const title = document.createElement("p");
+  title.className = "mb-1 text-xs font-semibold";
+  const day = date ? new Date(`${date}T12:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }) : "";
+  title.textContent = `${version}${version === current ? " · ta version" : ""}${day ? ` · ${day}` : ""}`;
+  const list = document.createElement("ul");
+  list.className = "news-list";
+  for (const item of items.length ? items : [{ title: "Corrections et petites améliorations", details: [] }]) {
+    const li = document.createElement("li");
+    li.textContent = item.title;
+    if (item.details.length) {
+      const sub = document.createElement("ul");
+      for (const d of item.details) sub.appendChild(Object.assign(document.createElement("li"), { textContent: d }));
+      li.appendChild(sub);
+    }
+    list.appendChild(li);
+  }
+  box.append(title, list);
+  return box;
+}
+
+function renderNews(current) {
+  if (!CHANGELOG.length) return $("news").classList.add("hidden");
+  const mine = CHANGELOG.find((v) => v.version === current) ?? CHANGELOG[0];
+  $("news-latest").replaceChildren(newsBlock(mine, current));
+  $("news-all").replaceChildren(...CHANGELOG.filter((v) => v !== mine).map((v) => newsBlock(v, current)));
+  let seen = null;
+  try {
+    seen = localStorage.getItem("boofer.seenVersion");
+    localStorage.setItem("boofer.seenVersion", current);
+  } catch {}
+  if (seen && seen !== current) {
+    $("news-badge").classList.remove("hidden");
+    setTimeout(() => $("news").scrollIntoView({ behavior: "smooth", block: "center" }), 400);
+  }
+}
 window.addEventListener("focus", () => {
   renderHistory();
   if (page === "models") usage.refresh();

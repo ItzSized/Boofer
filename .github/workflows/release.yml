@@ -20,6 +20,9 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The whole history and the tags: the release notes are written from the commits.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -34,6 +37,17 @@ jobs:
 
       - run: npm ci
 
+      # « Nouveautés » of this version, from the commits since the last release (scripts/changelog.mjs).
+      - name: Release notes
+        id: notes
+        shell: bash
+        run: |
+          {
+            echo "body<<BOOFER_NOTES_END"
+            node scripts/changelog.mjs --notes
+            echo "BOOFER_NOTES_END"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Build and publish the installers
         uses: tauri-apps/tauri-action@v0
         env:
@@ -44,15 +58,24 @@ jobs:
         with:
           tagName: v__VERSION__
           releaseName: "Boofer v__VERSION__"
+          # Also the « notes » of latest.json, shown in the app before an update.
           releaseBody: |
+            ## ✨ Nouveautés
+            ${{ steps.notes.outputs.body }}
+
+            Tout l'historique : [CHANGELOG.md](https://github.com/ItzSized/Boofer/blob/main/CHANGELOG.md), ou Réglages → Nouveautés dans l'appli.
+
+            ---
             **Windows 10 / 11**, au choix :
-            - `Boofer_x.y.z_x64_en-US.msi` : installeur classique (recommandé)
-            - `Boofer_x.y.z_x64-setup.exe` : installeur léger
+            - `Boofer_x.y.z_x64-setup.exe` : installeur (recommandé), sans droits administrateur
+            - `Boofer_x.y.z_x64_en-US.msi` : installeur MSI, pour tout le PC
             - `Boofer.exe` : version portable, rien à installer, double-clic et c'est parti
 
             Les installeurs ajoutent WebView2 s'il manque. Rien d'autre à installer : ni Node, ni Rust.
             Déjà installé ? Boofer se met à jour tout seul (Réglages → Rechercher des mises à jour).
             Pour Claude Code : Réglages → Claude Code → Connecter.
+          # Copies that don't say how they were installed update with the setup.exe (per user, no admin).
+          updaterJsonPreferNsis: true
           releaseDraft: false
           prerelease: false
 
