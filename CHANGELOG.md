@@ -2,8 +2,13 @@
 
 Written automatically from the git history at every build.
 
-## 0.3.9 · 2026-11-02
+## 0.4.0 · 2026-11-03
 
+- Boofer speaks English: the ghost, the settings, the tray and the alerts
+  - Every text in the app is in English: bubble, cards, little phrases, settings, tray menu, notifications and the dangerous-command warnings.
+  - Costs are shown in dollars, at the official API prices.
+  - Numbers, dates and times use the English format.
+  - The release notes and the changelog are written in English too.
 - Changelog everywhere and a big-screen settings layout
   - Release notes are written from the commits and added to every GitHub release; CHANGELOG.md lists every version.
   - Settings → What's new: your version's changes, all the previous ones, highlighted right after an update.
@@ -16,6 +21,9 @@ Written automatically from the git history at every build.
 - Updates no longer lose the app after the Booffer → Boofer rename
   - An update never creates shortcuts, and the old « Booffer » ones were removed: the new version was installed but impossible to find. The Start menu shortcut (and the desktop one if there was one) is now recreated at launch when missing.
   - The MSI upgrade code is pinned, so a future rename can't install a second copy.
+
+## 0.3.9 · 2026-11-02
+
 - Coût en € au prix API, alerte agent bloqué, semaine en graphique, mode stream, tenues de saison, sons au choix
 
 ## 0.3.8 · 2026-11-02
