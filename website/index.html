@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="fr" data-theme="dark" data-mode="website">
+<html lang="en" data-theme="dark" data-mode="website">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="/favicon.png" />
-  <title>Boodev 👻 — Le compagnon IA de bureau pour Antigravity, Claude Code &amp; Codex</title>
+  <title>Boodev 👻 — The desktop AI companion for Antigravity, Claude Code &amp; Codex</title>
   <meta name="description"
-    content="Boodev (Boofer) est un petit fantôme de bureau ultra-léger en Rust & Tauri 2 qui suit en direct tes agents IA (Antigravity Gemini 4 Argon, f3.8, Flash, Claude Code, Codex) sur Windows, macOS et Linux." />
+    content="Boodev (Boofer) is a tiny, ultra-light desktop ghost built with Rust & Tauri 2 that follows your AI agents live (Antigravity Gemini 4 Argon, f3.8, Flash, Claude Code, Codex) on Windows, macOS and Linux." />
 </head>
 
 <body class="bg-grid selection:bg-violet-500 selection:text-white">
@@ -33,30 +33,30 @@
               v0.1.0 · Boofer
             </span>
           </div>
-          <p class="text-[11px] text-zinc-500 dark:text-zinc-400">Compagnon IA Desktop</p>
+          <p class="text-[11px] text-zinc-500 dark:text-zinc-400">Desktop AI companion</p>
         </div>
       </a>
 
       <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-zinc-600 dark:text-zinc-300">
-        <a href="#demo" class="hover:text-violet-500 dark:hover:text-violet-400 transition-colors">Démo live</a>
+        <a href="#demo" class="hover:text-violet-500 dark:hover:text-violet-400 transition-colors">Live demo</a>
         <a href="#features"
-          class="hover:text-violet-500 dark:hover:text-violet-400 transition-colors">Fonctionnalités</a>
+          class="hover:text-violet-500 dark:hover:text-violet-400 transition-colors">Features</a>
         <a href="#agents" class="hover:text-violet-500 dark:hover:text-violet-400 transition-colors">Agents &amp;
-          Modèles</a>
+          Models</a>
         <a href="#customizer" class="hover:text-violet-500 dark:hover:text-violet-400 transition-colors">Skins</a>
-        <a href="#analytics" class="hover:text-violet-500 dark:hover:text-violet-400 transition-colors">Consommation
-          IA</a>
-        <a href="#downloads" class="hover:text-violet-500 dark:hover:text-violet-400 transition-colors">Télécharger</a>
+        <a href="#analytics" class="hover:text-violet-500 dark:hover:text-violet-400 transition-colors">AI
+          usage</a>
+        <a href="#downloads" class="hover:text-violet-500 dark:hover:text-violet-400 transition-colors">Download</a>
       </nav>
 
       <div class="flex items-center gap-2.5">
-        <button id="theme-btn" title="Changer de thème"
+        <button id="theme-btn" title="Change theme"
           class="rounded-xl bg-zinc-100 dark:bg-zinc-900 px-3 py-2 text-xs font-medium text-zinc-700 dark:text-zinc-300 ring-1 ring-black/5 dark:ring-white/10 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition">
-          ☀️ Clair
+          ☀️ Light
         </button>
         <a href="#downloads" id="nav-download-cta"
           class="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-violet-600/25 hover:from-violet-500 hover:to-indigo-500 transition">
-          ⬇ Télécharger
+          ⬇ Download
         </a>
       </div>
     </div>
@@ -76,18 +76,17 @@
 
           <h1
             class="text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white sm:text-5xl lg:text-[54px] lg:leading-[1.1]">
-            Le petit fantôme qui veille sur tes
+            The little ghost that watches over your
             <span class="bg-gradient-to-r from-violet-500 via-blue-500 to-fuchsia-500 bg-clip-text text-transparent">
-              agents IA
+              AI agents
             </span>
-            pendant qu'ils codent.
+            while they code.
           </h1>
 
           <p class="text-base sm:text-lg leading-relaxed text-zinc-600 dark:text-zinc-300">
-            <strong>Boodev</strong> vit discrètement au coin de ton éditeur. Il t'affiche en direct ce que fait
-            <strong>Antigravity</strong> ou <strong>Claude Code</strong>, estime le temps restant, te permet d'approuver
-            les
-            commandes sans changer de fenêtre, et fait <em>ding ✨</em> quand c'est terminé.
+            <strong>Boodev</strong> lives quietly in the corner of your editor. It shows you live what
+            <strong>Antigravity</strong> or <strong>Claude Code</strong> is doing, estimates the time left, lets you approve
+            commands without switching windows, and goes <em>ding ✨</em> when it's done.
           </p>
 
           <!-- Primary Download Buttons (OS Aware) -->
@@ -97,8 +96,8 @@
                 class="inline-flex items-center gap-3 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 px-6 py-4 text-sm font-bold text-white shadow-xl shadow-violet-600/30 hover:scale-[1.02] active:scale-[0.99] transition">
                 <span id="hero-dl-icon" class="text-lg">🪟</span>
                 <div class="text-left">
-                  <div id="hero-dl-title">Télécharger pour Windows</div>
-                  <div id="hero-dl-sub" class="text-[11px] font-normal text-violet-100">Installeur .exe (x64 · 3,0 Mo) +
+                  <div id="hero-dl-title">Download for Windows</div>
+                  <div id="hero-dl-sub" class="text-[11px] font-normal text-violet-100">.exe installer (x64 · 3.0 MB) +
                     Portable</div>
                 </div>
               </a>
@@ -114,9 +113,9 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
-              <span>⚡ <strong>Rust + Tauri 2</strong> (~12 Mo)</span>
-              <span>🔒 <strong>100% Local</strong> (0 télémétrie)</span>
-              <span>🎯 <strong>Click-through</strong> (ne gêne jamais)</span>
+              <span>⚡ <strong>Rust + Tauri 2</strong> (~12 MB)</span>
+              <span>🔒 <strong>100% Local</strong> (zero telemetry)</span>
+              <span>🎯 <strong>Click-through</strong> (never in the way)</span>
               <span>🆓 <strong>Open Source</strong></span>
             </div>
           </div>
@@ -137,7 +136,7 @@
               </div>
               <span
                 class="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-300 ring-1 ring-emerald-500/30">
-                ● Interactif : bouge ta souris &amp; clique sur le fantôme !
+                ● Interactive: move your mouse &amp; click the ghost!
               </span>
             </div>
 
@@ -148,7 +147,7 @@
               <div class="space-y-1.5 text-zinc-500 select-none pointer-events-none">
                 <p><span class="text-violet-400">use</span> tauri::{AppHandle, Emitter, Manager};</p>
                 <p><span class="text-violet-400">use</span> crate::usage::{clean_antigravity_model, model_usage};</p>
-                <p class="text-zinc-600">// Suivi en direct des sessions Antigravity &amp; Claude Code</p>
+                <p class="text-zinc-600">// Live tracking of Antigravity &amp; Claude Code sessions</p>
                 <p><span class="text-blue-400">pub fn</span> <span class="text-amber-300">start_watcher</span>(app:
                   AppHandle) {</p>
                 <p class="pl-4">let model = <span class="text-emerald-400">"Gemini 4 Argon (f3.8)"</span>;</p>
@@ -159,7 +158,7 @@
                   class="mt-4 rounded-xl bg-zinc-900/90 p-3 text-[11px] text-zinc-300 ring-1 ring-white/10">
                   <div class="text-zinc-500">$ antigravity --model "Gemini 4 Argon (f3.8)"</div>
                   <div id="sim-terminal-line" class="mt-1 text-blue-400">
-                    ▸ Analyse du dépôt et compilation multi-plateforme en cours…
+                    ▸ Reading the repository and building for every platform…
                   </div>
                 </div>
               </div>
@@ -173,7 +172,7 @@
                   </div>
                   <div id="hero-ghost" data-state="tool" data-skin="classique" data-accessory="couronne"
                     style="--agent: #4285F4" class="mascot site-hero cursor-pointer select-none"
-                    title="Clique-moi pour me caresser !"></div>
+                    title="Click me to pet me!"></div>
                   <div id="hero-fx" class="pointer-events-none absolute inset-0"></div>
                 </div>
 
@@ -203,11 +202,11 @@
                     <span id="sim-pct" class="ml-auto shrink-0 font-semibold tabular-nums text-zinc-200">68%</span>
                   </div>
                   <div id="sim-prompt" class="truncate pl-3.5 text-[11px] italic leading-4 text-zinc-400">
-                    « Ajoute Antigravity Gemini 4 Argon &amp; f3.8 »
+                    “Add Antigravity Gemini 4 Argon &amp; f3.8”
                   </div>
                   <div id="sim-step-box" class="pl-3.5 mt-0.5">
                     <div class="flex items-center gap-1 text-[10px] leading-4">
-                      <span id="sim-step-name" class="truncate text-zinc-300">Étape 2/3 · Intègre usage.rs</span>
+                      <span id="sim-step-name" class="truncate text-zinc-300">Step 2/3 · Wiring usage.rs</span>
                       <span id="sim-step-pct"
                         class="ml-auto shrink-0 font-semibold tabular-nums text-zinc-300">80%</span>
                     </div>
@@ -218,10 +217,10 @@
                     </div>
                   </div>
                   <div id="sim-label" class="truncate pl-3.5 mt-0.5 text-[11px] font-medium leading-4 text-zinc-200">
-                    ▸ Modifie src-tauri/src/usage.rs
+                    ▸ Editing src-tauri/src/usage.rs
                   </div>
                   <div id="sim-meta" class="truncate pl-3.5 text-[10px] leading-4 text-zinc-400">
-                    ⏱ 34 s · reste ≈ 15 s · 9 actions · 4 fichiers
+                    ⏱ 34 s · ≈ 15 s left · 9 actions · 4 files
                   </div>
                   <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-zinc-800">
                     <div id="sim-bar" class="h-full rounded-full bg-blue-500 transition-[width] duration-500"
@@ -236,17 +235,17 @@
                     <span class="size-2 shrink-0 rounded-full bg-orange-400"></span>
                     <span class="truncate font-semibold text-zinc-100">Claude Code · Claudio</span>
                   </div>
-                  <div class="mt-0.5 text-zinc-400">veut lancer : Compile l'installeur</div>
+                  <div class="mt-0.5 text-zinc-400">wants to run: Build the installer</div>
                   <div class="mt-1 rounded-lg bg-zinc-800 px-2 py-1 font-mono text-[10px] text-amber-200">
                     npm run tauri build
                   </div>
                   <div class="mt-2 grid grid-cols-3 gap-1">
                     <button data-sim-decision="allow"
-                      class="rounded-lg bg-emerald-500 py-1 font-semibold text-white hover:bg-emerald-600 cursor-pointer">Autoriser</button>
+                      class="rounded-lg bg-emerald-500 py-1 font-semibold text-white hover:bg-emerald-600 cursor-pointer">Allow</button>
                     <button data-sim-decision="always"
-                      class="rounded-lg bg-emerald-950 py-1 font-semibold text-emerald-300 hover:bg-emerald-900 cursor-pointer">Toujours</button>
+                      class="rounded-lg bg-emerald-950 py-1 font-semibold text-emerald-300 hover:bg-emerald-900 cursor-pointer">Always</button>
                     <button data-sim-decision="deny"
-                      class="rounded-lg bg-rose-950 py-1 font-semibold text-rose-300 hover:bg-rose-900 cursor-pointer">Refuser</button>
+                      class="rounded-lg bg-rose-950 py-1 font-semibold text-rose-300 hover:bg-rose-900 cursor-pointer">Deny</button>
                   </div>
                 </div>
               </div>
@@ -254,7 +253,7 @@
 
             <!-- Simulator Interactive Control Bar -->
             <div class="mt-3 flex flex-wrap items-center gap-1.5">
-              <span class="text-[11px] font-medium text-zinc-400 mr-1">Simuler en direct :</span>
+              <span class="text-[11px] font-medium text-zinc-400 mr-1">Simulate live:</span>
               <button data-sim-action="argon"
                 class="sim-btn pill-active rounded-xl px-2.5 py-1.5 text-[11px] font-semibold cursor-pointer transition">
                 🔵 Gemini 4 Argon (f3.8)
@@ -269,15 +268,15 @@
               </button>
               <button data-sim-action="permission"
                 class="sim-btn rounded-xl bg-zinc-800 px-2.5 py-1.5 text-[11px] font-medium text-amber-300 hover:bg-zinc-700 cursor-pointer transition">
-                🔐 Demande Permission
+                🔐 Permission request
               </button>
               <button data-sim-action="done"
                 class="sim-btn rounded-xl bg-zinc-800 px-2.5 py-1.5 text-[11px] font-medium text-emerald-300 hover:bg-zinc-700 cursor-pointer transition">
-                ✨ Fin de tâche (Ding !)
+                ✨ Task done (Ding!)
               </button>
               <button data-sim-action="sleep"
                 class="sim-btn rounded-xl bg-zinc-800 px-2.5 py-1.5 text-[11px] font-medium text-zinc-300 hover:bg-zinc-700 cursor-pointer transition">
-                💤 Dodo
+                💤 Sleep
               </button>
             </div>
           </div>
@@ -288,12 +287,12 @@
     <!-- FEATURES BENTO GRID -->
     <section id="features" class="py-14 border-t border-zinc-200/70 dark:border-white/10">
       <div class="text-center max-w-2xl mx-auto mb-10">
-        <p class="text-xs font-semibold uppercase tracking-widest text-violet-500">Pourquoi Boodev ?</p>
+        <p class="text-xs font-semibold uppercase tracking-widest text-violet-500">Why Boodev?</p>
         <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
-          Tout ce que font tes agents IA, en un coup d'œil.
+          Everything your AI agents do, at a glance.
         </h2>
         <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          Fini les allers-retours entre 4 fenêtres de terminal et ton IDE pour savoir si ton agent a fini ou attend une
+          No more jumping between 4 terminal windows and your IDE to know whether your agent is done or waiting for a
           confirmation.
         </p>
       </div>
@@ -301,46 +300,46 @@
       <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <div class="rounded-2xl bg-white dark:bg-zinc-900/80 p-6 ring-1 ring-black/5 dark:ring-white/10">
           <div class="inline-flex size-10 items-center justify-center rounded-xl bg-blue-500/15 text-lg">📊</div>
-          <h3 class="mt-4 text-base font-bold text-zinc-900 dark:text-white">Progression &amp; Temps restant</h3>
+          <h3 class="mt-4 text-base font-bold text-zinc-900 dark:text-white">Progress &amp; time left</h3>
           <p class="mt-1.5 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-            Affiche le projet, ta demande initiale, l'étape en cours (« Étape 2/5 · Écrit les tests — 70 % »), le nombre
-            d'actions, les fichiers modifiés et une estimation intelligente du temps restant.
+            Shows the project, your initial request, the current step ("Step 2/5 · Writing the tests — 70%"), the number
+            of actions, the changed files and a smart estimate of the time left.
           </p>
         </div>
 
         <div class="rounded-2xl bg-white dark:bg-zinc-900/80 p-6 ring-1 ring-black/5 dark:ring-white/10">
           <div class="inline-flex size-10 items-center justify-center rounded-xl bg-emerald-500/15 text-lg">🔐</div>
-          <h3 class="mt-4 text-base font-bold text-zinc-900 dark:text-white">Approbations sans changer d'écran</h3>
+          <h3 class="mt-4 text-base font-bold text-zinc-900 dark:text-white">Approvals without switching screens</h3>
           <p class="mt-1.5 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-            Quand Claude Code demande la permission de lancer une commande ou d'éditer un fichier, une carte apparaît
-            sous le fantôme avec <strong>Autoriser / Toujours / Refuser</strong>.
+            When Claude Code asks for permission to run a command or edit a file, a card appears
+            under the ghost with <strong>Allow / Always / Deny</strong>.
           </p>
         </div>
 
         <div class="rounded-2xl bg-white dark:bg-zinc-900/80 p-6 ring-1 ring-black/5 dark:ring-white/10">
           <div class="inline-flex size-10 items-center justify-center rounded-xl bg-violet-500/15 text-lg">🪟</div>
-          <h3 class="mt-4 text-base font-bold text-zinc-900 dark:text-white">Multi-sessions &amp; Suivi de fenêtre</h3>
+          <h3 class="mt-4 text-base font-bold text-zinc-900 dark:text-white">Multi-session &amp; window tracking</h3>
           <p class="mt-1.5 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-            Chaque session a sa propre couleur et son onglet. Boodev détecte automatiquement le projet ouvert dans la
-            fenêtre au premier plan (Antigravity, VS Code, Cursor, Windsurf).
+            Each session has its own color and tab. Boodev automatically detects the project open in the
+            window in front (Antigravity, VS Code, Cursor, Windsurf).
           </p>
         </div>
 
         <div class="rounded-2xl bg-white dark:bg-zinc-900/80 p-6 ring-1 ring-black/5 dark:ring-white/10">
           <div class="inline-flex size-10 items-center justify-center rounded-xl bg-pink-500/15 text-lg">👀</div>
-          <h3 class="mt-4 text-base font-bold text-zinc-900 dark:text-white">Un vrai compagnon vivant</h3>
+          <h3 class="mt-4 text-base font-bold text-zinc-900 dark:text-white">A real living companion</h3>
           <p class="mt-1.5 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-            Ses yeux suivent ton curseur, il fait coucou au survol, adore les caresses (avec petits cœurs et rires),
-            peut suivre ta souris sur l'écran et s'endort quand tu fais une pause.
+            Its eyes follow your cursor, it waves on hover, loves being petted (with little hearts and giggles),
+            can follow your mouse around the screen and falls asleep when you take a break.
           </p>
         </div>
 
         <div class="rounded-2xl bg-white dark:bg-zinc-900/80 p-6 ring-1 ring-black/5 dark:ring-white/10">
           <div class="inline-flex size-10 items-center justify-center rounded-xl bg-amber-500/15 text-lg">🔔</div>
-          <h3 class="mt-4 text-base font-bold text-zinc-900 dark:text-white">Sons Web Audio &amp; Mode Nuit</h3>
+          <h3 class="mt-4 text-base font-bold text-zinc-900 dark:text-white">Web Audio sounds &amp; night mode</h3>
           <p class="mt-1.5 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-            Sons synthétisés en temps réel en Web Audio (arpège de fin, alerte douce, petits rires) sans aucun fichier
-            MP3 lourd, et mode « Ne pas déranger » en un clic.
+            Sounds synthesized in real time with Web Audio (done arpeggio, soft alert, little giggles) without any heavy
+            MP3 file, and a one-click "Do not disturb" mode.
           </p>
         </div>
 
@@ -348,8 +347,8 @@
           <div class="inline-flex size-10 items-center justify-center rounded-xl bg-cyan-500/15 text-lg">👻</div>
           <h3 class="mt-4 text-base font-bold text-zinc-900 dark:text-white">Transparent &amp; Click-Through</h3>
           <p class="mt-1.5 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-            Les clics traversent toutes les zones transparentes autour du fantôme : tu peux cliquer et sélectionner ton
-            code juste à côté de lui sans jamais être bloqué.
+            Clicks go through every transparent area around the ghost: you can click and select your
+            code right next to it without ever being blocked.
           </p>
         </div>
       </div>
@@ -358,12 +357,12 @@
     <!-- AGENTS & MODELS SECTION -->
     <section id="agents" class="py-14 border-t border-zinc-200/70 dark:border-white/10">
       <div class="text-center max-w-2xl mx-auto mb-10">
-        <p class="text-xs font-semibold uppercase tracking-widest text-blue-500">Écosystème IA</p>
+        <p class="text-xs font-semibold uppercase tracking-widest text-blue-500">AI ecosystem</p>
         <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
-          Intégration native avec Antigravity, Claude Code &amp; Codex
+          Native integration with Antigravity, Claude Code &amp; Codex
         </h2>
         <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          Boodev reconnaît automatiquement les derniers modèles d'Antigravity 2.0, d'Anthropic et d'OpenAI.
+          Boodev automatically recognizes the latest models from Antigravity 2.0, Anthropic and OpenAI.
         </p>
       </div>
 
@@ -378,16 +377,16 @@
             </div>
             <span
               class="rounded-full bg-blue-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-blue-600 dark:text-blue-300">
-              Auto-détecté
+              Auto-detected
             </span>
           </div>
           <p class="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
-            Surveillance en direct des transcripts (<code
-              class="rounded bg-black/5 dark:bg-white/10 px-1">~/.gemini/antigravity/brain</code>) et des bases SQLite
-            locales sans aucune configuration requise.
+            Live watching of the transcripts (<code
+              class="rounded bg-black/5 dark:bg-white/10 px-1">~/.gemini/antigravity/brain</code>) and the local SQLite
+            databases, with no setup needed.
           </p>
           <div class="mt-4 space-y-2">
-            <p class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Modèles pris en charge :</p>
+            <p class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Supported models:</p>
             <div class="flex flex-wrap gap-1.5">
               <span
                 class="rounded-xl bg-blue-500/15 px-2.5 py-1 text-xs font-semibold text-blue-600 dark:text-blue-300 ring-1 ring-blue-500/30">
@@ -395,7 +394,7 @@
               </span>
               <span
                 class="rounded-xl bg-blue-500/15 px-2.5 py-1 text-xs font-semibold text-blue-600 dark:text-blue-300 ring-1 ring-blue-500/30">
-                ✦ Modèle interne f3.8
+                ✦ Internal model f3.8
               </span>
               <span
                 class="rounded-xl bg-blue-500/15 px-2.5 py-1 text-xs font-semibold text-blue-600 dark:text-blue-300 ring-1 ring-blue-500/30">
@@ -421,16 +420,16 @@
             </div>
             <span
               class="rounded-full bg-orange-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-orange-600 dark:text-orange-300">
-              Hooks 1-clic
+              1-click hooks
             </span>
           </div>
           <p class="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
-            Installation automatique des hooks dans <code
-              class="rounded bg-black/5 dark:bg-white/10 px-1">~/.claude/settings.json</code> avec sauvegarde, suivi des
-            sous-agents, TodoWrite et carte de permissions.
+            Automatic hook installation in <code
+              class="rounded bg-black/5 dark:bg-white/10 px-1">~/.claude/settings.json</code> with a backup, tracking of
+            subagents, TodoWrite and a permission card.
           </p>
           <div class="mt-4 space-y-2">
-            <p class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Modèles pris en charge :</p>
+            <p class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Supported models:</p>
             <div class="flex flex-wrap gap-1.5">
               <span
                 class="rounded-xl bg-orange-500/15 px-2.5 py-1 text-xs font-semibold text-orange-600 dark:text-orange-300 ring-1 ring-orange-500/30">
@@ -454,7 +453,7 @@
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <span class="size-3 rounded-full bg-emerald-500"></span>
-              <h3 class="text-lg font-bold text-zinc-900 dark:text-white">Codex CLI &amp; API Ouverte</h3>
+              <h3 class="text-lg font-bold text-zinc-900 dark:text-white">Codex CLI &amp; open API</h3>
             </div>
             <span
               class="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-300">
@@ -462,13 +461,13 @@
             </span>
           </div>
           <p class="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
-            Décodage natif des sessions compressées <code
-              class="rounded bg-black/5 dark:bg-white/10 px-1">~/.codex/sessions/*.jsonl.zst</code> avec suivi des
-            quotas de plan et serveur HTTP local sur le port <code
+            Native decoding of the compressed sessions <code
+              class="rounded bg-black/5 dark:bg-white/10 px-1">~/.codex/sessions/*.jsonl.zst</code> with tracking of
+            plan quotas and a local HTTP server on port <code
               class="rounded bg-black/5 dark:bg-white/10 px-1">47823</code>.
           </p>
           <div class="mt-4 space-y-2">
-            <p class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Outils &amp; Intégrations :</p>
+            <p class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Tools &amp; integrations:</p>
             <div class="flex flex-wrap gap-1.5">
               <span
                 class="rounded-xl bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-300 ring-1 ring-emerald-500/30">
@@ -496,32 +495,32 @@
           <div id="customizer-ghost" data-state="idle" data-skin="classique" data-accessory="couronne"
             class="mascot site-customizer cursor-pointer"></div>
           <p id="customizer-caption" class="mt-4 text-sm font-bold text-zinc-800 dark:text-zinc-100">
-            Skin Classique · 👑 Couronne
+            Skin Classic · 👑 Crown
           </p>
           <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            Clique sur un skin ou un accessoire pour l'essayer en direct
+            Click a skin or an accessory to try it live
           </p>
         </div>
 
         <div class="lg:col-span-7 space-y-6">
           <div>
-            <p class="text-xs font-semibold uppercase tracking-widest text-violet-500">Personnalisation</p>
+            <p class="text-xs font-semibold uppercase tracking-widest text-violet-500">Customization</p>
             <h2 class="mt-1 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
-              8 Skins &amp; 6 Accessoires inclus
+              8 skins &amp; 6 accessories included
             </h2>
             <p class="mt-1.5 text-sm text-zinc-600 dark:text-zinc-400">
-              Change son apparence à tout moment depuis les réglages : tout s'applique instantanément sans relancer
-              l'application.
+              Change its look any time from the settings: everything applies instantly, no restart
+              needed.
             </p>
           </div>
 
           <div>
-            <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">Choisir un Skin :</p>
+            <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">Pick a skin:</p>
             <div id="site-skins" class="grid grid-cols-4 sm:grid-cols-8 gap-2"></div>
           </div>
 
           <div>
-            <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">Choisir un Accessoire :</p>
+            <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">Pick an accessory:</p>
             <div id="site-accessories" class="flex flex-wrap gap-2"></div>
           </div>
         </div>
@@ -532,30 +531,30 @@
     <section id="analytics" class="py-14 border-t border-zinc-200/70 dark:border-white/10">
       <div class="grid items-center gap-10 lg:grid-cols-12">
         <div class="lg:col-span-5 space-y-4">
-          <p class="text-xs font-semibold uppercase tracking-widest text-fuchsia-500">Tableau de bord local</p>
+          <p class="text-xs font-semibold uppercase tracking-widest text-fuchsia-500">Local dashboard</p>
           <h2 class="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
-            Suis ta consommation de tokens par modèle IA.
+            Track your token usage per AI model.
           </h2>
           <p class="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-            Boodev analyse directement les fichiers locaux de ta machine (<code
+            Boodev reads the local files on your machine directly (<code
               class="rounded bg-black/5 dark:bg-white/10 px-1">~/.gemini/antigravity</code>, <code
               class="rounded bg-black/5 dark:bg-white/10 px-1">~/.claude</code>, <code
-              class="rounded bg-black/5 dark:bg-white/10 px-1">~/.codex</code>) avec un cache incrémental ultra-rapide
-            en Rust (&lt; 1 ms).
+              class="rounded bg-black/5 dark:bg-white/10 px-1">~/.codex</code>) with an ultra-fast incremental cache
+            in Rust (&lt; 1 ms).
           </p>
           <ul class="space-y-2 text-xs text-zinc-600 dark:text-zinc-300">
             <li class="flex items-center gap-2">
               <span class="text-emerald-500 font-bold">✓</span>
-              Détection de <strong>Gemini 4 Argon (f3.8)</strong>, <strong>Gemini 3.8 Flash</strong>, <strong>3.5
+              Detects <strong>Gemini 4 Argon (f3.8)</strong>, <strong>Gemini 3.8 Flash</strong>, <strong>3.5
                 Flash</strong> &amp; <strong>2.5 Pro</strong>
             </li>
             <li class="flex items-center gap-2">
               <span class="text-emerald-500 font-bold">✓</span>
-              Comptage précis des appels, tokens d'entrée (avec cache) et tokens de sortie
+              Precise count of calls, input tokens (with cache) and output tokens
             </li>
             <li class="flex items-center gap-2">
               <span class="text-emerald-500 font-bold">✓</span>
-              Aucune clé API requise, rien ne quitte jamais ton PC
+              No API key needed, nothing ever leaves your PC
             </li>
           </ul>
         </div>
@@ -565,35 +564,35 @@
             <div
               class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-zinc-100 dark:border-zinc-800">
               <div>
-                <h3 class="text-sm font-bold text-zinc-900 dark:text-white">Modèles &amp; consommation IA</h3>
-                <p class="text-[11px] text-zinc-500 dark:text-zinc-400">Aperçu interactif du panneau des réglages</p>
+                <h3 class="text-sm font-bold text-zinc-900 dark:text-white">Models &amp; AI usage</h3>
+                <p class="text-[11px] text-zinc-500 dark:text-zinc-400">Interactive preview of the settings panel</p>
               </div>
               <div class="flex gap-1">
                 <button data-site-range="today"
-                  class="site-range-btn rounded-lg px-2.5 py-1 text-xs ring-1 ring-black/10 dark:ring-white/15 cursor-pointer">Aujourd'hui</button>
+                  class="site-range-btn rounded-lg px-2.5 py-1 text-xs ring-1 ring-black/10 dark:ring-white/15 cursor-pointer">Today</button>
                 <button data-site-range="7d"
                   class="site-range-btn rounded-lg px-2.5 py-1 text-xs ring-1 ring-black/10 dark:ring-white/15 cursor-pointer">7
-                  j</button>
+                  d</button>
                 <button data-site-range="30d"
                   class="site-range-btn rounded-lg px-2.5 py-1 text-xs ring-1 ring-black/10 dark:ring-white/15 cursor-pointer">30
-                  j</button>
+                  d</button>
                 <button data-site-range="all"
-                  class="site-range-btn pill-active rounded-lg px-2.5 py-1 text-xs ring-1 ring-black/10 dark:ring-white/15 cursor-pointer">Tout</button>
+                  class="site-range-btn pill-active rounded-lg px-2.5 py-1 text-xs ring-1 ring-black/10 dark:ring-white/15 cursor-pointer">All</button>
               </div>
             </div>
 
             <div class="mt-4 grid grid-cols-3 gap-3 text-center">
               <div class="rounded-2xl bg-blue-50 dark:bg-blue-950/50 py-3">
                 <p id="site-stat-calls" class="text-xl font-extrabold text-blue-600 dark:text-blue-300">148</p>
-                <p class="text-[11px] text-zinc-500 dark:text-zinc-400">appels IA</p>
+                <p class="text-[11px] text-zinc-500 dark:text-zinc-400">AI calls</p>
               </div>
               <div class="rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 py-3">
-                <p id="site-stat-in" class="text-xl font-extrabold text-indigo-600 dark:text-indigo-300">2,4 M</p>
-                <p class="text-[11px] text-zinc-500 dark:text-zinc-400">tokens lus</p>
+                <p id="site-stat-in" class="text-xl font-extrabold text-indigo-600 dark:text-indigo-300">2.4M</p>
+                <p class="text-[11px] text-zinc-500 dark:text-zinc-400">tokens read</p>
               </div>
               <div class="rounded-2xl bg-fuchsia-50 dark:bg-fuchsia-950/50 py-3">
-                <p id="site-stat-out" class="text-xl font-extrabold text-fuchsia-600 dark:text-fuchsia-300">142,8 k</p>
-                <p class="text-[11px] text-zinc-500 dark:text-zinc-400">tokens écrits</p>
+                <p id="site-stat-out" class="text-xl font-extrabold text-fuchsia-600 dark:text-fuchsia-300">142.8k</p>
+                <p class="text-[11px] text-zinc-500 dark:text-zinc-400">tokens written</p>
               </div>
             </div>
 
@@ -606,12 +605,12 @@
     <!-- MULTI-OS DOWNLOAD CENTER -->
     <section id="downloads" class="py-16 border-t border-zinc-200/70 dark:border-white/10">
       <div class="text-center max-w-2xl mx-auto mb-10">
-        <p class="text-xs font-semibold uppercase tracking-widest text-emerald-500">Téléchargement</p>
+        <p class="text-xs font-semibold uppercase tracking-widest text-emerald-500">Download</p>
         <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
-          Disponible pour Windows, macOS &amp; Linux
+          Available for Windows, macOS &amp; Linux
         </h2>
         <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          Choisis ta plateforme ci-dessous. Léger, rapide et sans dépendance lourde.
+          Pick your platform below. Light, fast and with no heavy dependency.
         </p>
       </div>
 
@@ -625,32 +624,32 @@
                 <span class="flex size-12 items-center justify-center rounded-2xl bg-violet-500/15 text-2xl">🪟</span>
                 <div>
                   <h3 class="text-lg font-bold text-zinc-900 dark:text-white">Windows 10 / 11</h3>
-                  <p class="text-xs text-zinc-500 dark:text-zinc-400">Architecture 64-bit (x86_64)</p>
+                  <p class="text-xs text-zinc-500 dark:text-zinc-400">64-bit architecture (x86_64)</p>
                 </div>
               </div>
               <span
                 class="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-300">
-                Prêt (.exe)
+                Ready (.exe)
               </span>
             </div>
 
             <ul class="mt-5 space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
-              <li>✓ Installeur NSIS rapide (<code class="rounded bg-black/5 dark:bg-white/10 px-1">setup.exe</code> ·
-                3,0 Mo)</li>
-              <li>✓ Exécutable portable autonome (<code
+              <li>✓ Fast NSIS installer (<code class="rounded bg-black/5 dark:bg-white/10 px-1">setup.exe</code> ·
+                3.0 MB)</li>
+              <li>✓ Standalone portable executable (<code
                   class="rounded bg-black/5 dark:bg-white/10 px-1">Boofer.exe</code>)</li>
-              <li>✓ Suivi natif des fenêtres Win32 &amp; démarrage automatique</li>
+              <li>✓ Native Win32 window tracking &amp; autostart</li>
             </ul>
           </div>
 
           <div class="mt-6 space-y-2.5">
             <a href="./downloads/Boofer_0.1.0_x64-setup.exe" download
               class="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3 text-xs font-bold text-white shadow-lg shadow-violet-600/25 hover:bg-violet-500 transition">
-              ⬇ Télécharger l'installeur Windows (.exe)
+              ⬇ Download the Windows installer (.exe)
             </a>
             <a href="./downloads/Boofer.exe" download
               class="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 px-4 py-2.5 text-xs font-semibold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition">
-              📦 Télécharger la version Portable (.exe)
+              📦 Download the portable version (.exe)
             </a>
           </div>
         </div>
@@ -674,10 +673,10 @@
             </div>
 
             <ul class="mt-5 space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
-              <li>✓ Fenêtre transparente native Cocoa (<code
+              <li>✓ Native transparent Cocoa window (<code
                   class="rounded bg-black/5 dark:bg-white/10 px-1">macOSPrivateApi</code>)</li>
-              <li>✓ Icône de barre des menus macOS &amp; LaunchAgent</li>
-              <li>✓ Binaire universel Apple Silicon (`aarch64`) &amp; Intel (`x86_64`)</li>
+              <li>✓ macOS menu bar icon &amp; LaunchAgent</li>
+              <li>✓ Universal binary for Apple Silicon (`aarch64`) &amp; Intel (`x86_64`)</li>
             </ul>
           </div>
 
@@ -685,12 +684,12 @@
             <a href="https://github.com/ItzSized/Boofer/releases/latest/download/Boofer_0.1.0_aarch64.dmg"
               target="_blank" rel="noopener"
               class="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-xs font-bold text-white shadow-lg shadow-blue-600/25 hover:bg-blue-500 transition">
-              ⬇ Télécharger pour Mac Apple Silicon (.dmg)
+              ⬇ Download for Apple Silicon Macs (.dmg)
             </a>
             <a href="https://github.com/ItzSized/Boofer/releases/latest/download/Boofer_0.1.0_x64.dmg" target="_blank"
               rel="noopener"
               class="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 px-4 py-2.5 text-xs font-semibold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition">
-              🍎 Télécharger pour Mac Intel (.dmg)
+              🍎 Download for Intel Macs (.dmg)
             </a>
           </div>
         </div>
@@ -715,11 +714,11 @@
 
             <ul class="mt-5 space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
               <li>✓ Support WebKit2GTK 4.1 + AppIndicator tray</li>
-              <li>✓ Démarrage automatique XDG (<code
+              <li>✓ XDG autostart (<code
                   class="rounded bg-black/5 dark:bg-white/10 px-1">~/.config/autostart</code>)</li>
-              <li>✓ Paquets <code class="rounded bg-black/5 dark:bg-white/10 px-1">.AppImage</code>, <code
-                  class="rounded bg-black/5 dark:bg-white/10 px-1">.deb</code> et <code
-                  class="rounded bg-black/5 dark:bg-white/10 px-1">.rpm</code></li>
+              <li>✓ <code class="rounded bg-black/5 dark:bg-white/10 px-1">.AppImage</code>, <code
+                  class="rounded bg-black/5 dark:bg-white/10 px-1">.deb</code> and <code
+                  class="rounded bg-black/5 dark:bg-white/10 px-1">.rpm</code> packages</li>
             </ul>
           </div>
 
@@ -727,7 +726,7 @@
             <a href="https://github.com/ItzSized/Boofer/releases/latest/download/Boofer_0.1.0_amd64.AppImage"
               target="_blank" rel="noopener"
               class="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-xs font-bold text-zinc-950 shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition">
-              ⬇ Télécharger Linux (.AppImage)
+              ⬇ Download for Linux (.AppImage)
             </a>
             <div class="grid grid-cols-2 gap-2">
               <a href="https://github.com/ItzSized/Boofer/releases/latest/download/Boofer_0.1.0_amd64.deb"
@@ -749,13 +748,13 @@
       <div class="mt-8 rounded-3xl bg-zinc-900 text-zinc-200 p-6 ring-1 ring-white/10">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3 class="text-sm font-bold text-white">Compiler depuis les sources (Windows, macOS, Linux)</h3>
-            <p class="text-xs text-zinc-400">Nécessite Node.js 20+ et Rust stable. Le workflow GitHub Actions compile
-              aussi les 3 OS automatiquement.</p>
+            <h3 class="text-sm font-bold text-white">Build from source (Windows, macOS, Linux)</h3>
+            <p class="text-xs text-zinc-400">Requires Node.js 20+ and stable Rust. The GitHub Actions workflow also builds
+              for the 3 OSes automatically.</p>
           </div>
           <button id="copy-cli-btn"
             class="rounded-xl bg-white/10 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/20 cursor-pointer transition">
-            📋 Copier les commandes
+            📋 Copy the commands
           </button>
         </div>
         <pre id="cli-code"
@@ -771,12 +770,12 @@ npm run tauri build</pre>
   <footer
     class="mt-12 border-t border-zinc-200/80 dark:border-white/10 py-8 text-center text-xs text-zinc-500 dark:text-zinc-400">
     <div class="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <p><strong>Boodev</strong> (Boofer v0.1.0) · Créé avec Rust, Tauri 2, Tailwind CSS 4 &amp; Vite.</p>
+      <p><strong>Boodev</strong> (Boofer v0.1.0) · Made with Rust, Tauri 2, Tailwind CSS 4 &amp; Vite.</p>
       <div class="flex items-center gap-4">
         <a href="https://github.com/ItzSized/Boofer" target="_blank" rel="noopener"
           class="hover:text-violet-500">GitHub</a>
-        <a href="#downloads" class="hover:text-violet-500">Téléchargements</a>
-        <a href="#demo" class="hover:text-violet-500">Démo Interactive</a>
+        <a href="#downloads" class="hover:text-violet-500">Downloads</a>
+        <a href="#demo" class="hover:text-violet-500">Interactive demo</a>
       </div>
     </div>
   </footer>

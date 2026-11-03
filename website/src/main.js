@@ -27,7 +27,7 @@ export function initWebsite() {
   themeBtn.addEventListener("click", () => {
     theme = theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = theme;
-    themeBtn.textContent = theme === "dark" ? "☀️ Clair" : "🌙 Sombre";
+    themeBtn.textContent = theme === "dark" ? "☀️ Light" : "🌙 Dark";
   });
 
   // 3. Auto-detect visitor OS for primary download button
@@ -40,15 +40,15 @@ export function initWebsite() {
 
     if (ua.includes("mac")) {
       icon.textContent = "🍎";
-      title.textContent = "Télécharger pour macOS";
+      title.textContent = "Download for macOS";
       sub.textContent = "Apple Silicon (M1–M4) & Intel · .dmg";
       link.href = "https://github.com/ItzSized/Boofer/releases/latest/download/Boofer_0.1.0_aarch64.dmg";
       link.removeAttribute("download");
       $("dl-card-macos")?.classList.add("ring-2", "ring-blue-500");
     } else if (ua.includes("linux")) {
       icon.textContent = "🐧";
-      title.textContent = "Télécharger pour Linux";
-      sub.textContent = "AppImage universel, Ubuntu/Debian (.deb) & Fedora (.rpm)";
+      title.textContent = "Download for Linux";
+      sub.textContent = "Universal AppImage, Ubuntu/Debian (.deb) & Fedora (.rpm)";
       link.href = "https://github.com/ItzSized/Boofer/releases/latest/download/Boofer_0.1.0_amd64.AppImage";
       link.removeAttribute("download");
       $("dl-card-linux")?.classList.add("ring-2", "ring-amber-500");
@@ -87,7 +87,7 @@ export function initWebsite() {
     el.classList.remove("sleeping");
     mascotObj.flash("patted", 900);
     playPat();
-    const lines = ["Hihi ! ♥", "Ça chatouille !", "Encore ! 👻", "Boo ♥", "Prêt à coder !"];
+    const lines = ["Hehe! ♥", "That tickles!", "More! 👻", "Boo ♥", "Ready to code!"];
     sayHero(lines[Math.floor(Math.random() * lines.length)]);
 
     const fx = $("hero-fx");
@@ -114,43 +114,43 @@ export function initWebsite() {
       state: "tool",
       color: "#4285F4",
       windowTitle: "Antigravity IDE — Claudio · src-tauri/src/usage.rs",
-      terminal: "▸ [Gemini 4 Argon · f3.8] Analyse des transcripts et compilation en cours…",
+      terminal: "▸ [Gemini 4 Argon · f3.8] Reading the transcripts and building…",
       title: "Claudio · Antigravity · Gemini 4 Argon (f3.8)",
       pct: "68%",
-      prompt: "« Ajoute Antigravity Gemini 4 Argon & f3.8 »",
-      stepName: "Étape 2/3 · Intègre usage.rs",
+      prompt: "“Add Antigravity Gemini 4 Argon & f3.8”",
+      stepName: "Step 2/3 · Wiring usage.rs",
       stepPct: "80%",
-      label: "▸ Modifie src-tauri/src/usage.rs",
-      meta: "⏱ 34 s · reste ≈ 15 s · 9 actions · 4 fichiers",
-      speech: "Gemini 4 Argon carbure ! 🚀",
+      label: "▸ Editing src-tauri/src/usage.rs",
+      meta: "⏱ 34 s · ≈ 15 s left · 9 actions · 4 files",
+      speech: "Gemini 4 Argon is on fire! 🚀",
     },
     flash: {
       state: "streaming",
       color: "#38bdf8",
       windowTitle: "Antigravity IDE — Claudio · src/agents/antigravity.js",
-      terminal: "▸ [Gemini 3.8 Flash] Génération ultra-rapide de l'adaptateur temps réel…",
+      terminal: "▸ [Gemini 3.8 Flash] Generating the real-time adapter at full speed…",
       title: "Claudio · Antigravity · Gemini 3.8 Flash",
       pct: "84%",
-      prompt: "« Optimise le watcher temps réel »",
-      stepName: "Étape 3/3 · Vérifie les événements",
+      prompt: "“Optimize the real-time watcher”",
+      stepName: "Step 3/3 · Checking the events",
       stepPct: "90%",
-      label: "▸ Écrit src/agents/antigravity.js",
-      meta: "⏱ 9 s · reste ≈ 3 s · 6 actions · 2 fichiers",
-      speech: "Flash va à toute vitesse ⚡",
+      label: "▸ Writing src/agents/antigravity.js",
+      meta: "⏱ 9 s · ≈ 3 s left · 6 actions · 2 files",
+      speech: "Flash goes full speed ⚡",
     },
     claude: {
       state: "tool",
       color: "#D97757",
       windowTitle: "Cursor — api · src/server.ts",
-      terminal: "▸ [Claude Opus 4.6] Exécution de la suite de tests unitaires…",
+      terminal: "▸ [Claude Opus 4.6] Running the unit test suite…",
       title: "api · Claude Code · claude-opus-4-6",
       pct: "52%",
-      prompt: "« Sécurise les routes d'authentification »",
-      stepName: "Étape 2/4 · Ajoute les tests JWT",
+      prompt: "“Secure the authentication routes”",
+      stepName: "Step 2/4 · Adding the JWT tests",
       stepPct: "60%",
-      label: "▸ Lance : npm test",
-      meta: "⏱ 48 s · reste ≈ 40 s · 14 actions · 5 fichiers · 1 sous-agent",
-      speech: "Claude vérifie les tests 🧪",
+      label: "▸ Running: npm test",
+      meta: "⏱ 48 s · ≈ 40 s left · 14 actions · 5 files · 1 subagent",
+      speech: "Claude is checking the tests 🧪",
     },
   };
 
@@ -169,7 +169,7 @@ export function initWebsite() {
       $("sim-ask").classList.remove("hidden");
       $("sim-ask").classList.add("flex");
       playAttention();
-      sayHero("Psst… il a besoin de toi 🙏");
+      sayHero("Psst… it needs you 🙏");
       return;
     }
 
@@ -180,18 +180,18 @@ export function initWebsite() {
       $("sim-title").textContent = "Claudio a fini !";
       $("sim-pct").textContent = "✨";
       $("sim-step-box").classList.add("hidden");
-      $("sim-label").textContent = "Terminé en 28 s";
-      $("sim-meta").textContent = "12 actions · 5 fichiers modifiés";
+      $("sim-label").textContent = "Done in 28 s";
+      $("sim-meta").textContent = "12 actions · 5 files changed";
       $("sim-bar").style.width = "100%";
       $("sim-bar").style.background = "#4ade80";
-      sayHero("Tadaa ! Mission accomplie ✨");
+      sayHero("Ta-da! Mission accomplished ✨");
       return;
     }
 
     if (key === "sleep") {
       heroMascot.setState("idle", "#a78bfa");
       heroGhostEl.classList.add("sleeping");
-      sayHero("Zzz… petite sieste 🌙");
+      sayHero("Zzz… quick nap 🌙");
       return;
     }
 
@@ -227,10 +227,10 @@ export function initWebsite() {
     btn.addEventListener("click", () => {
       const decision = btn.dataset.simDecision;
       if (decision === "deny") {
-        sayHero("Commande refusée 🛑");
+        sayHero("Command denied 🛑");
         applyScenario("argon");
       } else {
-        sayHero("Autorisé ! C'est parti 🚀");
+        sayHero("Allowed! Here we go 🚀");
         applyScenario("done");
       }
     });
@@ -238,24 +238,24 @@ export function initWebsite() {
 
   // 7. Interactive Skins & Accessories Studio
   const SKINS = [
-    { id: "classique", name: "Classique" },
-    { id: "fraise", name: "Fraise" },
-    { id: "menthe", name: "Menthe" },
-    { id: "ciel", name: "Ciel" },
-    { id: "citrouille", name: "Citrouille" },
-    { id: "gelee", name: "Gelée" },
-    { id: "or", name: "Or" },
-    { id: "nuit", name: "Nuit" },
+    { id: "classique", name: "Classic" },
+    { id: "fraise", name: "Strawberry" },
+    { id: "menthe", name: "Mint" },
+    { id: "ciel", name: "Sky" },
+    { id: "citrouille", name: "Pumpkin" },
+    { id: "gelee", name: "Jelly" },
+    { id: "or", name: "Gold" },
+    { id: "nuit", name: "Night" },
   ];
 
   const ACCESSORIES = [
-    { id: "aucun", name: "Aucun" },
-    { id: "noeud", name: "🎀 Nœud" },
-    { id: "chapeau", name: "🎩 Chapeau" },
-    { id: "couronne", name: "👑 Couronne" },
-    { id: "casque", name: "🎧 Casque" },
-    { id: "pousse", name: "🌱 Pousse" },
-    { id: "lunettes", name: "👓 Lunettes" },
+    { id: "aucun", name: "None" },
+    { id: "noeud", name: "🎀 Bow" },
+    { id: "chapeau", name: "🎩 Hat" },
+    { id: "couronne", name: "👑 Crown" },
+    { id: "casque", name: "🎧 Headphones" },
+    { id: "pousse", name: "🌱 Sprout" },
+    { id: "lunettes", name: "👓 Glasses" },
   ];
 
   let chosenSkin = "classique";
@@ -322,39 +322,39 @@ export function initWebsite() {
   // 8. Interactive Model Usage Dashboard Preview
   const USAGE_DATA = {
     today: [
-      { tool: "Antigravity", color: "#4285F4", model: "Gemini 4 Argon (f3.8)", calls: 38, input: "612,4 k", output: "34,2 k", pct: 100 },
-      { tool: "Antigravity", color: "#38bdf8", model: "Gemini 3.8 Flash", calls: 19, input: "204,0 k", output: "15,8 k", pct: 50 },
-      { tool: "Claude Code", color: "#D97757", model: "claude-opus-4-6", calls: 14, input: "310,2 k", output: "18,4 k", pct: 37 },
-      { tool: "Antigravity", color: "#60a5fa", model: "Gemini 3.5 Flash", calls: 9, input: "98,5 k", output: "7,1 k", pct: 24 },
+      { tool: "Antigravity", color: "#4285F4", model: "Gemini 4 Argon (f3.8)", calls: 38, input: "612.4k", output: "34.2k", pct: 100 },
+      { tool: "Antigravity", color: "#38bdf8", model: "Gemini 3.8 Flash", calls: 19, input: "204.0k", output: "15.8k", pct: 50 },
+      { tool: "Claude Code", color: "#D97757", model: "claude-opus-4-6", calls: 14, input: "310.2k", output: "18.4k", pct: 37 },
+      { tool: "Antigravity", color: "#60a5fa", model: "Gemini 3.5 Flash", calls: 9, input: "98.5k", output: "7.1k", pct: 24 },
     ],
     "7d": [
-      { tool: "Antigravity", color: "#4285F4", model: "Gemini 4 Argon (f3.8)", calls: 94, input: "1,5 M", output: "86,0 k", pct: 100 },
-      { tool: "Claude Code", color: "#D97757", model: "claude-opus-4-6", calls: 62, input: "1,2 M", output: "64,5 k", pct: 66 },
-      { tool: "Antigravity", color: "#38bdf8", model: "Gemini 3.8 Flash", calls: 47, input: "520,0 k", output: "39,2 k", pct: 50 },
-      { tool: "Antigravity", color: "#60a5fa", model: "Gemini 3.5 Flash", calls: 31, input: "340,0 k", output: "22,9 k", pct: 33 },
-      { tool: "Codex", color: "#10a37f", model: "codex-mini-latest", calls: 18, input: "215,0 k", output: "14,0 k", pct: 19 },
+      { tool: "Antigravity", color: "#4285F4", model: "Gemini 4 Argon (f3.8)", calls: 94, input: "1.5M", output: "86.0k", pct: 100 },
+      { tool: "Claude Code", color: "#D97757", model: "claude-opus-4-6", calls: 62, input: "1.2M", output: "64.5k", pct: 66 },
+      { tool: "Antigravity", color: "#38bdf8", model: "Gemini 3.8 Flash", calls: 47, input: "520.0k", output: "39.2k", pct: 50 },
+      { tool: "Antigravity", color: "#60a5fa", model: "Gemini 3.5 Flash", calls: 31, input: "340.0k", output: "22.9k", pct: 33 },
+      { tool: "Codex", color: "#10a37f", model: "codex-mini-latest", calls: 18, input: "215.0k", output: "14.0k", pct: 19 },
     ],
     "30d": [
-      { tool: "Antigravity", color: "#4285F4", model: "Gemini 4 Argon (f3.8)", calls: 215, input: "3,6 M", output: "198,4 k", pct: 100 },
-      { tool: "Claude Code", color: "#D97757", model: "claude-opus-4-6", calls: 164, input: "3,1 M", output: "172,0 k", pct: 76 },
-      { tool: "Antigravity", color: "#38bdf8", model: "Gemini 3.8 Flash", calls: 112, input: "1,3 M", output: "94,1 k", pct: 52 },
-      { tool: "Claude Code", color: "#D97757", model: "claude-sonnet-4-6", calls: 88, input: "1,1 M", output: "68,3 k", pct: 41 },
-      { tool: "Antigravity", color: "#60a5fa", model: "Gemini 3.5 Flash", calls: 74, input: "820,0 k", output: "51,0 k", pct: 34 },
+      { tool: "Antigravity", color: "#4285F4", model: "Gemini 4 Argon (f3.8)", calls: 215, input: "3.6M", output: "198.4k", pct: 100 },
+      { tool: "Claude Code", color: "#D97757", model: "claude-opus-4-6", calls: 164, input: "3.1M", output: "172.0k", pct: 76 },
+      { tool: "Antigravity", color: "#38bdf8", model: "Gemini 3.8 Flash", calls: 112, input: "1.3M", output: "94.1k", pct: 52 },
+      { tool: "Claude Code", color: "#D97757", model: "claude-sonnet-4-6", calls: 88, input: "1.1M", output: "68.3k", pct: 41 },
+      { tool: "Antigravity", color: "#60a5fa", model: "Gemini 3.5 Flash", calls: 74, input: "820.0k", output: "51.0k", pct: 34 },
     ],
     all: [
-      { tool: "Antigravity", color: "#4285F4", model: "Gemini 4 Argon (f3.8)", calls: 312, input: "5,2 M", output: "284,0 k", pct: 100 },
-      { tool: "Claude Code", color: "#D97757", model: "claude-opus-4-6", calls: 240, input: "4,5 M", output: "251,0 k", pct: 77 },
-      { tool: "Antigravity", color: "#38bdf8", model: "Gemini 3.8 Flash", calls: 158, input: "1,8 M", output: "128,4 k", pct: 51 },
-      { tool: "Antigravity", color: "#60a5fa", model: "Gemini 3.5 Flash", calls: 119, input: "1,3 M", output: "89,2 k", pct: 38 },
-      { tool: "Codex", color: "#10a37f", model: "codex", calls: 64, input: "740,0 k", output: "48,9 k", pct: 21 },
+      { tool: "Antigravity", color: "#4285F4", model: "Gemini 4 Argon (f3.8)", calls: 312, input: "5.2M", output: "284.0k", pct: 100 },
+      { tool: "Claude Code", color: "#D97757", model: "claude-opus-4-6", calls: 240, input: "4.5M", output: "251.0k", pct: 77 },
+      { tool: "Antigravity", color: "#38bdf8", model: "Gemini 3.8 Flash", calls: 158, input: "1.8M", output: "128.4k", pct: 51 },
+      { tool: "Antigravity", color: "#60a5fa", model: "Gemini 3.5 Flash", calls: 119, input: "1.3M", output: "89.2k", pct: 38 },
+      { tool: "Codex", color: "#10a37f", model: "codex", calls: 64, input: "740.0k", output: "48.9k", pct: 21 },
     ],
   };
 
   const TOTALS = {
-    today: { calls: "80", in: "1,2 M", out: "75,5 k" },
-    "7d": { calls: "252", in: "3,8 M", out: "226,6 k" },
-    "30d": { calls: "653", in: "9,9 M", out: "583,8 k" },
-    all: { calls: "893", in: "13,5 M", out: "801,5 k" },
+    today: { calls: "80", in: "1.2M", out: "75.5k" },
+    "7d": { calls: "252", in: "3.8M", out: "226.6k" },
+    "30d": { calls: "653", in: "9.9M", out: "583.8k" },
+    all: { calls: "893", in: "13.5M", out: "801.5k" },
   };
 
   function renderSiteUsage(range) {
@@ -377,7 +377,7 @@ export function initWebsite() {
           <span class="truncate font-bold text-zinc-900 dark:text-zinc-100">${r.model}</span>
         </div>
         <span class="shrink-0 tabular-nums text-[11px] text-zinc-500 dark:text-zinc-400">
-          <strong class="text-zinc-800 dark:text-zinc-200">${r.calls}</strong> appels · ${r.input} lus · ${r.output} écrits
+          <strong class="text-zinc-800 dark:text-zinc-200">${r.calls}</strong> calls · ${r.input} read · ${r.output} written
         </span>
       </div>
       <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
@@ -398,14 +398,14 @@ export function initWebsite() {
     const code = $("cli-code")?.textContent ?? "";
     try {
       await navigator.clipboard.writeText(code);
-      $("copy-cli-btn").textContent = "✓ Copié !";
-      setTimeout(() => ($("copy-cli-btn").textContent = "📋 Copier les commandes"), 2000);
+      $("copy-cli-btn").textContent = "✓ Copied!";
+      setTimeout(() => ($("copy-cli-btn").textContent = "📋 Copy the commands"), 2000);
     } catch {
       // ignore
     }
   });
 
-  setTimeout(() => sayHero("Coucou ! Passe ta souris ou clique-moi 👻"), 700);
+  setTimeout(() => sayHero("Hi there! Hover or click me 👻"), 700);
 }
 
 if (document.getElementById("nav-ghost")) {

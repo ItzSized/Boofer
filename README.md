@@ -2,119 +2,133 @@
 
 # Boofer 👻
 
-Un petit fantôme qui vit sur ton écran pendant que tes agents IA codent. Il te montre en direct où en sont **Antigravity** (Gemini 3.1 Pro, Gemini 4 Argon, Flash…), **Claude Code** et **Codex**, te laisse approuver les demandes sans changer de fenêtre, et fait *ding* quand c'est fini.
+A little ghost that lives on your screen while your AI agents code. It shows you live where **Antigravity** (Gemini 3.1 Pro, Gemini 4 Argon, Flash…), **Claude Code** and **Codex** are at, lets you approve requests without switching windows, and goes *ding* when it's done.
 
-> Projet indépendant, non affilié à Anthropic. « Claude » et « Claude Code » sont des marques d'Anthropic.
+> Independent project, not affiliated with Anthropic. "Claude" and "Claude Code" are trademarks of Anthropic.
 
-## Télécharger (Windows 10 / 11)
+## Download (Windows 10 / 11)
 
-👉 **[Dernière version](https://github.com/ItzSized/Boofer/releases/latest)**, rien à compiler, au choix :
+👉 **[Latest version](https://github.com/ItzSized/Boofer/releases/latest)**, nothing to compile, pick one:
 
-- **`Boofer_…_x64_en-US.msi`** : installeur classique (recommandé)
-- **`Boofer_…_x64-setup.exe`** : installeur léger
-- **`Boofer.exe`** : version portable, double-clic et c'est parti
+- **`Boofer_…_x64-setup.exe`**: installer (recommended), no admin rights needed
+- **`Boofer_…_x64_en-US.msi`**: MSI installer, for the whole PC
+- **`Boofer.exe`**: portable version, double-click and go
 
-Rien d'autre à installer : les installeurs ajoutent WebView2 s'il manque (déjà là sur Windows 10/11), et il n'y a besoin ni de Node ni de Rust. Pour Claude Code : **Réglages → Claude Code → Connecter**. Antigravity et Codex sont détectés tout seuls.
+Nothing else to install: the installers add WebView2 if it's missing (already there on Windows 10/11), and you need neither Node nor Rust. For Claude Code: **Settings → Claude Code → Connect**. Antigravity and Codex are detected automatically.
 
-## Ce qu'il fait
+What changed in each version: [CHANGELOG.md](CHANGELOG.md), the notes of each [release](https://github.com/ItzSized/Boofer/releases), or **Settings → What's new** in the app.
 
-- **Statut en direct** : le projet, ta demande, l'action en cours (« Modifie pet.js », « Lance : npm run build »), le temps écoulé, le temps restant (estimé à partir des tâches déjà finies, lissé pour ne pas sauter dans tous les sens), le nombre d'actions, les fichiers modifiés, les échecs et les sous-agents actifs.
-- **Progression totale et par étape** : quand Claude tient une liste de tâches, Boofer affiche « Étape 2/5 · Écrit les tests — 70 % » et un total (« Total 42 % »). Sans liste, une estimation du total. Le total ne recule jamais et n'atteint 100 % qu'à la fin.
-- **Ping de fin** : le fantôme saute et la bulle affiche « Claudio a fini ! · Terminé en 45 s ».
-- **Approbations** : quand Claude Code demande une permission, une carte affiche la commande ou le fichier avec **Autoriser / Toujours / Refuser**. Sans réponse en 55 s, ou si tu cliques « Répondre dans Claude Code », Claude Code te demande normalement.
-- **Plusieurs sessions** : chaque session a sa couleur et son onglet. Boofer affiche automatiquement la session du projet ouvert dans la fenêtre au premier plan, et garde sa place dans chaque fenêtre.
-- **Un vrai compagnon** : ses yeux suivent la souris, il fait coucou au survol, aime les caresses (clic), s'endort quand tu ne bouges plus et fait des petites pirouettes.
-- **Skins et accessoires** : 8 skins (Classique, Fraise, Menthe, Ciel, Citrouille, Gelée, Or, Nuit) et 6 accessoires (nœud, chapeau, couronne, casque, pousse, lunettes).
-- **Réglages** (icône de la barre système ou clic droit → Réglages) : thème clair / sombre / auto, sur ton éditeur seulement ou partout sur le bureau, éditeurs suivis, lancement au démarrage de Windows, suivi de la souris, délai avant de s'endormir, sons et volume, taille, approbations, et un bouton pour connecter Claude Code.
-- **Ne pas déranger** : plus de sons ni de cartes de permission, pour 30 min, 1 h, jusqu'à demain matin ou sans limite, depuis la barre système ou le clic droit. Il se réactive tout seul à l'heure dite.
-- **Ramener le fantôme** (barre système) : perdu hors de l'écran ou sous la barre des tâches, il revient dans son coin.
-- **Statut au survol de l'icône** de la barre système : « Boofer · mon-projet : Modifie pet.js · 42 % · reste ≈ 3 min », même quand le fantôme est caché.
-- **Petites phrases** : « Coucou ! », « Tadaa ! ✨ », « Psst… il a besoin de toi », et des réactions quand tu le caresses ou le réveilles.
-- **Usage des modèles** (barre système → « Usage des modèles… », ou clic sur la petite carte sous le fantôme) : quelles IA tu utilises vraiment (Claude Opus 5.5, Gemini 3.1 Pro, Gemini 4 Argon, GPT-6…), leur part, leur activité sur 14 jours et les limites de ton abonnement Codex. Seuls les modèles trouvés sur ton PC apparaissent, et tout est lu localement.
-- **Compactage et contexte** : une jauge « 🧠 Contexte 64 % » prévient avant que Claude Code compacte, et pendant un compactage le fantôme se serre comme un accordéon avec un % et le temps restant (d'après la durée de tes compactages précédents).
-- **Suis-moi** (clic droit, barre système ou réglages) : il saute sur la fenêtre où tu es, quelle que soit l'appli. Coupé, il reste sur ton éditeur ou là où tu l'as posé sur le bureau.
-- **Économiser des tokens** (Réglages → ✂️ Tokens) : compacter Claude Code plus tôt (contexte plus petit, chaque message coûte moins), réponses courtes, et un compresseur de prompt en « langage IA » (local et gratuit, ou reformulé par Claude Haiku). Raccourci : copie un prompt puis Ctrl+Alt+P.
-- **Stop aux commandes dangereuses** : avant un `rm -rf`, un `git push --force`, un `git reset --hard` ou un formatage, le fantôme croise les bras et demande « Es-tu sûr de continuer ? ». Sans réponse en 55 s, c'est bloqué (Claude Code, même en mode auto).
-- **Limite par IA** (Réglages → 📊 Modèles) : un plafond de tokens par jour pour Claude, Gemini et GPT, une alerte à 80 % et à 100 %, et « ⚡ en avance / 🐢 en retard » sur ton rythme.
-- **En direct** (Réglages → 🟢 Direct) : les applis d'IA ouvertes et chaque agent qui tourne, avec son modèle, son contexte en tokens et le temps restant.
-- **Reprompt** (clic droit ou Ctrl+Alt+P) : le prompt copié est réécrit rien que pour l'IA, plus court, en local ou avec Claude Haiku.
-- **IA du navigateur**, sans rien installer : dans Chrome, Edge ou Brave, Boofer suit aussi ChatGPT, Gemini, AI Studio, Claude, Grok, Perplexity, DeepSeek, Le Chat et Copilot (l'onglet affiché de chaque fenêtre) : statut en direct, un bip et une notification quand la réponse est prête, et l'historique. Coche « ChatGPT, Gemini… (navigateur) » dans les éditeurs pour qu'il s'affiche sur ces onglets.
-- **Clic sur la bulle** : ramène au premier plan la fenêtre du projet en cours.
-- **Notifications Windows** quand une tâche finit et que tu n'es pas sur ton éditeur, et une alerte quand une limite d'abonnement dépasse 80 %.
-- **Son coupé ?** Si les sons de Boofer sont coupés ou si ton PC est en muet, une notification te prévient quand une tâche finit, même quand tu es sur ton éditeur (Réglages → 🔕).
-- **Animations au choix** (Réglages → Animations) : coupe tout d'un coup pour un fantôme immobile, ou seulement ce qui te gêne (flottement, bras, saut de fin, pirouettes, clignements, Zzz…).
-- **🧪 Essayer** (Réglages) : simule une tâche, deux sessions, un compactage, une demande ou un stop pour voir le fantôme en action.
-- **Raccourcis** : Ctrl+Alt+B pour l'afficher ou le cacher, Ctrl+Alt+M pour l'usage des modèles.
-- **Il grandit avec toi** : chaque tâche finie donne de l'XP. Niveau 3 une lueur, niveau 5 une auréole dorée, niveau 8 une aura dorée. Il a l'air fatigué quand le contexte est presque plein, et soulagé après un compactage.
-- **Une session = un mini-fantôme** à sa couleur, qui sautille tant qu'elle travaille.
-- **Mises à jour automatiques** : Boofer télécharge la nouvelle version et l'installe par-dessus, sans rien désinstaller, puis redémarre (au démarrage et toutes les 6 h, jamais pendant qu'un agent travaille). Bouton « Rechercher des mises à jour » en bas des réglages, et un interrupteur pour le faire à la main.
-- **Résumé du jour** vers 18 h (ou clic droit → Ma journée), et un message quand une nouvelle version sort sur GitHub.
-- **Historique** : les tâches terminées du jour, le temps de travail des agents et les fichiers modifiés, dans les réglages.
-- **Discret** : les clics passent à travers les zones vides, et il se ferme avec le bouton ×, le clic droit ou l'icône de la barre système.
+## What it does
 
-## Compiler soi-même (développeurs)
+- **Live status**: the project, your request, the current action ("Editing pet.js", "Running: npm run build"), elapsed time, time left (estimated from tasks already done, smoothed so it doesn't jump around), number of actions, changed files, failures and active subagents.
+- **Overall and per-step progress**: when Claude keeps a task list, Boofer shows "Step 2/5 · Writing the tests — 70%" and a total ("Total 42%"). Without a list, an estimate of the total. The total never goes back and only reaches 100% at the end.
+- **Done ping**: the ghost jumps and the bubble says "Claudio is done! · Done in 45 s", with what the task cost in tokens.
+- **Approvals**: when Claude Code asks for a permission, a card shows the command or file with **Allow / Always / Deny**. Without an answer within 55 s, or if you click "Answer in Claude Code", Claude Code asks you as usual.
+- **Several sessions**: each session has its color and tab. Boofer automatically shows the session of the project open in the window in front, and keeps its spot in each window.
+- **A real companion**: its eyes follow the mouse, it waves on hover, loves being petted (click), falls asleep when you stop moving and does little spins.
+- **Skins and accessories**: 8 skins (Classic, Strawberry, Mint, Sky, Pumpkin, Jelly, Gold, Night) and 6 accessories (bow, hat, crown, headphones, sprout, glasses), plus seasonal outfits.
+- **Settings** (click the tray icon, double-click Boofer, or right-click → Settings): light / dark / auto theme, on your editor only or everywhere on the desktop, followed editors, start with Windows, follow the mouse, delay before sleeping, sounds and volume, size, approvals, and a button to connect Claude Code. Maximize the window for a two-column layout.
+- **Do not disturb**: no more sounds or permission cards, for 30 min, 1 h, until tomorrow morning or with no end, from the tray or the right-click menu. It turns itself back on at the set time.
+- **Bring the ghost back** (tray): lost off screen or under the taskbar, it comes back to its corner.
+- **Status on hover of the tray icon**: "Boofer · my-project: Editing pet.js · 42% · ≈ 3 min left", even when the ghost is hidden.
+- **Little phrases**: "Hi there!", "Ta-da! ✨", "Psst… it needs you", and reactions when you pet it or wake it up.
+- **Model usage** (tray → "Model usage…", or click the little card under the ghost): which AIs you really use (Claude Opus 5.5, Gemini 3.1 Pro, Gemini 4 Argon, GPT-6…), their share, their activity over 14 days, what it would cost at API prices, and your Codex plan limits. Only models found on your PC show up, and everything is read locally.
+- **Compaction and context**: a "🧠 Context 64%" gauge warns you before Claude Code compacts, and during a compaction the ghost squeezes like an accordion with a % and the time left (based on how long your previous compactions took).
+- **Follow me** (right-click, tray or settings): it jumps onto the window you're in, whatever the app. Off, it stays on your editor or where you put it on the desktop.
+- **Save tokens** (Settings → ✂️ Tokens): make Claude Code compact earlier (smaller context, every message costs less), short answers, and a prompt compressor into "AI language" (local and free, or rewritten by Claude Haiku). Shortcut: copy a prompt, then Ctrl+Alt+P.
+- **Stop dangerous commands**: before an `rm -rf`, a `git push --force`, a `git reset --hard` or a disk format, the ghost crosses its arms and asks "Are you sure?". Without an answer within 55 s, it's blocked (Claude Code, even in auto mode).
+- **Limit per AI** (Settings → 📊 Models): a daily token cap for Claude, Gemini and GPT, an alert at 80% and 100%, and "⚡ ahead / 🐢 behind" your pace.
+- **Stuck agent alert**: when an agent hasn't moved for 8 minutes or failed 3 actions in a row.
+- **Live** (Settings → 🟢 Live): the open AI apps and every running agent, with its model, its context in tokens, what fills it, and the time left.
+- **Reprompt** (right-click or Ctrl+Alt+P): the copied prompt is rewritten just for the AI, shorter, locally or with Claude Haiku.
+- **Browser AIs**, with nothing to install: in Chrome, Edge or Brave, Boofer also follows ChatGPT, Gemini, AI Studio, Claude, Grok, Perplexity, DeepSeek, Le Chat and Copilot (the visible tab of each window): live status, a beep and a notification when the answer is ready, and the history.
+- **Click on the bubble or a tab**: brings the window of that session to the front, browser included.
+- **Windows notifications** when a task finishes and you're not on your editor, and an alert when a plan limit goes over 80%.
+- **Sound off?** If Boofer's sounds are off or your PC is muted, a notification tells you when a task finishes, even when you're on your editor (Settings → 🔕).
+- **Animations to taste** (Settings → Animations): turn everything off at once for a still ghost, or just what bothers you (floating, arms, victory jump, spins, blinks, Zzz…).
+- **🧪 Try it** (Settings): simulate a task, two sessions, a compaction, a request or a stop to see the ghost in action.
+- **Stream mode**: always shown on a green background, ready for OBS's chroma key.
+- **Shortcuts**: Ctrl+Alt+B to show or hide it, Ctrl+Alt+M for model usage.
+- **It grows with you**: every finished task gives XP. Level 3 a glow, level 5 a golden halo, level 8 a golden aura. It looks tired when the context is almost full, and relieved after a compaction.
+- **One session = one mini-ghost** in its color, which bounces while it works.
+- **Automatic updates**: Boofer downloads the new version and installs it over the old one, nothing to uninstall, then restarts on the "What's new" list (at startup and every 6 h, never while an agent is working). A "Check for updates" button at the bottom of the settings, and a switch to do it by hand.
+- **Day summary** around 6 pm (or right-click → My day).
+- **History**: today's finished tasks, the agents' working time and the changed files, plus the week as a chart, in the settings.
+- **Unobtrusive**: clicks go through the empty areas, and it closes with the × button, the right-click menu or the tray icon.
 
-Inutile pour utiliser Boofer : chaque push sur `main` reconstruit les installeurs et met à jour la release GitHub (`.github/workflows/release.yml`).
+## Build it yourself (developers)
 
-### Prérequis
+Not needed to use Boofer: every push to `main` rebuilds the installers and updates the GitHub release (`.github/workflows/release.yml`), with release notes written from the commits.
+
+### Requirements
 
 - Node.js 20+
-- [Rust](https://rustup.rs) et les « Desktop development with C++ » Build Tools de Visual Studio
-- WebView2 (déjà présent sur Windows 10/11)
+- [Rust](https://rustup.rs) and the Visual Studio "Desktop development with C++" Build Tools
+- WebView2 (already on Windows 10/11)
 
-### Compiler
+### Build
 
 ```bash
 npm install
-npm run release               # exe seul, en ~1 min : copié à la racine du projet et relancé
-npm run release -- --installer  # + installeurs .msi et .exe
+npm run release                 # exe only, in ~1 min: copied to the project root and restarted
+npm run release -- --installer  # + .msi and .exe installers
+npm run changelog               # rewrites CHANGELOG.md from the git history (also run by every build)
 ```
 
-Pour développer sans recompiler : `npm run tauri dev` (l'interface se recharge toute seule à chaque modification). Pour travailler l'interface dans un navigateur, sans Rust : `npm run dev`, puis clic droit sur le fantôme pour lancer les démos.
+To develop without recompiling: `npm run tauri dev` (the interface reloads on every change). To work on the interface in a browser, without Rust: `npm run dev`, then right-click the ghost to run the demos.
 
-## Brancher Claude Code
+### Commits and the changelog
 
-Le plus simple : **Réglages → Claude Code → Connecter**. Boofer ajoute ses hooks à `~/.claude/settings.json` en gardant tes réglages (une copie `settings.json.booffer-backup` est faite). Relance ensuite Claude Code. Si tu avais connecté une ancienne version, Boofer ajoute tout seul les nouveaux hooks (compactage) au démarrage.
+Each commit subject becomes one line of the release notes and of [CHANGELOG.md](CHANGELOG.md), so write it in English, for the people using Boofer ("Double-click opens Boofer"), with details as `- ` lines in the body. Subjects starting with `Version x.y.z` are left out. A version gathers the commits since the previous `vX.Y.Z` tag.
 
-À la main : copie le bloc `hooks` de [hooks/claude-code-settings.example.json](hooks/claude-code-settings.example.json) dans `~/.claude/settings.json` (fusionne-le avec tes réglages existants). Ouvre ensuite `/hooks` dans Claude Code, ou relance-le.
+## Connect Claude Code
 
-Les hooks envoient leurs événements à Boofer sur `http://127.0.0.1:47823`. Si Boofer n'est pas lancé, `curl` abandonne en silence et Claude Code n'est pas gêné.
+The easiest way: **Settings → Claude Code → Connect**. Boofer adds its hooks to `~/.claude/settings.json` while keeping your settings (a `settings.json.booffer-backup` copy is made). Then restart Claude Code. If you had connected an older version, Boofer adds the new hooks (compaction) by itself at startup.
 
-## Suivre tes propres scripts Claude API
+By hand: copy the `hooks` block from [hooks/claude-code-settings.example.json](hooks/claude-code-settings.example.json) into `~/.claude/settings.json` (merge it with your existing settings). Then open `/hooks` in Claude Code, or restart it.
+
+The hooks send their events to Boofer at `http://127.0.0.1:47823`. If Boofer isn't running, `curl` gives up silently and Claude Code isn't bothered.
+
+## Follow your own Claude API scripts
 
 ```js
 import { trackStream } from "./reporters/anthropic.js";
 
 const stream = client.messages.stream({ /* ... */ });
-trackStream(stream, { label: "Résumé du PDF" });
+trackStream(stream, { label: "PDF summary" });
 const message = await stream.finalMessage();
 ```
 
-Exemple complet : `npm run demo:api`.
+Full example: `npm run demo:api`.
 
-## Ajouter un agent
+## Add an agent
 
-Tout passe par `POST http://127.0.0.1:47823/event/<source>` avec un corps JSON.
+Everything goes through `POST http://127.0.0.1:47823/event/<source>` with a JSON body.
 
-1. Crée `src/agents/mon-agent.js`, qui étend `AgentAdapter` et implémente `normalize(payload)` → `{ id, state, label?, progress?, project?, details? }`.
-2. Ajoute-le dans [src/agents/index.js](src/agents/index.js).
+1. Create `src/agents/my-agent.js`, which extends `AgentAdapter` and implements `normalize(payload)` → `{ id, state, label?, progress?, project?, details? }`.
+2. Add it to [src/agents/index.js](src/agents/index.js).
 
-Les états possibles sont dans [src/core/states.js](src/core/states.js). Un outil qui sait déjà envoyer ce format peut utiliser la source `generic` sans code.
+The possible states are in [src/core/states.js](src/core/states.js). A tool that already sends this format can use the `generic` source with no code.
 
 ## Architecture
 
 ```
 src-tauri/src/
-  lib.rs          serveur local (événements + permissions), icône de la barre système
-  pet.rs          fenêtre : détection de l'éditeur au premier plan, place par fenêtre, suivi souris
-  permission.rs   requêtes de permission gardées ouvertes jusqu'à ta réponse
-  settings.rs     réglages (JSON), installation des hooks Claude Code
+  lib.rs          local server (events + permissions), tray icon, single instance
+  pet.rs          window: editor in front detection, spot per window, mouse following
+  permission.rs   permission requests kept open until you answer
+  guard.rs        dangerous commands that wait for "Stop!"
+  settings.rs     settings (JSON), Claude Code hooks installation
+  migrate.rs      clean-up after the Booffer → Boofer rename, shortcuts repair
 src/
-  agents/         un adaptateur par agent (Claude Code, generic)
-  core/           tracker des sessions, états, bus d'événements
-  ui/             fantôme (SVG, skins, accessoires), bulle, onglets, carte de permission, menu
-  settings.js     fenêtre de réglages
-  audio/          sons générés en Web Audio
+  agents/         one adapter per agent (Claude Code, Antigravity, Codex, browser, generic)
+  core/           session tracker, states, event bus, usage and costs
+  ui/             ghost (SVG, skins, accessories), bubble, tabs, cards, menu, settings pages
+  settings.js     settings window
+  audio/          sounds generated with Web Audio
+scripts/
+  release.mjs     local build
+  changelog.mjs   CHANGELOG.md and the release notes, from the commits
 ```
 
-Stack : [Tauri 2](https://tauri.app), JavaScript vanilla, Tailwind CSS 4, Vite.
+Stack: [Tauri 2](https://tauri.app), vanilla JavaScript, Tailwind CSS 4, Vite.
