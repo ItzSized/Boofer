@@ -33,11 +33,16 @@
       </div>
     </header>
 
-    <nav class="order-2 flex gap-1 lg:flex-col rounded-2xl bg-white p-1 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
-      <button data-page="settings" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">⚙️ Settings</button>
-      <button data-page="models" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">📊 Models</button>
-      <button data-page="live" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">🟢 Live</button>
-      <button data-page="tokens" class="page-tab flex-1 rounded-xl py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">✂️ Tokens</button>
+    <nav class="order-2 grid grid-cols-3 gap-1 lg:flex lg:flex-col rounded-2xl bg-white p-1 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
+      <button data-page="look" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">🎨 Look</button>
+      <button data-page="ghost" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">👻 Ghost</button>
+      <button data-page="alerts" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">🔔 Alerts</button>
+      <button data-page="agents" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">🤖 Agents</button>
+      <button data-page="today" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">📅 Today</button>
+      <button data-page="general" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">⚙️ General</button>
+      <button data-page="models" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">📊 Models</button>
+      <button data-page="live" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">🟢 Live</button>
+      <button data-page="tokens" class="page-tab rounded-xl px-2 py-2 text-sm font-semibold lg:px-3 lg:py-2.5 lg:text-left">✂️ Tokens</button>
     </nav>
 
     <section class="order-4 rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
@@ -80,8 +85,8 @@
     </aside>
 
     <div id="pages" class="order-3 min-w-0">
-    <div id="page-settings" class="page-grid">
-
+    <div id="page-look" class="page-grid">
+    <p class="page-intro px-1 text-xs text-zinc-500 dark:text-zinc-400">How Boofer looks: theme, skin, accessory, size and animations.</p>
     <section id="appearance" class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
       <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Appearance</h2>
       <div class="flex items-center justify-between gap-4 pb-3">
@@ -105,6 +110,45 @@
       </div>
     </section>
 
+    <section
+      class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
+      <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Extras</h2>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">🎃 Seasonal outfits</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">A witch hat for Halloween, a Santa hat in December (when no accessory is chosen).</p>
+        </div>
+        <label class="toggle"><input id="seasonal" type="checkbox" /><span></span></label>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">🎥 Stream mode</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Always shown, on a green background: in OBS, capture the "Boofer" window and add a "Chroma Key" filter.</p>
+        </div>
+        <label class="toggle"><input id="stream-mode" type="checkbox" /><span></span></label>
+      </div>
+    </section>
+
+    <section
+      class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
+      <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Animations</h2>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">Animate the ghost</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Turn everything off for a still ghost: its mood still shows in its eyes and color.</p>
+        </div>
+        <label class="toggle"><input id="anim-all" type="checkbox" /><span></span></label>
+      </div>
+      <div class="py-2.5" id="anim-groups-block">
+        <p class="text-sm font-medium">Choose which ones</p>
+        <p class="mb-2 text-xs text-zinc-500 dark:text-zinc-400" id="anim-hint">Click to turn an animation off or back on.</p>
+        <div id="anim-groups" class="flex flex-wrap gap-1.5"></div>
+      </div>
+    </section>
+    </div>
+
+    <div id="page-ghost" class="page-grid hidden">
+    <p class="page-intro px-1 text-xs text-zinc-500 dark:text-zinc-400">Where the ghost lives and how it follows you around.</p>
     <section class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
       <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Where Boofer lives</h2>
       <div class="grid grid-cols-2 gap-2">
@@ -129,15 +173,7 @@
 
     <section
       class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
-      <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Behavior</h2>
-      <div class="flex items-center justify-between gap-4 py-2.5">
-        <div>
-          <p class="text-sm font-medium">Start with Windows</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400" id="autostart-text">Boofer opens by itself when you
-            turn on the PC.</p>
-        </div>
-        <label class="toggle"><input id="autostart" type="checkbox" /><span></span></label>
-      </div>
+      <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Moves</h2>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
           <p class="text-sm font-medium">🐾 Follow me</p>
@@ -160,6 +196,11 @@
         </div>
         <select id="sleep" class="rounded-lg bg-zinc-100 dark:bg-zinc-800 px-2 py-1 text-sm outline-none"></select>
       </div>
+    </section>
+
+    <section
+      class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
+      <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Talk</h2>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
           <p class="text-sm font-medium">💬 Little phrases</p>
@@ -168,6 +209,14 @@
         </div>
         <label class="toggle"><input id="speech-toggle" type="checkbox" /><span></span></label>
       </div>
+    </section>
+    </div>
+
+    <div id="page-alerts" class="page-grid hidden">
+    <p class="page-intro px-1 text-xs text-zinc-500 dark:text-zinc-400">How Boofer tells you a task is done or an agent needs you.</p>
+    <section
+      class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
+      <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Do not disturb</h2>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
           <p class="text-sm font-medium">🌙 Do not disturb</p>
@@ -176,6 +225,11 @@
         </div>
         <label class="toggle"><input id="dnd-toggle" type="checkbox" /><span></span></label>
       </div>
+    </section>
+
+    <section
+      class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
+      <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Notifications</h2>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
           <p class="text-sm font-medium">🔔 Windows notifications</p>
@@ -190,27 +244,11 @@
         </div>
         <label class="toggle"><input id="notify-silent" type="checkbox" /><span></span></label>
       </div>
-      <div class="flex items-center justify-between gap-4 py-2.5">
-        <div>
-          <p class="text-sm font-medium">⌨️ Shortcuts</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd> show / hide ·
-            <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> model usage · <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> reprompt</p>
-        </div>
-      </div>
-      <div class="flex items-center justify-between gap-4 py-2.5">
-        <div>
-          <p class="text-sm font-medium">🎥 Stream mode</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Always shown, on a green background: in OBS, capture the "Boofer" window and add a "Chroma Key" filter.</p>
-        </div>
-        <label class="toggle"><input id="stream-mode" type="checkbox" /><span></span></label>
-      </div>
-      <div class="flex items-center justify-between gap-4 py-2.5">
-        <div>
-          <p class="text-sm font-medium">🎃 Seasonal outfits</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">A witch hat for Halloween, a Santa hat in December (when no accessory is chosen).</p>
-        </div>
-        <label class="toggle"><input id="seasonal" type="checkbox" /><span></span></label>
-      </div>
+    </section>
+
+    <section
+      class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
+      <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Sounds</h2>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
           <p class="text-sm font-medium">Done sound</p>
@@ -239,36 +277,10 @@
         </div>
       </div>
     </section>
+    </div>
 
-    <section
-      class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
-      <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Animations</h2>
-      <div class="flex items-center justify-between gap-4 py-2.5">
-        <div>
-          <p class="text-sm font-medium">Animate the ghost</p>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Turn everything off for a still ghost: its mood still shows in its eyes and color.</p>
-        </div>
-        <label class="toggle"><input id="anim-all" type="checkbox" /><span></span></label>
-      </div>
-      <div class="py-2.5" id="anim-groups-block">
-        <p class="text-sm font-medium">Choose which ones</p>
-        <p class="mb-2 text-xs text-zinc-500 dark:text-zinc-400" id="anim-hint">Click to turn an animation off or back on.</p>
-        <div id="anim-groups" class="flex flex-wrap gap-1.5"></div>
-      </div>
-    </section>
-
-    <section class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
-      <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">🧪 Try it</h2>
-      <p class="mt-1 mb-2 text-xs text-zinc-500 dark:text-zinc-400">See the ghost in action without running a real agent.</p>
-      <div class="flex flex-wrap gap-1.5">
-        <button class="chip" data-demo="task">✨ A task</button>
-        <button class="chip" data-demo="sessions">👻 2 sessions</button>
-        <button class="chip" data-demo="compact">🧹 A compaction</button>
-        <button class="chip" data-demo="request">🔐 A request</button>
-        <button class="chip" data-demo="guard">🛑 A stop</button>
-      </div>
-    </section>
-
+    <div id="page-agents" class="page-grid hidden">
+    <p class="page-intro px-1 text-xs text-zinc-500 dark:text-zinc-400">The AI tools Boofer follows, approvals from the card and the dangerous-command stop.</p>
     <section
       class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
       <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">AI agents (Antigravity &amp; Claude
@@ -323,7 +335,10 @@
         </button>
       </div>
     </section>
+    </div>
 
+    <div id="page-today" class="page-grid hidden">
+    <p class="page-intro px-1 text-xs text-zinc-500 dark:text-zinc-400">What your agents did today and this week.</p>
     <section class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
       <div class="mb-2 flex items-center justify-between">
         <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Today</h2>
@@ -351,7 +366,41 @@
       <p class="mt-3 mb-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">Latest tasks</p>
       <ul id="history" class="divide-y divide-zinc-100 dark:divide-zinc-800"></ul>
     </section>
+    </div>
 
+    <div id="page-general" class="page-grid hidden">
+    <p class="page-intro px-1 text-xs text-zinc-500 dark:text-zinc-400">Startup, shortcuts, and demos to see the ghost in action.</p>
+    <section
+      class="divide-y divide-zinc-100 dark:divide-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 px-4 py-2 ring-1 ring-black/5 dark:ring-white/10">
+      <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">General</h2>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">Start with Windows</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400" id="autostart-text">Boofer opens by itself when you
+            turn on the PC.</p>
+        </div>
+        <label class="toggle"><input id="autostart" type="checkbox" /><span></span></label>
+      </div>
+      <div class="flex items-center justify-between gap-4 py-2.5">
+        <div>
+          <p class="text-sm font-medium">⌨️ Shortcuts</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd> show / hide ·
+            <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> model usage · <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>P</kbd> reprompt</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-2xl bg-white dark:bg-zinc-900 p-4 ring-1 ring-black/5 dark:ring-white/10">
+      <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">🧪 Try it</h2>
+      <p class="mt-1 mb-2 text-xs text-zinc-500 dark:text-zinc-400">See the ghost in action without running a real agent.</p>
+      <div class="flex flex-wrap gap-1.5">
+        <button class="chip" data-demo="task">✨ A task</button>
+        <button class="chip" data-demo="sessions">👻 2 sessions</button>
+        <button class="chip" data-demo="compact">🧹 A compaction</button>
+        <button class="chip" data-demo="request">🔐 A request</button>
+        <button class="chip" data-demo="guard">🛑 A stop</button>
+      </div>
+    </section>
     </div>
 
     <div id="page-models" class="page-grid hidden">

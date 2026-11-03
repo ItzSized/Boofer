@@ -499,12 +499,13 @@ setInterval(() => {
   if (page === "models") usage.refresh();
 }, 30_000);
 
-// Two pages: settings, and the usage of each model (tray → "Model usage…").
-let page = "settings";
+// One page per category. "settings" (tray, ghost menu) or an unknown name opens the first one.
+const PAGES = ["look", "ghost", "alerts", "agents", "today", "general", "models", "live", "tokens"];
+let page = PAGES[0];
 function showPage(next) {
-  page = ["models", "live", "tokens"].includes(next) ? next : "settings";
+  page = PAGES.includes(next) ? next : PAGES[0];
   document.querySelectorAll("[data-page]").forEach((tab) => tab.classList.toggle("selected", tab.dataset.page === page));
-  for (const name of ["settings", "models", "live", "tokens"]) $(`page-${name}`).classList.toggle("hidden", page !== name);
+  for (const name of PAGES) $(`page-${name}`).classList.toggle("hidden", page !== name);
   if (page === "models") usage.refresh();
   if (page === "tokens") tokens.refresh();
   if (page === "live") live.start();

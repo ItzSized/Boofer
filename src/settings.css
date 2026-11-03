@@ -95,7 +95,10 @@ kbd {
   @apply bg-zinc-200 dark:bg-zinc-700;
 }
 
-/* Pages: cards stacked; on a wide screen, in two balanced columns. */
+/* Pages: cards stacked; on a wide screen, in two balanced columns, under the page's intro. */
+.page-grid > .page-intro {
+  column-span: all;
+}
 .page-grid > * {
   @apply mb-4 break-inside-avoid;
 }
