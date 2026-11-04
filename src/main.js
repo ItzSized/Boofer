@@ -146,7 +146,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     const state = asking() ? State.ATTENTION : (selected?.state ?? State.IDLE);
     mascot.setState(state, asking() ? claudeCode.color : selected?.color);
     const context = contexts.get(selected?.key) ?? null;
-    bubble.render(selected, context);
+    bubble.render(selected, context, disks.get(selected?.key) ?? null);
     // Clicking the bubble brings that session's window to the front.
     const reachable = selected && (selected.project || selected.key.startsWith("web-"));
     bubbleEl.classList.toggle("clickable", Boolean(isTauri && reachable && state !== State.IDLE));
@@ -269,16 +269,29 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   const contextAsked = new Map(); // tracker key → last request time
   const CONTEXT_EVERY_MS = 8000;
   const CONTEXT_NOW = new Set(["Stop", "PreCompact", "SessionStart", "UserPromptSubmit"]);
+  // What each Claude Code chat and its project weigh on disk: a folder walk, so less often.
+  const disks = new Map(); // tracker key → { chatBytes, projectBytes, chats }
+  const diskAsked = new Map(); // tracker key → last request time
+  const DISK_EVERY_MS = 30_000;
 
   function refreshContext(payload) {
     const key = `claude-code:${payload.session_id}`;
-    if (payload.hook_event_name === "SessionEnd") return contexts.delete(key);
+    if (payload.hook_event_name === "SessionEnd") {
+      disks.delete(key);
+      return contexts.delete(key);
+    }
     if (!isTauri || !payload.transcript_path) return;
     const now = Date.now();
     if (!CONTEXT_NOW.has(payload.hook_event_name) && now - (contextAsked.get(key) ?? 0) < CONTEXT_EVERY_MS) return;
     contextAsked.set(key, now);
     transcripts.set(key, payload.transcript_path);
     refreshStats(key);
+    if (CONTEXT_NOW.has(payload.hook_event_name) || now - (diskAsked.get(key) ?? 0) >= DISK_EVERY_MS) {
+      diskAsked.set(key, now);
+      invoke("claude_disk_usage", { transcriptPath: payload.transcript_path })
+        .then((usage) => disks.set(key, usage))
+        .catch(() => {});
+    }
     invoke("claude_context", { transcriptPath: payload.transcript_path })
       .then((info) => {
         // Right after a compaction there is no reply yet: keep the median duration only.
@@ -383,6 +396,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
         files: d.files ?? 0,
         progress: s.progress,
         context: contexts.get(s.key) ?? null,
+        disk: disks.get(s.key) ?? null,
         cost: d.startedAt ? describeCost(tokensSoFar(s), d.model ?? contexts.get(s.key)?.model, dailyLimits()) : null,
         contextParts: stats.get(s.key)?.parts ?? null,
       };

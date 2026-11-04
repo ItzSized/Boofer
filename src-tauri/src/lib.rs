@@ -487,6 +487,7 @@ pub fn run() {
             usage::model_usage,
             usage::claude_context,
             session_stats::claude_session_stats,
+            session_stats::claude_disk_usage,
             antigravity::sync_antigravity,
             open_settings,
             set_follow,

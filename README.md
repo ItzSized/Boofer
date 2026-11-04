@@ -30,7 +30,7 @@ What changed in each version: [CHANGELOG.md](CHANGELOG.md), the notes of each [r
 - **Context and compaction**: a "🧠 Context 64%" gauge before Claude Code compacts, and the ghost squeezes like an accordion while it does.
 - **Browser AIs**, nothing to install: ChatGPT, Gemini, AI Studio, Claude, Grok, Perplexity, DeepSeek, Le Chat and Copilot in Chrome, Edge or Brave.
 - **Stuck agent alert**: nothing new for 8 minutes, or 3 failed actions in a row.
-- **Live page** (Settings → 🟢 Live): open AI apps and every running agent, with its model, its context and what fills it.
+- **Live page** (Settings → 🟢 Live): open AI apps and every running agent, with its model, its context and what fills it, and what its chat and project weigh on disk (Claude Code).
 - **Click the bubble or a tab** to bring that session's window to the front, browser included.
 
 ### ✋ Stay in control

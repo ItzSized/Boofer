@@ -1,6 +1,6 @@
 import { State } from "../core/states.js";
 import { EtaEstimator } from "../core/eta.js";
-import { approx, duration } from "../core/format.js";
+import { approx, diskLabel, duration } from "../core/format.js";
 import { compact, describeModel } from "../core/models.js";
 
 /** A compaction usually takes about this long when we haven't seen one on this PC yet. */
@@ -66,8 +66,11 @@ export function createBubble(el, { eta = new EtaEstimator() } = {}) {
 
 
   return {
-    /** @param context { tokens, window, model, compactMs } of a Claude Code session, if known */
-    render(session, context = null) {
+    /**
+     * @param context { tokens, window, model, compactMs } of a Claude Code session, if known
+     * @param disk { chatBytes, projectBytes, chats } of that session, if known
+     */
+    render(session, context = null, disk = null) {
       const visible = Boolean(session && session.state !== State.IDLE);
       el.classList.toggle("hidden", !visible);
       el.classList.toggle("opacity-0", !visible);
@@ -134,7 +137,8 @@ export function createBubble(el, { eta = new EtaEstimator() } = {}) {
         ui["context-bar"].style.width = `${Math.round(fill * 100)}%`;
         ui["context-bar"].style.background = warn ? "#f59e0b" : "#a1a1aa";
         ui["context-pct"].textContent = `${Math.round(fill * 100)}%${warn ? " · compacting soon" : ""}`;
-        ui.context.title = `${compact(context.tokens)} of ${compact(context.window)} tokens`;
+        ui.context.title = `${compact(context.tokens)} of ${compact(context.window)} tokens${disk ? `
+On disk: ${diskLabel(disk)}` : ""}`;
       }
 
       ui.bar.classList.toggle("bar-indeterminate", !known);

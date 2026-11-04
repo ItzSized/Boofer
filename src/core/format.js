@@ -6,6 +6,18 @@ export function duration(ms) {
   return `${m} min ${String(s % 60).padStart(2, "0")}`;
 }
 
+/** 850 KB · 36 MB · 5.2 GB, counted like Windows Explorer (1 MB = 1024 KB). */
+export function fileSize(bytes) {
+  if (bytes < 1024 ** 2) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  if (bytes < 1024 ** 3) return `${Math.round(bytes / 1024 ** 2)} MB`;
+  return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
+}
+
+/** What a chat and its project weigh: "this chat 129 MB · project 762 MB (3 chats)". */
+export function diskLabel({ chatBytes, projectBytes, chats }) {
+  return `this chat ${fileSize(chatBytes)} · project ${fileSize(projectBytes)} (${chats} chat${chats === 1 ? "" : "s"})`;
+}
+
 /** Version strings: is `a` newer than `b`? ("0.2.0" vs "0.1.0") */
 export function isNewer(a, b) {
   const pa = a.split(".").map(Number);

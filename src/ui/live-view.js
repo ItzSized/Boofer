@@ -1,4 +1,4 @@
-import { approx, duration } from "../core/format.js";
+import { approx, diskLabel, duration } from "../core/format.js";
 import { compact } from "../core/models.js";
 import { CONTEXT_PARTS } from "../core/task-cost.js";
 
@@ -123,6 +123,7 @@ export function createLiveView({ call, isTauri, emit, listen }) {
               <span class="shrink-0">🧠 ${compact(s.context.tokens)} / ${compact(s.context.window)} tokens</span>
               <div class="h-1 flex-1 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"><div class="h-full rounded-full ${ctx >= 80 ? "bg-amber-500" : "bg-violet-400"}" style="width:${ctx}%"></div></div>
               <span class="tabular-nums">${ctx}%</span></div>` : ""}
+            ${s.disk ? `<p class="mt-1 text-[11px] tabular-nums text-zinc-500 dark:text-zinc-400" title="What Claude Code keeps on your PC in ~/.claude/projects: this chat with its subagents, and all the chats of the project. It takes disk space, not tokens: the context gauge is what each message costs.">On disk: ${esc(diskLabel(s.disk))}</p>` : ""}
             ${s.cost ? `<p class="mt-1 text-[11px] font-medium tabular-nums text-violet-600 dark:text-violet-300" title="Tokens used by this task since your request (input + output), and their share of your daily limit (📊 Models)">${esc(s.cost.label)} ${["idle", "done"].includes(s.state) ? "" : "so far"}</p>` : ""}
             ${contextDetail(s.contextParts, s.context?.tokens, s.key, open.has(s.key))}
           </div>
@@ -133,6 +134,7 @@ export function createLiveView({ call, isTauri, emit, listen }) {
 
   const DEV_SESSIONS = () => [
     { key: "a", agent: "Claude Code", color: "#D97757", project: "Boofer", state: "tool", label: "Editing main.js", model: "Claude Opus 5.5", prompt: "Add the live page", elapsedMs: 95_000, etaMs: 140_000, steps: 14, files: 3, progress: 0.42, context: { tokens: 312_000, window: 1_000_000 },
+      disk: { chatBytes: 135_266_304, projectBytes: 799_014_912, chats: 3 },
       cost: { tokens: 1_240_000, pct: 0.018, label: "💰 1.2M tokens · 2% of your daily limit" },
       contextParts: [{ key: "files", tokens: 118_000 }, { key: "system", tokens: 64_000 }, { key: "commands", tokens: 52_000 }, { key: "replies", tokens: 41_000 }, { key: "toolCalls", tokens: 21_000 }, { key: "prompts", tokens: 9_000 }, { key: "search", tokens: 7_000 }] },
     { key: "b", agent: "Antigravity", color: "#4285F4", project: "website", state: "idle", label: "Waiting for your request", model: "Gemini 3.1 Pro", elapsedMs: 0, etaMs: null, steps: 0, files: 0, progress: null, context: null },
