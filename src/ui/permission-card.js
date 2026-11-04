@@ -84,7 +84,7 @@ export function createPermissionCard(el, { agentName, color, resolve, onChange }
   };
 }
 
-function describe(p) {
+export function describe(p) {
   const input = p.tool_input ?? {};
   switch (p.tool_name) {
     case "Bash":

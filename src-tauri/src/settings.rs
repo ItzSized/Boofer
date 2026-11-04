@@ -53,6 +53,9 @@ pub struct Settings {
     /// When a task ends and no sound can be heard (Boofer's sounds off, or the PC muted),
     /// a Windows notification shows even with the editor in front.
     pub notify_when_silent: bool,
+    /// A Windows notification when a permission or a « Stop ! » waits for an answer while the
+    /// editor isn't in front. Off by default.
+    pub notify_when_waiting: bool,
     /// Animation groups switched off ("float", "work", "arms", "celebrate", "tricks", "blink", "sleep"),
     /// or "all".
     pub animations_off: Vec<String>,
@@ -92,6 +95,7 @@ impl Default for Settings {
             daily_limit_pct: Default::default(),
             reprompt_ai: false,
             notify_when_silent: true,
+            notify_when_waiting: false,
             animations_off: Vec::new(),
             auto_update: true,
             web_ai_added: true,
