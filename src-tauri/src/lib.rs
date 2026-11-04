@@ -143,8 +143,12 @@ fn start_event_server(app: AppHandle, server: tiny_http::Server) {
             let payload = serde_json::from_str(&body).unwrap_or(serde_json::Value::Null);
 
             if is_post && read_ok && request.url() == "/guard" {
-                let enabled = app.state::<SettingsState>().current.lock().unwrap().guard;
-                match guard::command_of(&payload).and_then(guard::check) {
+                let (enabled, own_commands) = {
+                    let settings = app.state::<SettingsState>();
+                    let current = settings.current.lock().unwrap();
+                    (current.guard, current.guard_commands.clone())
+                };
+                match guard::command_of(&payload).and_then(|command| guard::danger_of(command, &own_commands)) {
                     Some(danger) if enabled => {
                         // A safety stop: shown even when the ghost is hidden or away from the editor.
                         app.state::<PetState>().hidden.store(false, Relaxed);

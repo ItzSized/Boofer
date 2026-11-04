@@ -36,7 +36,7 @@ What changed in each version: [CHANGELOG.md](CHANGELOG.md), the notes of each [r
 ### ✋ Stay in control
 
 - **Approvals**: when Claude Code asks for a permission, a card shows the command or file with **Allow / Always / Deny**. No answer within 55 s? Claude Code asks you as usual.
-- **Stop dangerous commands**: before an `rm -rf`, a `git push --force`, a `git reset --hard` or a disk format, the ghost crosses its arms and asks "Are you sure?". No answer within 55 s and it's blocked, even in auto mode.
+- **Stop dangerous commands**: before an `rm -rf`, a `git push --force`, a `git reset --hard` or a disk format, the ghost crosses its arms and asks "Are you sure?". No answer within 55 s and it's blocked, even in auto mode. Add your own commands to stop in Settings → Agents.
 - **Do not disturb**: no sounds or cards for 30 min, 1 h, until tomorrow morning or with no end. It turns itself back on.
 
 ### 🔔 Alerts
