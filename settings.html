@@ -26,6 +26,7 @@
       <button data-page="models" title="Models" class="rail-item"><span class="rail-icon">📊</span><span class="hidden lg:inline">Models</span></button>
       <button data-page="live" title="Live" class="rail-item"><span class="rail-icon">🟢</span><span class="hidden lg:inline">Live</span></button>
       <button data-page="tokens" title="Tokens" class="rail-item"><span class="rail-icon">✂️</span><span class="hidden lg:inline">Tokens</span></button>
+      <button data-page="storage" title="Storage" class="rail-item"><span class="rail-icon"><svg viewBox="0 0 24 24" class="size-[1.125rem]" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3" fill="rgb(150 62 255 / 0.35)"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></span><span class="hidden lg:inline">Storage</span></button>
     </nav>
 
     <main class="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-10 lg:py-8">
@@ -480,6 +481,28 @@
       <p class="px-2 text-center text-[11px] leading-relaxed text-zinc-400">
         Updated continuously. The context (🧠) is known for Claude Code; the time left comes from your past tasks.
       </p>
+    </div>
+
+    <div id="page-storage" class="page-grid hidden">
+      <section class="rounded-2xl bg-white p-4 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
+        <div class="flex items-center gap-3">
+          <div class="min-w-0 flex-1">
+            <p id="storage-total" class="text-2xl font-extrabold tabular-nums">&nbsp;</p>
+            <p id="storage-summary" class="text-xs text-zinc-500 dark:text-zinc-400"></p>
+          </div>
+          <button id="storage-refresh"
+            class="shrink-0 rounded-lg bg-violet-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-600 disabled:opacity-60">
+            Refresh</button>
+        </div>
+        <p class="mt-2 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+          This is space on your disk, in <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">~/.claude/projects</code>, not tokens:
+          it has no effect on your limits or on what a message costs. Boofer only shows it, it never deletes anything.
+        </p>
+      </section>
+      <section class="rounded-2xl bg-white px-4 pt-3 pb-1 ring-1 ring-black/5 dark:bg-zinc-900 dark:ring-white/10">
+        <h2 class="text-xs font-semibold uppercase tracking-wide text-zinc-400">Claude Code projects</h2>
+        <ul id="storage-projects" class="divide-y divide-zinc-100 dark:divide-zinc-800"></ul>
+      </section>
     </div>
 
     <div id="page-tokens" class="page-grid hidden">
