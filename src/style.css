@@ -1095,6 +1095,10 @@ html.stream body {
   stroke: var(--ink);
   stroke-opacity: 0.22;
   stroke-width: 1.5;
+  /* Their rotate(±62 60 93) already names its center: undo the fill-box / center origin
+     of `.mascot svg *`, which otherwise moves the arms far off the body. */
+  transform-box: view-box;
+  transform-origin: 0 0;
 }
 
 .stop-sign polygon {
