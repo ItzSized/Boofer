@@ -1,7 +1,8 @@
 //! Per-session numbers from a Claude Code transcript (~/.claude/projects/…/<session>.jsonl):
 //! - what the current task cost: tokens of every model call since it started, subagents included;
 //! - what fills the context: characters per kind of content since the last compaction, turned
-//!   into tokens and fitted to the real context size of the last reply.
+//!   into tokens and fitted to the real context size of the last reply;
+//! - what the chat and its project weigh on disk.
 //! Read incrementally (byte offset), like usage.rs. Nothing leaves the PC.
 
 use serde::Serialize;
@@ -246,9 +247,60 @@ fn content_chars(content: &serde_json::Value) -> u64 {
     }
 }
 
+/// What a chat and its project weigh on disk, in ~/.claude/projects/<project>/.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DiskUsage {
+    /// The transcript and the chat's own folder (subagents, tool results…).
+    chat_bytes: u64,
+    /// The whole project folder: all its chats, its memory…
+    project_bytes: u64,
+    chats: u64,
+}
+
+#[tauri::command]
+pub async fn claude_disk_usage(transcript_path: String) -> Result<DiskUsage, String> {
+    let path = PathBuf::from(transcript_path);
+    let projects = home().join(".claude").join("projects");
+    tauri::async_runtime::spawn_blocking(move || disk_usage(&path, &projects))
+        .await
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| "transcript outside ~/.claude/projects".into())
+}
+
+/// `None` unless the transcript sits right in a project folder: the path comes from a hook,
+/// and it decides which folder gets walked.
+fn disk_usage(transcript: &Path, projects: &Path) -> Option<DiskUsage> {
+    let transcript = transcript.canonicalize().ok()?;
+    let project = transcript.parent()?;
+    if transcript.extension()? != "jsonl" || project.parent()? != projects.canonicalize().ok()? {
+        return None;
+    }
+    let chats = std::fs::read_dir(project)
+        .ok()?
+        .flatten()
+        .filter(|e| e.path().extension().is_some_and(|x| x == "jsonl"))
+        .count();
+    Some(DiskUsage {
+        chat_bytes: size_of(&transcript) + size_of(&transcript.with_extension("")),
+        project_bytes: size_of(project),
+        chats: chats as u64,
+    })
+}
+
+/// Bytes of a file or of a whole folder. Links aren't followed: they could lead anywhere.
+pub(crate) fn size_of(path: &Path) -> u64 {
+    let Ok(meta) = std::fs::symlink_metadata(path) else { return 0 };
+    if !meta.is_dir() {
+        return meta.len();
+    }
+    std::fs::read_dir(path).map_or(0, |dir| dir.flatten().map(|e| size_of(&e.path())).sum())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::settings::tests::TempDir;
     use serde_json::json;
 
     fn feed(lines: &[serde_json::Value]) -> FileStats {
@@ -285,5 +337,51 @@ mod tests {
         assert_eq!(stats.context, 0);
         assert_eq!(stats.chars, [0; PARTS.len()]);
         assert_eq!(stats.calls.len(), 1);
+    }
+
+    fn write(path: &Path, bytes: usize) {
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(path, vec![b'x'; bytes]).unwrap();
+    }
+
+    #[test]
+    fn weighs_the_chat_and_its_project() {
+        let dir = TempDir::new("disk-usage");
+        let projects = dir.0.join("projects");
+        let project = projects.join("my-project");
+        write(&project.join("a.jsonl"), 100);
+        write(&project.join("a/subagents/agent-1.jsonl"), 20);
+        write(&project.join("a/tool-results/out.txt"), 3);
+        write(&project.join("b.jsonl"), 1000);
+        write(&project.join("b/subagents/agent-1.jsonl"), 400);
+        write(&project.join("memory/MEMORY.md"), 5);
+        write(&projects.join("other-project/c.jsonl"), 70_000);
+
+        let usage = disk_usage(&project.join("a.jsonl"), &projects).unwrap();
+        assert_eq!(usage.chat_bytes, 123); // not the other chat, not the memory
+        assert_eq!(usage.project_bytes, 1528); // not the other project
+        assert_eq!(usage.chats, 2); // the transcripts of the subagents are not chats
+    }
+
+    #[test]
+    fn only_walks_a_project_folder() {
+        let dir = TempDir::new("disk-usage-outside");
+        let projects = dir.0.join("projects");
+        write(&projects.join("my-project/a.jsonl"), 1);
+        write(&projects.join("my-project/a/subagents/agent-1.jsonl"), 1);
+        write(&projects.join("my-project/notes.txt"), 1);
+        write(&projects.join("loose.jsonl"), 1);
+        write(&dir.0.join("outside.jsonl"), 1);
+
+        assert!(disk_usage(&projects.join("my-project/a.jsonl"), &projects).is_some());
+        for path in [
+            projects.join("my-project/a/subagents/agent-1.jsonl"), // would count a chat's folder as a project
+            projects.join("my-project/notes.txt"),
+            projects.join("loose.jsonl"), // would walk every project
+            dir.0.join("outside.jsonl"),
+            projects.join("my-project/gone.jsonl"),
+        ] {
+            assert!(disk_usage(&path, &projects).is_none(), "{}", path.display());
+        }
     }
 }

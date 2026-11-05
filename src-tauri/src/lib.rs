@@ -9,6 +9,7 @@ mod permission;
 mod pet;
 mod session_stats;
 mod settings;
+mod storage;
 mod tokens;
 mod updates;
 mod usage;
@@ -321,12 +322,18 @@ fn open_url(url: String) -> Result<(), String> {
     if !url.starts_with("https://github.com/ItzSized/Boofer") {
         return Err("link not allowed".into());
     }
+    open_target(&url)
+}
+
+/// Hands a link or a folder to the system: the browser, the file explorer. The callers
+/// check what they pass.
+fn open_target(target: &str) -> Result<(), String> {
     #[cfg(windows)]
-    let result = std::process::Command::new("explorer").arg(&url).spawn();
+    let result = std::process::Command::new("explorer").arg(target).spawn();
     #[cfg(target_os = "macos")]
-    let result = std::process::Command::new("open").arg(&url).spawn();
+    let result = std::process::Command::new("open").arg(target).spawn();
     #[cfg(all(unix, not(target_os = "macos")))]
-    let result = std::process::Command::new("xdg-open").arg(&url).spawn();
+    let result = std::process::Command::new("xdg-open").arg(target).spawn();
     result.map(|_| ()).map_err(|e| e.to_string())
 }
 
@@ -491,6 +498,9 @@ pub fn run() {
             usage::model_usage,
             usage::claude_context,
             session_stats::claude_session_stats,
+            session_stats::claude_disk_usage,
+            storage::claude_storage,
+            storage::open_claude_folder,
             antigravity::sync_antigravity,
             open_settings,
             set_follow,

@@ -30,7 +30,8 @@ What changed in each version: [CHANGELOG.md](CHANGELOG.md), the notes of each [r
 - **Context and compaction**: a "🧠 Context 64%" gauge before Claude Code compacts, and the ghost squeezes like an accordion while it does.
 - **Browser AIs**, nothing to install: ChatGPT, Gemini, AI Studio, Claude, Grok, Perplexity, DeepSeek, Le Chat and Copilot in Chrome, Edge or Brave.
 - **Stuck agent alert**: nothing new for 8 minutes, or 3 failed actions in a row.
-- **Live page** (Settings → 🟢 Live): open AI apps and every running agent, with its model, its context and what fills it.
+- **Live page** (Settings → 🟢 Live): open AI apps and every running agent, with its model, its context and what fills it, and what its chat and project weigh on disk (Claude Code).
+- **Storage page** (Settings → Storage): what Claude Code keeps in `~/.claude/projects`, project by project (size, chats, last use, biggest chats) and a button to open the folder. It shows disk space only and never deletes anything.
 - **Click the bubble or a tab** to bring that session's window to the front, browser included.
 
 ### ✋ Stay in control
@@ -72,7 +73,7 @@ What changed in each version: [CHANGELOG.md](CHANGELOG.md), the notes of each [r
 
 ### ⚙️ The app
 
-- **Settings by category**: 🎨 Look, 👻 Ghost, 🔔 Alerts, 🤖 Agents, 📅 Today, ⚙️ General, 📊 Models, 🟢 Live, ✂️ Tokens. Maximize the window for a sidebar and two columns.
+- **Settings by category**: 🎨 Look, 👻 Ghost, 🔔 Alerts, 🤖 Agents, 📅 Today, ⚙️ General, 📊 Models, 🟢 Live, ✂️ Tokens, Storage. Maximize the window for a sidebar and two columns.
 - **Open it**: double-click Boofer, click the tray icon, or right-click the ghost → Settings.
 - **Start with Windows**, quietly.
 - **Shortcuts**: Ctrl+Alt+B show / hide, Ctrl+Alt+M model usage, Ctrl+Alt+P reprompt.
