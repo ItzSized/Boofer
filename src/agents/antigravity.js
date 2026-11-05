@@ -272,7 +272,10 @@ function extractModelSelection(text) {
 function extractProjectFromMetadata(text) {
   const meta = extractTag(text, "ADDITIONAL_METADATA");
   if (!meta) return "";
-  const docMatch = meta.match(/(?:Active Document|-\s*)([A-Za-z]:[\\/][^\r\n(]+)/);
+  const docMatch =
+    meta.match(/(?:Active Document|-\s*)([A-Za-z]:[\\/][^\r\n(]+)/) ??
+    // Same places as extract_project_from_content (antigravity.rs), on Linux and macOS.
+    meta.match(/(?:Active Document:?|-)[ \t]+(\/[^\r\n(]+)/);
   return docMatch ? inferProjectFromPath(docMatch[1].trim()) : "";
 }
 
