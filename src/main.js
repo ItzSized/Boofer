@@ -21,7 +21,7 @@ import { createBubble } from "./ui/bubble.js";
 import { createMascot } from "./ui/mascot.js";
 import { createMenu } from "./ui/menu.js";
 import { createGuardCard } from "./ui/guard-card.js";
-import { createPermissionCard } from "./ui/permission-card.js";
+import { createPermissionCard, describe as describeRequest } from "./ui/permission-card.js";
 import { createPet } from "./ui/pet.js";
 import { createSpeech } from "./ui/speech.js";
 import { createTabs } from "./ui/tabs.js";
@@ -80,6 +80,11 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
       onCardsChange();
     },
   });
+
+  // A card is waiting for an answer: a notification for someone looking elsewhere (off by default).
+  function notifyWaiting(title, body) {
+    if (settings.notifyWhenWaiting) invoke("notify", { title, body });
+  }
 
   const asking = () => card.isOpen() || guard.isOpen();
   function onCardsChange() {
@@ -687,9 +692,15 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     listen("agent-event", ({ payload }) => ingest(payload.source, payload.payload)).then(() => {
       invoke("sync_antigravity");
     });
-    listen("permission-request", ({ payload }) => card.add(payload));
+    listen("permission-request", ({ payload }) => {
+      card.add(payload);
+      notifyWaiting(`${claudeCode.name} needs your answer`, describeRequest(payload.payload).join(" "));
+    });
     listen("permission-expired", ({ payload }) => card.expire(payload));
-    listen("guard-request", ({ payload }) => guard.add(payload));
+    listen("guard-request", ({ payload }) => {
+      guard.add(payload);
+      notifyWaiting("Stop! Are you sure?", `${claudeCode.name} is about to ${payload.danger}.`);
+    });
     listen("live-request", () => emit("live-sessions", liveSnapshot()));
     listen("guard-expired", ({ payload }) => guard.expire(payload));
     listen("settings-changed", ({ payload }) => applySettings(payload));

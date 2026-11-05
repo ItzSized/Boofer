@@ -42,7 +42,7 @@ What changed in each version: [CHANGELOG.md](CHANGELOG.md), the notes of each [r
 ### 🔔 Alerts
 
 - **Done ping**: the ghost jumps, the bubble says "Claudio is done! · Done in 45 s" with what the task cost in tokens.
-- **Windows notifications** when a task finishes and you're not on your editor, and when a plan limit goes over 80%.
+- **Windows notifications** when a task finishes and you're not on your editor, and when a plan limit goes over 80%. Optional: also when a permission or a Stop is waiting for your answer.
 - **Sound off?** If Boofer's sounds are off or the PC is muted, a notification tells you anyway.
 - **Three sound themes**: chimes, soft or retro 8-bit.
 - **Day summary** around 6 pm (or right-click → My day).
