@@ -13,7 +13,7 @@ import { EtaEstimator } from "./core/eta.js";
 import { ACTIVE_STATES, State } from "./core/states.js";
 import { setTheme } from "./core/theme.js";
 import { applyAnimations } from "./core/animations.js";
-import { findUpdate, installUpdate } from "./core/updates.js";
+import { buildInProgress, findUpdate, installUpdate } from "./core/updates.js";
 import { describeCost, toolTotal } from "./core/task-cost.js";
 import { Tracker } from "./core/tracker.js";
 import { configureSound, playAttention, playDone, playError } from "./audio/chime.js";
@@ -209,6 +209,12 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     if (day >= 920 && day <= 1002) return "sorciere";
     if (d.getMonth() === 11) return "bonnet";
     return null;
+  }
+
+  // Snow in December, when no effect is chosen.
+  function seasonalEffect(s) {
+    if (!s.seasonal || (s.effect && s.effect !== "aucun")) return null;
+    return new Date().getMonth() === 11 ? "neige" : null;
   }
 
   // An agent stuck: nothing new for 8 minutes while working, or 3 failed actions in one task.
@@ -461,7 +467,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   const quit = () => (isTauri ? invoke("quit") : window.close());
 
   // Settings live in Rust (settings.json); every window gets "settings-changed".
-  let settings = { animationsOff: [], autoUpdate: true, follow: false, glide: false, sleepAfter: 45, size: 1, sounds: true, volume: 0.8, skin: "classique", accessory: "aucun", theme: "auto", dnd: false, dndUntil: 0, speech: true };
+  let settings = { animationsOff: [], autoUpdate: true, follow: false, glide: false, sleepAfter: 45, size: 1, sounds: true, volume: 0.8, skin: "classique", accessory: "aucun", effect: "aucun", theme: "auto", dnd: false, dndUntil: 0, speech: true };
 
   function applySettings(next) {
     if (settingsLoaded && !settings.follow && next.follow) speech.say("follow");
@@ -477,6 +483,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     document.documentElement.style.zoom = String(settings.size); // the window is resized to match
     mascotEl.dataset.skin = settings.skin;
     mascotEl.dataset.accessory = seasonalAccessory(settings) ?? settings.accessory;
+    mascotEl.dataset.effect = seasonalEffect(settings) ?? settings.effect ?? "aucun";
     usageBar.rerender();
     render(); // the tray tooltip shows "Do not disturb" too
   }
@@ -587,7 +594,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     } catch {
       return; // offline: next time
     }
-    if (!update) return;
+    if (!update) return checkAfterBuild();
     // update.manual: a .deb under Linux, that the user updates by hand.
     if (settings.autoUpdate === false || update.manual) {
       const what = update.rebuild ? "New features are out" : `Boofer ${update.version} is out`;
@@ -607,6 +614,25 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   }
   setTimeout(checkUpdate, 20_000);
   setInterval(checkUpdate, 6 * 3600_000);
+
+  // GitHub is building new features right now: check again a minute after it should be done,
+  // instead of waiting for the next 6 h check.
+  let afterBuild = null;
+  async function checkAfterBuild() {
+    if (afterBuild) return;
+    try {
+      const mine = await invoke("build_commit");
+      const build = mine && (await buildInProgress(mine));
+      if (!build) return;
+      const wait = Math.max(60_000, build.startedAt + build.expectedMs + 60_000 - Date.now());
+      afterBuild = setTimeout(() => {
+        afterBuild = null;
+        checkUpdate();
+      }, Math.min(wait, 30 * 60_000));
+    } catch {
+      // offline or GitHub's limit: the 6 h check is still there
+    }
+  }
 
   // Reprompt: the clipboard's prompt, rewritten for the AI only (local, or Claude Haiku if chosen).
   async function reprompt(text) {
@@ -644,6 +670,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     compact: { label: "🧹 Simulate a compaction", run: () => runCompactDemo() },
     request: { label: "🔐 Simulate a request", run: () => card.add(TEST_REQUEST()) },
     guard: { label: "🛑 Simulate a stop", run: () => guard.add(TEST_GUARD()) },
+    trick: { label: "🎲 Do a trick", run: () => pet?.trick() },
   };
   const demoItems = (ids) => (isTauri ? [] : ids.map((id) => ({ label: DEMOS[id].label, action: DEMOS[id].run })));
 
@@ -651,7 +678,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   const appOnly = (items) => (isTauri ? items : []);
   const menu = createMenu(document.getElementById("menu"), [
     { heading: "Try it" },
-    ...demoItems(["task", "sessions", "compact", "request", "guard"]),
+    ...demoItems(["task", "sessions", "compact", "request", "guard", "trick"]),
     { heading: "Agents" },
     ...appOnly([
       { label: "🟢 Live agents", action: () => invoke("open_settings", { page: "live" }) },

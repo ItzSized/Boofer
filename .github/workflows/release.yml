@@ -39,6 +39,13 @@ jobs:
         with:
           workspaces: "./src-tauri -> target"
 
+      # WiX and NSIS, downloaded by the bundler on each build otherwise: faster, and a GitHub
+      # hiccup while downloading them (http 504) no longer fails the build.
+      - uses: actions/cache@v4
+        with:
+          path: ~/AppData/Local/tauri
+          key: tauri-bundler-tools-v1
+
       - run: npm ci
 
       # "What's new" of this version, from the commits since the last release (scripts/changelog.mjs).

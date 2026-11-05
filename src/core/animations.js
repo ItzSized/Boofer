@@ -8,6 +8,7 @@ export const ANIMATION_GROUPS = [
   { id: "tricks", name: "🌀 Spins and cuddles", hint: "spins when idle, hearts when you pet it" },
   { id: "blink", name: "👀 Blinks", hint: "blinks and glances" },
   { id: "sleep", name: "💤 Zzz", hint: "the Zs and breathing while it sleeps" },
+  { id: "effects", name: "✨ Effects", hint: "sparkles, bubbles, hearts, snow, orbit and aura around it" },
 ];
 
 /** Applies `settings.animationsOff` (["arms", …] or ["all"]) to the page. */

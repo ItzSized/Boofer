@@ -206,6 +206,84 @@ body {
   --cheek: #ff9f7a;
 }
 
+/* Boofer's own night neon, like the logo. */
+.mascot[data-skin="neon"] {
+  --skin-top: #ecd6fb;
+  --skin-bottom: #a164fa;
+  --ink: #12072f;
+  --cheek: #fd6dde;
+  --glow: rgb(150 62 255 / 0.9);
+}
+
+.mascot[data-skin="barbe"] {
+  --skin-top: #ffe0f4;
+  --skin-bottom: #a5d8ff;
+  --ink: #3b2152;
+  --cheek: #ff7ab8;
+  --glow: rgb(255 160 220 / 0.6);
+}
+
+/* See-through like a real ghost. */
+.mascot[data-skin="glace"] {
+  --skin-top: #ffffff;
+  --skin-bottom: #bfe8ff;
+  --ink: #16324a;
+  --glow: rgb(125 211 252 / 0.65);
+}
+
+.mascot[data-skin="glace"] :is(.body, .arm) {
+  opacity: 0.72;
+}
+
+.mascot[data-skin="galaxie"] {
+  --skin-top: #7b5be0;
+  --skin-bottom: #1b0c4f;
+  --ink: #f6f4ff;
+  --shine: #1b0c4f;
+  --cheek: #ff8fd0;
+  --glow: rgb(150 62 255 / 0.75);
+}
+
+.mascot[data-skin="lave"] {
+  --skin-top: #ffe6a8;
+  --skin-bottom: #ff5a36;
+  --ink: #3a0d05;
+  --cheek: #ff2e63;
+  --glow: rgb(255 120 60 / 0.6);
+}
+
+.mascot .skin-stars {
+  display: none;
+  fill: #fdf8fd;
+}
+
+.mascot[data-skin="galaxie"] .skin-stars {
+  display: inline;
+}
+
+.mascot[data-skin="galaxie"] .skin-stars > * {
+  animation: twinkle-soft 3s ease-in-out infinite;
+}
+
+.mascot[data-skin="galaxie"] .skin-stars > :nth-child(3n) {
+  animation-delay: -1s;
+}
+
+.mascot[data-skin="galaxie"] .skin-stars > :nth-child(3n + 1) {
+  animation-delay: -2s;
+}
+
+@keyframes twinkle-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.25;
+  }
+}
+
 /* ---------- Accessories ---------- */
 
 .mascot .acc {
@@ -219,8 +297,100 @@ body {
 .mascot[data-accessory="pousse"] .acc-pousse,
 .mascot[data-accessory="lunettes"] .acc-lunettes,
 .mascot[data-accessory="sorciere"] .acc-sorciere,
-.mascot[data-accessory="bonnet"] .acc-bonnet {
+.mascot[data-accessory="bonnet"] .acc-bonnet,
+.mascot[data-accessory="oreilles"] .acc-oreilles,
+.mascot[data-accessory="cornes"] .acc-cornes,
+.mascot[data-accessory="fete"] .acc-fete,
+.mascot[data-accessory="licorne"] .acc-licorne,
+.mascot[data-accessory="casquette"] .acc-casquette,
+.mascot[data-accessory="fleur"] .acc-fleur,
+.mascot[data-accessory="echarpe"] .acc-echarpe {
   display: inline;
+}
+
+.acc-oreilles .ear {
+  fill: color-mix(in oklab, var(--body-top) 45%, var(--body-bottom));
+}
+
+.acc-oreilles .inner {
+  fill: var(--cheek);
+  opacity: 0.8;
+}
+
+.acc-cornes path {
+  fill: #e5484d;
+  stroke: #b4232f;
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.acc-fete .cone {
+  fill: #5b8cff;
+}
+
+.acc-fete .brim {
+  fill: #3b5bdb;
+}
+
+.acc-fete .stripe {
+  fill: #fcd34d;
+}
+
+.acc-fete .pom {
+  fill: #ff6f9c;
+}
+
+.acc-licorne .horn {
+  fill: #fde68a;
+  stroke: #f59e0b;
+  stroke-width: 1;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 3px rgb(253 230 138 / 0.9));
+}
+
+.acc-licorne .twist {
+  fill: none;
+  stroke: #f59e0b;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+.acc-casquette .dome {
+  fill: #8b5cf6;
+}
+
+.acc-casquette .visor {
+  fill: #6d28d9;
+}
+
+.acc-casquette .button {
+  fill: #c4b5fd;
+}
+
+.acc-fleur circle {
+  fill: #ffc2e0;
+  stroke: #ff8cc6;
+  stroke-width: 0.8;
+}
+
+.acc-fleur .heart {
+  fill: #fcd34d;
+  stroke: #f59e0b;
+}
+
+.acc-echarpe .band {
+  fill: #e5484d;
+}
+
+.acc-echarpe .tail {
+  fill: #c9343a;
+}
+
+.acc-echarpe .stripes {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-linecap: round;
 }
 
 .acc-sorciere .brim,
@@ -619,7 +789,7 @@ html.stream body {
 }
 
 /* An accessory on the head: the halo would sit inside it. */
-.mascot:is([data-accessory="chapeau"], [data-accessory="couronne"], [data-accessory="casque"], [data-accessory="pousse"]) .halo {
+.mascot:is([data-accessory="chapeau"], [data-accessory="couronne"], [data-accessory="casque"], [data-accessory="pousse"], [data-accessory="fete"], [data-accessory="licorne"], [data-accessory="casquette"]) .halo {
   opacity: 0 !important;
 }
 
@@ -1162,10 +1332,360 @@ html.stream body {
   transition: width 1s linear;
 }
 
+/* ---------- More idle tricks (ui/pet.js → TRICKS) ---------- */
+
+/* Waves hello with a happy squint. */
+.mascot.trick-wave .arm-r {
+  animation: wave 0.28s ease-in-out 6 alternate;
+}
+
+/* Wiggles like jelly. */
+.mascot.trick-wiggle .ghost {
+  animation: wiggle 1s ease-in-out;
+}
+
+/* A little dance, arms up. */
+.mascot.trick-dance .ghost {
+  animation: dance 1.6s ease-in-out;
+}
+
+.mascot.trick-dance .arm-l {
+  animation: cheer-l 0.8s ease-in-out 2;
+}
+
+.mascot.trick-dance .arm-r {
+  animation: cheer-r 0.8s ease-in-out 2;
+}
+
+/* "Boo!": fades almost away, then comes back. */
+.mascot.trick-boo .ghost {
+  animation: boo 1.8s ease-in-out;
+}
+
+/* A big yawn, eyes shut. */
+.mascot.trick-yawn .ghost {
+  animation: yawn 1.8s ease-in-out;
+}
+
+.mascot.trick-yawn .mouth-o {
+  animation: yawn-mouth 1.8s ease-in-out;
+}
+
+.mascot:is(.trick-wave, .trick-dance) .eyes-open,
+.mascot.trick-yawn .eyes-open,
+.mascot:is(.trick-boo, .trick-yawn, .trick-dance) .mouth {
+  opacity: 0;
+}
+
+.mascot:is(.trick-wave, .trick-dance) .eyes-happy,
+.mascot.trick-yawn .eyes-sleep,
+.mascot.trick-dance .mouth-grin,
+.mascot:is(.trick-boo, .trick-yawn) .mouth-o {
+  opacity: 1;
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    rotate: 0deg;
+    scale: 1 1;
+  }
+
+  20% {
+    rotate: -9deg;
+    scale: 1.05 0.95;
+  }
+
+  40% {
+    rotate: 8deg;
+    scale: 0.96 1.04;
+  }
+
+  60% {
+    rotate: -5deg;
+  }
+
+  80% {
+    rotate: 3deg;
+  }
+}
+
+@keyframes dance {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+
+  25% {
+    translate: -7px -6px;
+    rotate: -10deg;
+  }
+
+  50% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+
+  75% {
+    translate: 7px -6px;
+    rotate: 10deg;
+  }
+}
+
+@keyframes boo {
+  0%,
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+
+  35%,
+  65% {
+    opacity: 0.12;
+    scale: 0.94;
+  }
+
+  80% {
+    opacity: 1;
+    scale: 1.08;
+  }
+}
+
+@keyframes yawn {
+  0%,
+  100% {
+    scale: 1 1;
+  }
+
+  40%,
+  70% {
+    scale: 0.97 1.06;
+  }
+}
+
+@keyframes yawn-mouth {
+  0%,
+  100% {
+    scale: 1;
+  }
+
+  40%,
+  70% {
+    scale: 1.7 2;
+  }
+}
+
+/* ---------- Effects around the ghost (settings → Look → Effect) ---------- */
+
+.mascot .fx {
+  display: none;
+}
+
+.mascot[data-effect="etoiles"] .fx-etoiles,
+.mascot[data-effect="bulles"] .fx-bulles,
+.mascot[data-effect="coeurs"] .fx-coeurs,
+.mascot[data-effect="neige"] .fx-neige,
+.mascot[data-effect="orbite"] .fx-orbite {
+  display: inline;
+}
+
+.fx-etoiles path {
+  fill: #fde68a;
+  filter: drop-shadow(0 0 2px #facc15);
+}
+
+.fx-etoiles g g {
+  opacity: 0;
+  animation: twinkle 2.6s ease-in-out infinite;
+}
+
+.fx-bulles circle {
+  fill: rgb(255 255 255 / 0.25);
+  stroke: #c4b5fd;
+  stroke-width: 0.9;
+}
+
+.fx-bulles g g {
+  opacity: 0;
+  animation: rise 3.4s ease-in infinite;
+}
+
+.fx-coeurs path {
+  fill: #ff8cc6;
+  filter: drop-shadow(0 0 2px rgb(255 140 198 / 0.8));
+}
+
+.fx-coeurs g g {
+  opacity: 0;
+  animation: rise-heart 4s ease-in-out infinite;
+}
+
+.fx-neige circle {
+  fill: #f0f9ff;
+  stroke: #bfdbfe;
+  stroke-width: 0.6;
+}
+
+.fx-neige g g {
+  opacity: 0;
+  animation: snow 4.2s linear infinite;
+}
+
+.fx-orbite:is(.orbit-back, .orbit-front) {
+  fill: none;
+  stroke: #e398fd;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 2px #bf57fc);
+}
+
+.orbit-back {
+  opacity: 0.45;
+}
+
+.orbit-x {
+  animation: orbit-x 1.6s ease-in-out infinite alternate;
+}
+
+.orbit-y {
+  animation: orbit-y 1.6s ease-in-out -0.8s infinite alternate;
+}
+
+.orbit-y circle {
+  fill: #fdf8fd;
+  filter: drop-shadow(0 0 3px #e398fd);
+}
+
+/* A neon glow that breathes. */
+.mascot[data-effect="aura"] {
+  animation: aura 2.6s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    scale: 0.3;
+    rotate: 0deg;
+  }
+
+  50% {
+    opacity: 1;
+    scale: 1;
+    rotate: 45deg;
+  }
+}
+
+@keyframes rise {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+    scale: 0.5;
+  }
+
+  15% {
+    opacity: 0.9;
+  }
+
+  50% {
+    translate: 4px -55px;
+  }
+
+  100% {
+    opacity: 0;
+    translate: -3px -112px;
+    scale: 1.2;
+  }
+}
+
+@keyframes rise-heart {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+    scale: 0.4;
+  }
+
+  20%,
+  60% {
+    opacity: 1;
+    scale: 1;
+  }
+
+  100% {
+    opacity: 0;
+    translate: 3px -46px;
+    scale: 0.8;
+  }
+}
+
+@keyframes snow {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+  }
+
+  10%,
+  85% {
+    opacity: 1;
+  }
+
+  50% {
+    translate: 5px 75px;
+  }
+
+  100% {
+    opacity: 0;
+    translate: -2px 150px;
+  }
+}
+
+@keyframes orbit-x {
+  from {
+    translate: -52px 0;
+  }
+
+  to {
+    translate: 52px 0;
+  }
+}
+
+@keyframes orbit-y {
+  from {
+    translate: 0 -12px;
+    opacity: 0.3;
+  }
+
+  to {
+    translate: 0 12px;
+    opacity: 1;
+  }
+}
+
+@keyframes aura {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 7px var(--glow)) drop-shadow(0 6px 10px rgb(70 50 130 / 0.22));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 16px #963eff) drop-shadow(0 0 5px #e398fd) drop-shadow(0 6px 10px rgb(70 50 130 / 0.22));
+  }
+}
+
 /* ---------- Animations switched off (settings → Animations, core/animations.js) ---------- */
 
+/* Effects: the moving ones go away, the orbit ring stays still. */
+.anim-off-effects .mascot .fx:not(.fx-orbite),
+.anim-off-all .mascot .fx:not(.fx-orbite) {
+  display: none !important;
+}
+
+.anim-off-effects :is(.orbit-x, .orbit-y, .mascot[data-effect="aura"], .skin-stars > *) {
+  animation: none !important;
+}
+
 /* Floating at rest (also when gliding, asleep, done). The one-shot moves keep their own group. */
-.anim-off-float .mascot:not(.celebrate, .patted, .waking, .trick-spin, .trick-hop, .stop):is([data-state="idle"], [data-state="done"], .moving, .sleeping) .ghost,
+.anim-off-float .mascot:not(.celebrate, .patted, .waking, .trick-spin, .trick-hop, .trick-wiggle, .trick-dance, .trick-boo, .trick-yawn, .stop):is([data-state="idle"], [data-state="done"], .moving, .sleeping) .ghost,
 .anim-off-float .shadow,
 .anim-off-float .halo,
 .anim-off-float .mini-busy .mini-ghost {
@@ -1196,7 +1716,9 @@ html.stream body {
   animation: none !important;
 }
 
-.anim-off-tricks .mascot:is(.trick-spin, .trick-hop, .patted, .waking) .ghost,
+.anim-off-tricks .mascot:is(.trick-spin, .trick-hop, .trick-wiggle, .trick-dance, .trick-boo, .trick-yawn, .patted, .waking) .ghost,
+.anim-off-tricks .mascot:is(.trick-wave, .trick-dance) .arm,
+.anim-off-tricks .mascot.trick-yawn .mouth-o,
 .anim-off-tricks .mascot.trick-peek .eyes-open {
   animation: none !important;
 }
