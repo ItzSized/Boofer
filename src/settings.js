@@ -60,7 +60,7 @@ const isTauri = "__TAURI_INTERNALS__" in window;
 const DEV_SETTINGS = {
   display: "editor", notifications: true, notifyWhenSilent: true, notifyWhenWaiting: false, animationsOff: [], autoUpdate: true, targetApps: ["antigravity"], follow: false, glide: false, sounds: true, volume: 0.8,
   size: 1, skin: "classique", accessory: "aucun", sleepAfter: 45, approvals: true, theme: "auto", dnd: false, dndUntil: 0, speech: true,
-  guard: true, dailyLimitPct: { anthropic: 100 }, repromptAi: false,
+  guard: true, guardCommands: [], dailyLimitPct: { anthropic: 100 }, repromptAi: false,
 };
 const todayIso = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
 const DEV_ANSWERS = {
@@ -171,6 +171,8 @@ function render() {
   $("volume").disabled = !settings.sounds;
   $("approvals").checked = settings.approvals;
   $("guard-toggle").checked = settings.guard !== false;
+  // Not while it's being typed in: settings also come back when another window changes them.
+  if (document.activeElement !== $("guard-commands")) $("guard-commands").value = (settings.guardCommands ?? []).join("\n");
   $("reprompt-ai").checked = Boolean(settings.repromptAi);
   $("dnd-toggle").checked = settings.dnd;
   $("dnd-until").textContent = settings.dnd && settings.dndUntil ? ` Until ${clockTime(settings.dndUntil)}.` : "";
@@ -378,6 +380,9 @@ document.querySelectorAll("[data-demo]").forEach((button) => {
 $("speech-toggle").addEventListener("change", (e) => save({ speech: e.target.checked }));
 $("approvals").addEventListener("change", (e) => save({ approvals: e.target.checked }));
 $("guard-toggle").addEventListener("change", (e) => save({ guard: e.target.checked }));
+$("guard-commands").addEventListener("change", (e) => {
+  save({ guardCommands: [...new Set(e.target.value.split("\n").map((line) => line.trim()).filter(Boolean))] });
+});
 $("reprompt-ai").addEventListener("change", (e) => save({ repromptAi: e.target.checked }));
 $("clear-history").addEventListener("click", () => {
   clearHistory();

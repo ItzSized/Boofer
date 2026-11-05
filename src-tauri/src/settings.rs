@@ -43,6 +43,8 @@ pub struct Settings {
     pub notifications: bool,
     /// « Stop ! » : dangerous commands from Claude Code wait for a confirmation.
     pub guard: bool,
+    /// Commands the user wants stopped as well, on top of the dangerous ones: `terraform destroy`.
+    pub guard_commands: Vec<String>,
     /// Daily token budget per model family ("anthropic", "google", "openai"); absent = no limit.
     /// Replaced by `daily_limit_pct`, kept so older settings files still load.
     pub daily_limits: std::collections::BTreeMap<String, u64>,
@@ -91,6 +93,7 @@ impl Default for Settings {
             speech: true,
             notifications: true,
             guard: true,
+            guard_commands: Vec::new(),
             daily_limits: Default::default(),
             daily_limit_pct: Default::default(),
             reprompt_ai: false,

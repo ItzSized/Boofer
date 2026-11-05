@@ -296,6 +296,12 @@
         </div>
         <label class="toggle"><input id="guard-toggle" type="checkbox" /><span></span></label>
       </div>
+      <details class="py-2.5">
+        <summary class="cursor-pointer select-none text-sm font-medium">Advanced: my own commands to stop</summary>
+        <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">One per line. Boofer also stops these commands, whatever follows them, like the dangerous ones.</p>
+        <textarea id="guard-commands" rows="3" spellcheck="false" placeholder="terraform destroy&#10;kubectl delete"
+          class="mt-2 w-full resize-y rounded-lg bg-zinc-100 px-3 py-1.5 font-mono text-xs outline-none ring-violet-400 focus:ring-2 dark:bg-zinc-800"></textarea>
+      </details>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
           <p class="text-sm font-medium" id="hooks-title"></p>
