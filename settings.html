@@ -198,7 +198,7 @@
       <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">Notifications</h2>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">🔔 Windows notifications</p>
+          <p class="text-sm font-medium">🔔 <span data-linux="Desktop">Windows</span> notifications</p>
           <p class="text-xs text-zinc-500 dark:text-zinc-400">When a task finishes and you're not on your editor.</p>
         </div>
         <label class="toggle"><input id="notifications" type="checkbox" /><span></span></label>
@@ -272,7 +272,7 @@
             class="shrink-0 rounded-full bg-blue-50 dark:bg-blue-950/70 px-2.5 py-1 text-[11px] font-semibold text-blue-600 dark:text-blue-300">Active</span>
         </div>
       </div>
-      <div class="py-2.5">
+      <div class="py-2.5" data-windows-only>
         <p class="text-sm font-medium text-blue-600 dark:text-blue-400">✓ Browser AIs followed automatically</p>
         <p class="text-xs text-zinc-500 dark:text-zinc-400">
           ChatGPT, Gemini, Claude, Grok, Perplexity, DeepSeek, Le Chat and Copilot in Chrome, Edge or Brave, with nothing
@@ -364,7 +364,7 @@
       <div id="update-bar" class="mt-3 hidden h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
         <div id="update-fill" class="h-full w-0 rounded-full bg-violet-500 transition-[width]"></div>
       </div>
-      <div class="mt-3 flex items-center justify-between gap-4 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+      <div id="auto-update-row" class="mt-3 flex items-center justify-between gap-4 border-t border-zinc-100 pt-3 dark:border-zinc-800">
         <div>
           <p class="text-sm font-medium">Update automatically</p>
           <p class="text-xs text-zinc-500 dark:text-zinc-400">At startup and every 6 h, when no agent is working.</p>
@@ -389,7 +389,7 @@
       <h2 class="py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">General</h2>
       <div class="flex items-center justify-between gap-4 py-2.5">
         <div>
-          <p class="text-sm font-medium">Start with Windows</p>
+          <p class="text-sm font-medium" data-linux="Start at login">Start with Windows</p>
           <p class="text-xs text-zinc-500 dark:text-zinc-400" id="autostart-text">Boofer opens by itself when you
             turn on the PC.</p>
         </div>

@@ -8,7 +8,9 @@ https://github.com/user-attachments/assets/e2455168-d445-4a0e-b2cf-3031f2f9c7ab
 
 > Independent project, not affiliated with Anthropic. "Claude" and "Claude Code" are trademarks of Anthropic.
 
-## Download (Windows 10 / 11)
+## Download
+
+### Windows 10 / 11
 
 👉 **[Latest version](https://github.com/ItzSized/Boofer/releases/latest)**, nothing to compile, pick one:
 
@@ -17,6 +19,23 @@ https://github.com/user-attachments/assets/e2455168-d445-4a0e-b2cf-3031f2f9c7ab
 - **`Boofer.exe`**: portable version, double-click and go
 
 Nothing else to install: the installers add WebView2 if it's missing (already there on Windows 10/11), and you need neither Node nor Rust. For Claude Code: **Settings → Claude Code → Connect**. Antigravity and Codex are detected automatically.
+
+### Linux (x86_64)
+
+👉 **[Latest version](https://github.com/ItzSized/Boofer/releases/latest)**, pick one:
+
+- **`Boofer_…_amd64.AppImage`**: nothing to install, `chmod +x` it and run it. It updates itself.
+- **`Boofer_…_amd64.deb`**: `sudo apt install ./Boofer_…_amd64.deb`. It doesn't update itself: **Settings → Check for updates** tells you when there's a new version and opens its download page.
+
+What you need and what's different from Windows:
+
+- **WebKitGTK 4.1** draws the interface: the `.deb` installs it, the AppImage carries it.
+- **X11 or XWayland**: Boofer always runs as an X11 app, also on a Wayland desktop. Without XWayland it can't start there.
+- **Tray icon**: your desktop has to show AppIndicator icons. On GNOME, that's the "AppIndicator and KStatusNotifierItem Support" extension. Without it there's no icon, and the right-click menu of the ghost does the same job. With it, any click opens the menu, and the icon has no tooltip.
+- **Global shortcuts** (Ctrl+Alt+B, M, P) go through X11. On a Wayland desktop it's up to the desktop whether an X11 app gets them, and they may only work while an X11 window is in front.
+- **Browser AIs aren't followed**: reading the tab relies on an accessibility API of Windows. Claude Code, Antigravity and Codex are followed as usual.
+
+### What's new
 
 What changed in each version: [CHANGELOG.md](CHANGELOG.md), the notes of each [release](https://github.com/ItzSized/Boofer/releases), or **Settings → What's new** in the app.
 
@@ -28,7 +47,7 @@ What changed in each version: [CHANGELOG.md](CHANGELOG.md), the notes of each [r
 - **Overall and per-step progress**: with a Claude task list, "Step 2/5 · Writing the tests — 70%" and a total ("Total 42%") that never goes back.
 - **Several sessions**: each one has its color, its tab and its mini-ghost. Boofer shows the session of the project in the window in front.
 - **Context and compaction**: a "🧠 Context 64%" gauge before Claude Code compacts, and the ghost squeezes like an accordion while it does.
-- **Browser AIs**, nothing to install: ChatGPT, Gemini, AI Studio, Claude, Grok, Perplexity, DeepSeek, Le Chat and Copilot in Chrome, Edge or Brave.
+- **Browser AIs** (Windows only), nothing to install: ChatGPT, Gemini, AI Studio, Claude, Grok, Perplexity, DeepSeek, Le Chat and Copilot in Chrome, Edge or Brave.
 - **Stuck agent alert**: nothing new for 8 minutes, or 3 failed actions in a row.
 - **Live page** (Settings → 🟢 Live): open AI apps and every running agent, with its model, its context and what fills it, and what its chat and project weigh on disk (Claude Code).
 - **Storage page** (Settings → Storage): what Claude Code keeps in `~/.claude/projects`, project by project (size, chats, last use, biggest chats) and a button to open the folder. It shows disk space only and never deletes anything.
@@ -43,7 +62,7 @@ What changed in each version: [CHANGELOG.md](CHANGELOG.md), the notes of each [r
 ### 🔔 Alerts
 
 - **Done ping**: the ghost jumps, the bubble says "Claudio is done! · Done in 45 s" with what the task cost in tokens.
-- **Windows notifications** when a task finishes and you're not on your editor, and when a plan limit goes over 80%. Optional: also when a permission or a Stop is waiting for your answer.
+- **Desktop notifications** when a task finishes and you're not on your editor, and when a plan limit goes over 80%. Optional: also when a permission or a Stop is waiting for your answer.
 - **Sound off?** If Boofer's sounds are off or the PC is muted, a notification tells you anyway.
 - **Three sound themes**: chimes, soft or retro 8-bit.
 - **Day summary** around 6 pm (or right-click → My day).
@@ -75,9 +94,9 @@ What changed in each version: [CHANGELOG.md](CHANGELOG.md), the notes of each [r
 
 - **Settings by category**: 🎨 Look, 👻 Ghost, 🔔 Alerts, 🤖 Agents, 📅 Today, ⚙️ General, 📊 Models, 🟢 Live, ✂️ Tokens, Storage. Maximize the window for a sidebar and two columns.
 - **Open it**: double-click Boofer, click the tray icon, or right-click the ghost → Settings.
-- **Start with Windows**, quietly.
+- **Start with Windows** or at login, quietly.
 - **Shortcuts**: Ctrl+Alt+B show / hide, Ctrl+Alt+M model usage, Ctrl+Alt+P reprompt.
-- **Automatic updates**: installed over the old version, never while an agent is working, then Boofer shows **What's new**.
+- **Automatic updates** (Windows and AppImage): installed over the old version, never while an agent is working, then Boofer shows **What's new**.
 - **Today**: finished tasks, the agents' working time, changed files and the week as a chart.
 - **🧪 Try it**: simulate a task, two sessions, a compaction, a request or a stop.
 
@@ -90,6 +109,7 @@ Not needed to use Boofer: every push to `main` rebuilds the installers and updat
 - Node.js 20+
 - [Rust](https://rustup.rs) and the Visual Studio "Desktop development with C++" Build Tools
 - WebView2 (already on Windows 10/11)
+- Under Linux, instead of the Build Tools and WebView2: `sudo apt install libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libgtk-3-dev libxdo-dev libssl-dev`, then `npx tauri build --bundles appimage,deb`
 
 ### Build
 

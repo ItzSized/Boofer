@@ -3,6 +3,11 @@
 //! built from (`<!-- build <sha> -->` at the end of its notes, see .github/workflows/release.yml).
 //! A copy built from another commit of the same version is offered that build.
 //! Local builds (no GITHUB_SHA when compiled) only take a newer version, never a rebuild.
+//!
+//! Under Linux, only an AppImage replaces itself. A copy installed by a .deb is told about newer
+//! versions and the settings open the page to download them: the updater plugin would run
+//! `dpkg -i` as root behind a password prompt, which an automatic update at a calm moment (and
+//! a new build at every push) can't be asking for.
 
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Manager};
@@ -22,6 +27,27 @@ pub struct UpdateInfo {
     rebuild: bool,
     /// Commit the update was built from, when its latest.json says so.
     build: Option<String>,
+    /// This copy can't install it: the user downloads it.
+    manual: bool,
+}
+
+/// What the settings window adapts its words to.
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct System {
+    /// "windows", "linux"…
+    os: &'static str,
+    installs_updates: bool,
+}
+
+#[tauri::command]
+pub fn system() -> System {
+    System { os: std::env::consts::OS, installs_updates: installs_updates() }
+}
+
+/// Under Linux, $APPIMAGE is set by the AppImage runtime only, and it's the file the plugin replaces.
+fn installs_updates() -> bool {
+    !cfg!(target_os = "linux") || std::env::var_os("APPIMAGE").is_some()
 }
 
 /// Commit this copy was built from, or null for a build made on a PC.
@@ -36,24 +62,35 @@ fn build_of(notes: &str) -> Option<&str> {
 
 #[tauri::command]
 pub async fn update_check(app: AppHandle) -> Result<Option<UpdateInfo>, String> {
+    let installs = installs_updates();
     let updater = app
         .updater_builder()
-        .version_comparator(|current, remote| {
+        .version_comparator(move |current, remote| {
             if remote.version > current {
                 return true;
             }
             let theirs = remote.notes.as_deref().and_then(build_of);
-            remote.version == current && matches!((BUILD, theirs), (Some(mine), Some(theirs)) if mine != theirs)
+            // A new build is nothing to download by hand: there's one at every push.
+            installs && remote.version == current && matches!((BUILD, theirs), (Some(mine), Some(theirs)) if mine != theirs)
         })
         .build()
         .map_err(|e| e.to_string())?;
-    let update = updater.check().await.map_err(|e| e.to_string())?;
+    let update = match updater.check().await {
+        Ok(update) => update,
+        // Windows publishes first and a Linux build can fail on its own: a release without
+        // Linux in its latest.json is nothing to install yet, not an error.
+        Err(tauri_plugin_updater::Error::TargetNotFound(_) | tauri_plugin_updater::Error::TargetsNotFound(_)) if cfg!(target_os = "linux") => None,
+        Err(e) => return Err(e.to_string()),
+    };
     let info = update.as_ref().map(|u| UpdateInfo {
         version: u.version.clone(),
         rebuild: u.version == u.current_version,
         build: u.body.as_deref().and_then(build_of).map(str::to_string),
+        manual: !installs,
     });
-    *app.state::<PendingUpdate>().0.lock().unwrap() = update;
+    if installs {
+        *app.state::<PendingUpdate>().0.lock().unwrap() = update;
+    }
     Ok(info)
 }
 

@@ -474,7 +474,7 @@ pub(crate) mod os {
 /// macOS & Linux: cursor position comes from Tauri's `window.cursor_position()`,
 /// and `/proc/<pid>/comm` is used on Linux when an X11 window PID is available.
 #[cfg(not(windows))]
-mod os {
+pub(crate) mod os {
     #[derive(Clone, Copy)]
     pub struct Rect {
         pub left: f64,

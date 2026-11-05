@@ -5,7 +5,7 @@ import { duration } from "./core/format.js";
 import { clearHistory, loadHistory, todayStats } from "./core/history.js";
 import { setTheme } from "./core/theme.js";
 import { ANIMATION_GROUPS, applyAnimations } from "./core/animations.js";
-import { findUpdate, installUpdate } from "./core/updates.js";
+import { installUpdate } from "./core/updates.js";
 import { createMascot } from "./ui/mascot.js";
 import { createUsageView } from "./ui/usage-view.js";
 import { createTokensView } from "./ui/tokens-view.js";
@@ -47,6 +47,7 @@ const EDITORS = [
   // Chrome / Edge / Brave, only while an AI chat tab is in front (src-tauri/src/web.rs).
   { id: "web-ai", name: "ChatGPT, Gemini… (browser)" },
 ];
+let shownEditors = EDITORS;
 const SLEEP_CHOICES = [
   [30, "30 s"],
   [45, "45 s"],
@@ -68,6 +69,7 @@ const DEV_ANSWERS = {
   get_settings: () => ({ ...DEV_SETTINGS }),
   claude_hooks_status: () => "outdated",
   get_autostart: () => false,
+  system: () => ({ os: "windows", installsUpdates: true }),
   running_apps: () => [{ name: "Antigravity", processes: 14, memoryMb: 1840 }, { name: "Claude Code", processes: 2, memoryMb: 310 }],
   get_token_savers: () => ({ compactWindow: 200_000, concise: false, claudeCli: true }),
   set_compact_window: () => {},
@@ -251,7 +253,7 @@ function renderAnimations() {
 function renderEditors() {
   const known = EDITORS.map((e) => e.id);
   const custom = settings.targetApps.filter((id) => !known.includes(id));
-  const chips = [...EDITORS, ...custom.map((id) => ({ id, name: id, custom: true }))].map((editor) => {
+  const chips = [...shownEditors, ...custom.map((id) => ({ id, name: id, custom: true }))].map((editor) => {
     const on = settings.targetApps.includes(editor.id);
     const chip = document.createElement("button");
     chip.className = `chip ${on ? "on" : ""}`;
@@ -457,9 +459,12 @@ async function checkForUpdate() {
   button.disabled = true;
   updateStatus("Checking…");
   try {
-    pendingUpdate = await findUpdate();
+    pendingUpdate = await call("update_check");
     showNewCommits(pendingUpdate?.build);
-    if (pendingUpdate) {
+    if (pendingUpdate?.manual) {
+      updateStatus(`Version ${pendingUpdate.version} is available. This copy doesn't update itself: download the new one.`);
+      button.textContent = `Download ${pendingUpdate.version}`;
+    } else if (pendingUpdate) {
       updateStatus(pendingUpdate.rebuild ? `✨ New features are available for ${pendingUpdate.version}.` : `✨ Version ${pendingUpdate.version} is available.`);
       button.textContent = pendingUpdate.rebuild ? "Install the new features" : `Install ${pendingUpdate.version}`;
     } else {
@@ -488,7 +493,26 @@ async function installPending() {
   }
 }
 
-$("update-check").addEventListener("click", () => (pendingUpdate ? installPending() : checkForUpdate()));
+$("update-check").addEventListener("click", () => {
+  if (pendingUpdate?.manual) openUrl(`${REPO}/releases/latest`);
+  else if (pendingUpdate) installPending();
+  else checkForUpdate();
+});
+
+// The page is written for Windows. Elsewhere: the right word (data-linux), no feature that doesn't
+// exist there (data-windows-only, src-tauri/src/web.rs), no promise of updates a .deb can't keep.
+call("system").then(({ os, installsUpdates }) => {
+  if (os === "linux") {
+    document.querySelectorAll("[data-linux]").forEach((el) => (el.textContent = el.dataset.linux));
+    document.querySelectorAll("[data-windows-only]").forEach((el) => el.remove());
+    shownEditors = EDITORS.filter((e) => e.id !== "web-ai");
+    if (settings) renderEditors();
+  }
+  if (!installsUpdates) {
+    $("auto-update-row").classList.add("hidden");
+    updateStatus("New versions are downloaded by hand: this copy doesn't update itself.");
+  }
+});
 
 // The commit this copy was built from (GitHub builds only), next to the version: a link to it.
 let buildCommit = null;
