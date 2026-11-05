@@ -117,7 +117,7 @@ fn claude_command() -> std::process::Command {
         cmd
     }
     #[cfg(not(windows))]
-    std::process::Command::new("claude")
+    crate::host::command("claude")
 }
 
 fn which_claude() -> bool {

@@ -4,6 +4,7 @@ mod apps;
 mod autostart;
 mod codex;
 mod guard;
+mod host;
 mod migrate;
 mod permission;
 mod pet;
@@ -91,10 +92,33 @@ fn acquire_single_instance_server() -> Option<tiny_http::Server> {
             .output();
         std::thread::sleep(Duration::from_millis(350));
     }
+    #[cfg(target_os = "linux")]
+    {
+        stop_other_instances();
+        std::thread::sleep(Duration::from_millis(350));
+    }
 
     match tiny_http::Server::http(("127.0.0.1", EVENT_PORT)) {
         Ok(server) => Some(server),
         Err(_) => std::process::exit(0),
+    }
+}
+
+/// Stops the processes with this program's name, except this one. /proc/<pid>/comm is the same
+/// for the .deb and for the AppImage, whose path changes at every start.
+#[cfg(target_os = "linux")]
+fn stop_other_instances() {
+    let me = std::process::id().to_string();
+    let Ok(name) = std::fs::read_to_string("/proc/self/comm") else { return };
+    let Ok(entries) = std::fs::read_dir("/proc") else { return };
+    for entry in entries.flatten() {
+        let pid = entry.file_name().to_string_lossy().into_owned();
+        if pid != me
+            && pid.bytes().all(|b| b.is_ascii_digit())
+            && std::fs::read_to_string(entry.path().join("comm")).is_ok_and(|comm| comm == name)
+        {
+            let _ = std::process::Command::new("kill").arg(&pid).output();
+        }
     }
 }
 
@@ -115,6 +139,9 @@ fn start_event_server(app: AppHandle, server: tiny_http::Server) {
             }
 
             if is_post && request.url() == "/show" {
+                // Answered first: a new instance waits 400 ms, then takes this one for a stuck
+                // older build and stops it. Opening the window can take longer than that.
+                let _ = request.respond(tiny_http::Response::from_string(format!("build={}", build_stamp())));
                 app.state::<PetState>().hidden.store(false, Relaxed);
                 if let Some(items) = app.try_state::<TrayItems>() {
                     let _ = items.hidden.set_checked(false);
@@ -124,7 +151,6 @@ fn start_event_server(app: AppHandle, server: tiny_http::Server) {
                 }
                 // Boofer double-clicked while already running: its window comes up.
                 let _ = show_settings(&app, "settings");
-                let _ = request.respond(tiny_http::Response::from_string(format!("build={}", build_stamp())));
                 continue;
             }
 
@@ -282,7 +308,7 @@ fn set_attention(app: AppHandle, active: bool) {
     app.state::<PetState>().attention.store(active, Relaxed);
 }
 
-/// Windows notification for a finished task, unless the user is already looking
+/// System notification for a finished task, unless the user is already looking
 /// at their editor (the ghost told them) or asked not to be disturbed.
 #[tauri::command]
 /// `silent`: the end of a task, while Boofer's own sounds are off. With the PC muted too,
@@ -333,7 +359,7 @@ fn open_target(target: &str) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     let result = std::process::Command::new("open").arg(target).spawn();
     #[cfg(all(unix, not(target_os = "macos")))]
-    let result = std::process::Command::new("xdg-open").arg(target).spawn();
+    let result = host::command("xdg-open").arg(target).spawn();
     result.map(|_| ()).map_err(|e| e.to_string())
 }
 
@@ -520,6 +546,8 @@ pub fn run() {
             updates::update_check,
             updates::build_commit,
             updates::update_install,
+            updates::system,
+            pet::set_click_region,
             resolve_permission,
             resolve_guard,
             apps::running_apps,
@@ -534,7 +562,7 @@ pub fn run() {
             migrate::remove_old_install();
             autostart::refresh();
             // Opened by hand (shortcut, exe, after an update): the window shows, not just the ghost.
-            if cfg!(windows) && !autostart::launched_at_login() {
+            if cfg!(any(windows, target_os = "linux")) && !autostart::launched_at_login() {
                 let _ = show_settings(app.handle(), "settings");
             }
             if let Some(server) = server_cell.lock().unwrap().take() {

@@ -595,7 +595,8 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
       return; // offline: next time
     }
     if (!update) return checkAfterBuild();
-    if (settings.autoUpdate === false) {
+    // update.manual: a .deb under Linux, that the user updates by hand.
+    if (settings.autoUpdate === false || update.manual) {
       const what = update.rebuild ? "New features are out" : `Boofer ${update.version} is out`;
       if (once(`booffer.update.${update.version}.${update.rebuild}.${localDay(0)}`)) speech.tell(`✨ ${what}! Settings → Check for updates`, 8000);
       return;

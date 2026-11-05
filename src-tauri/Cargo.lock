@@ -315,8 +315,9 @@ dependencies = [
 
 [[package]]
 name = "boofer"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
+ "gtk",
  "rusqlite",
  "serde",
  "serde_json",
@@ -330,6 +331,7 @@ dependencies = [
  "tiny_http",
  "windows",
  "windows-sys 0.61.2",
+ "x11rb",
  "zstd",
 ]
 

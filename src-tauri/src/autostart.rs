@@ -1,7 +1,7 @@
 //! "Start with Windows":
 //! - Windows: HKCU\Software\Microsoft\Windows\CurrentVersion\Run\Boofer
 //! - macOS:   ~/Library/LaunchAgents/dev.booffer.desktop.plist
-//! - Linux:   ~/.config/autostart/booffer.desktop
+//! - Linux:   ~/.config/autostart/boofer.desktop
 
 /// Passed by the login entry: Boofer then starts quietly, without opening its window.
 pub const AUTOSTART_FLAG: &str = "--autostart";
@@ -144,7 +144,25 @@ mod os {
         std::env::var_os("XDG_CONFIG_HOME")
             .map(PathBuf::from)
             .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".config")))
-            .map(|cfg| cfg.join("autostart").join("booffer.desktop"))
+            .map(|cfg| cfg.join("autostart").join("boofer.desktop"))
+    }
+
+    /// An AppImage runs from a mount that changes at every start: only $APPIMAGE outlives it.
+    fn program(appimage: Option<PathBuf>, exe: PathBuf) -> PathBuf {
+        appimage.unwrap_or(exe)
+    }
+
+    /// $APPIMAGE is ours only in an AppImage: a .deb may get it from the terminal of another one.
+    fn own_appimage(is_appimage: bool, read: impl FnOnce() -> Option<std::ffi::OsString>) -> Option<PathBuf> {
+        is_appimage.then(read).flatten().map(PathBuf::from)
+    }
+
+    fn desktop_entry(program: &std::path::Path) -> String {
+        format!(
+            "[Desktop Entry]\nType=Application\nName=Boofer\nComment=AI companion on your desktop\nExec=\"{}\" {}\nTerminal=false\nX-GNOME-Autostart-enabled=true\n",
+            program.display(),
+            super::AUTOSTART_FLAG
+        )
     }
 
     pub fn enabled() -> bool {
@@ -155,18 +173,42 @@ mod os {
         let path = desktop_path().ok_or("dossier ~/.config introuvable")?;
         if enabled {
             let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+            let appimage = own_appimage(crate::updates::is_appimage(), || std::env::var_os("APPIMAGE"));
             if let Some(dir) = path.parent() {
                 std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
             }
-            let entry = format!(
-                "[Desktop Entry]\nType=Application\nName=Boofer\nComment=AI companion on your desktop\nExec=\"{}\"\nTerminal=false\nX-GNOME-Autostart-enabled=true\n",
-                exe.display()
-            );
-            std::fs::write(path, entry).map_err(|e| e.to_string())
+            std::fs::write(path, desktop_entry(&program(appimage, exe))).map_err(|e| e.to_string())
         } else if path.exists() {
             std::fs::remove_file(path).map_err(|e| e.to_string())
         } else {
             Ok(())
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn an_appimage_starts_from_its_own_file_not_from_its_mount() {
+            let mount = PathBuf::from("/tmp/.mount_BooferAb12/usr/bin/boofer");
+            let file = PathBuf::from("/home/sam/Apps/Boofer.AppImage");
+            assert_eq!(program(Some(file.clone()), mount.clone()), file);
+            assert_eq!(program(None, mount.clone()), mount);
+        }
+
+        #[test]
+        fn only_an_appimage_listens_to_appimage() {
+            let inherited = || Some(std::ffi::OsString::from("/home/sam/Apps/Editor.AppImage"));
+            assert_eq!(own_appimage(false, inherited), None);
+            assert_eq!(own_appimage(true, inherited), Some(PathBuf::from("/home/sam/Apps/Editor.AppImage")));
+            assert_eq!(own_appimage(true, || None), None);
+        }
+
+        #[test]
+        fn the_login_entry_quotes_the_path_and_starts_quietly() {
+            let entry = desktop_entry(std::path::Path::new("/home/sam/My Apps/Boofer.AppImage"));
+            assert!(entry.lines().any(|l| l == "Exec=\"/home/sam/My Apps/Boofer.AppImage\" --autostart"), "{entry}");
         }
     }
 }
