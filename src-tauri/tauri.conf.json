@@ -54,7 +54,18 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "createUpdaterArtifacts": true
+    "createUpdaterArtifacts": true,
+    "category": "DeveloperTool",
+    "linux": {
+      "deb": {
+        "depends": [
+          "curl"
+        ]
+      },
+      "appimage": {
+        "bundleMediaFramework": true
+      }
+    }
   },
   "plugins": {
     "updater": {
