@@ -5,7 +5,7 @@ import { duration } from "./core/format.js";
 import { clearHistory, loadHistory, todayStats } from "./core/history.js";
 import { setTheme } from "./core/theme.js";
 import { ANIMATION_GROUPS, applyAnimations } from "./core/animations.js";
-import { findUpdate, installUpdate } from "./core/updates.js";
+import { buildInProgress, findUpdate, installUpdate } from "./core/updates.js";
 import { createMascot } from "./ui/mascot.js";
 import { createUsageView } from "./ui/usage-view.js";
 import { createTokensView } from "./ui/tokens-view.js";
@@ -496,6 +496,7 @@ async function checkForUpdate() {
       button.textContent = pendingUpdate.rebuild ? "Install the new features" : `Install ${pendingUpdate.version}`;
     } else {
       updateStatus(`✓ You have the latest version (checked at ${clockTime(Date.now())}).`);
+      watchBuild();
     }
   } catch {
     updateStatus("Couldn't check: no connection?");
@@ -558,6 +559,58 @@ async function showNewCommits(theirs) {
   }
 }
 
+// A build GitHub is making right now: its progress, from the usual length of a build. GitHub is
+// asked again every minute (60 calls an hour without a login), the bar moves every second in
+// between, and the update is looked for as soon as the build is done.
+let watchedBuild = null;
+let buildTimer = null;
+let buildPoll = 0;
+$("build-title").addEventListener("click", () => watchedBuild && openUrl(`${REPO}/commit/${watchedBuild.sha}`));
+
+async function watchBuild() {
+  if (!isTauri || !buildCommit) return;
+  try {
+    const build = await buildInProgress(buildCommit);
+    if (!build) {
+      const wasBuilding = Boolean(watchedBuild);
+      stopBuildWatch();
+      if (wasBuilding) checkForUpdate(); // just finished: the button becomes "Install"
+      return;
+    }
+    watchedBuild = build;
+    $("build-title").textContent = `${build.sha.slice(0, 7)} · ${build.title}`;
+    $("build-progress").classList.remove("hidden");
+    drawBuild();
+    clearInterval(buildTimer);
+    buildTimer = setInterval(drawBuild, 1000);
+    clearTimeout(buildPoll);
+    buildPoll = setTimeout(watchBuild, 60_000);
+  } catch {
+    // offline or GitHub's limit: try again later
+    clearTimeout(buildPoll);
+    buildPoll = setTimeout(watchBuild, 5 * 60_000);
+  }
+}
+
+function drawBuild() {
+  const { startedAt, expectedMs } = watchedBuild;
+  const elapsed = Date.now() - startedAt;
+  const pct = Math.min(0.97, elapsed / expectedMs);
+  $("build-fill").style.width = `${Math.round(pct * 100)}%`;
+  const left = expectedMs - elapsed;
+  const mins = (ms) => Math.max(1, Math.round(ms / 60_000));
+  $("build-eta").textContent = left > 30_000
+    ? `Started ${mins(elapsed)} min ago · about ${mins(left)} min left`
+    : "Almost done… it will show up here as soon as it's ready.";
+}
+
+function stopBuildWatch() {
+  watchedBuild = null;
+  clearInterval(buildTimer);
+  clearTimeout(buildPoll);
+  $("build-progress").classList.add("hidden");
+}
+
 (async () => {
   const current = isTauri ? await (await import("@tauri-apps/api/app")).getVersion() : CHANGELOG[0]?.version ?? "";
   $("version").textContent = current;
@@ -567,6 +620,7 @@ async function showNewCommits(theirs) {
   link.textContent = buildCommit ? `· ${buildCommit.slice(0, 7)}` : "· local build";
   link.disabled = !buildCommit;
   link.classList.remove("hidden");
+  watchBuild();
 })();
 
 // What's new: written from the commits at each build (scripts/changelog.mjs). Just updated?

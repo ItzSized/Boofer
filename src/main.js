@@ -13,7 +13,7 @@ import { EtaEstimator } from "./core/eta.js";
 import { ACTIVE_STATES, State } from "./core/states.js";
 import { setTheme } from "./core/theme.js";
 import { applyAnimations } from "./core/animations.js";
-import { findUpdate, installUpdate } from "./core/updates.js";
+import { buildInProgress, findUpdate, installUpdate } from "./core/updates.js";
 import { describeCost, toolTotal } from "./core/task-cost.js";
 import { Tracker } from "./core/tracker.js";
 import { configureSound, playAttention, playDone, playError } from "./audio/chime.js";
@@ -594,7 +594,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     } catch {
       return; // offline: next time
     }
-    if (!update) return;
+    if (!update) return checkAfterBuild();
     if (settings.autoUpdate === false) {
       const what = update.rebuild ? "New features are out" : `Boofer ${update.version} is out`;
       if (once(`booffer.update.${update.version}.${update.rebuild}.${localDay(0)}`)) speech.tell(`✨ ${what}! Settings → Check for updates`, 8000);
@@ -613,6 +613,25 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   }
   setTimeout(checkUpdate, 20_000);
   setInterval(checkUpdate, 6 * 3600_000);
+
+  // GitHub is building new features right now: check again a minute after it should be done,
+  // instead of waiting for the next 6 h check.
+  let afterBuild = null;
+  async function checkAfterBuild() {
+    if (afterBuild) return;
+    try {
+      const mine = await invoke("build_commit");
+      const build = mine && (await buildInProgress(mine));
+      if (!build) return;
+      const wait = Math.max(60_000, build.startedAt + build.expectedMs + 60_000 - Date.now());
+      afterBuild = setTimeout(() => {
+        afterBuild = null;
+        checkUpdate();
+      }, Math.min(wait, 30 * 60_000));
+    } catch {
+      // offline or GitHub's limit: the 6 h check is still there
+    }
+  }
 
   // Reprompt: the clipboard's prompt, rewritten for the AI only (local, or Claude Haiku if chosen).
   async function reprompt(text) {
