@@ -1,6 +1,6 @@
 [package]
 name = "boofer"
-version = "0.4.1"
+version = "0.5.0"
 description = "A cute desktop companion that tracks your AI agents"
 edition = "2021"
 
