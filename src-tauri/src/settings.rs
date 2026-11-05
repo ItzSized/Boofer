@@ -28,6 +28,8 @@ pub struct Settings {
     pub size: f64,
     pub skin: String,
     pub accessory: String,
+    /// Around the ghost: "aucun", "etoiles", "orbite", "aura", "bulles", "coeurs" or "neige".
+    pub effect: String,
     /// Seconds without mouse movement before the ghost falls asleep; 0 = never.
     pub sleep_after: u64,
     pub approvals: bool,
@@ -85,6 +87,7 @@ impl Default for Settings {
             size: 1.0,
             skin: "classique".into(),
             accessory: "aucun".into(),
+            effect: "aucun".into(),
             sleep_after: 45,
             approvals: true,
             theme: "auto".into(),

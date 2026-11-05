@@ -4,6 +4,31 @@ const sparkle = (x, y, delay) => `
       d="M0 -7 L1.8 -1.8 L7 0 L1.8 1.8 L0 7 L-1.8 1.8 L-7 0 L-1.8 -1.8 Z" />
   </g>`;
 
+const BODY = `M20 62 C20 32 38 14 60 14 C82 14 100 32 100 62 V106
+         q-6.67 10 -13.33 0 t-13.33 0 t-13.33 0 t-13.33 0 t-13.33 0 t-13.35 0 Z`;
+
+// Effects (settings → Look → Effect): each item sits at (x, y) and plays its CSS animation
+// with its own delay, so the loop never looks in step.
+const STAR = "M0 -4.5 L1.1 -1.1 L4.5 0 L1.1 1.1 L0 4.5 L-1.1 1.1 L-4.5 0 L-1.1 -1.1 Z";
+const HEART = "M0 3.2 C-4.2 0.2 -5.2 -2.8 -2.7 -4 C-1.3 -4.6 0 -3.6 0 -2.6 C0 -3.6 1.3 -4.6 2.7 -4 C5.2 -2.8 4.2 0.2 0 3.2 Z";
+const fx = (items, draw) =>
+  items.map(([x, y, delay, extra = ""]) => `
+    <g transform="translate(${x} ${y})"><g style="animation-delay:${delay}ms" ${extra}>${draw}</g></g>`).join("");
+
+const effects = () => `
+  <g class="fx fx-etoiles">
+    ${fx([[8, 40, 0], [112, 54, 700], [14, 106, 1300], [106, 112, 400], [98, 14, 1900], [22, 8, 1000]], `<path d="${STAR}" />`)}
+  </g>
+  <g class="fx fx-bulles">
+    ${fx([[28, 122, 0], [50, 126, 1300], [76, 124, 600], [94, 122, 2000], [40, 128, 2700]], `<circle r="3.2" />`)}
+  </g>
+  <g class="fx fx-coeurs">
+    ${fx([[14, 96, 0], [106, 90, 1400], [24, 60, 2600], [100, 50, 800]], `<path d="${HEART}" />`)}
+  </g>
+  <g class="fx fx-neige">
+    ${fx([[10, -14, 0], [34, -14, 1800], [58, -14, 900], [82, -14, 2600], [104, -14, 400], [22, -14, 3300], [94, -14, 1500]], `<circle r="2" />`)}
+  </g>`;
+
 const svg = (gradientId) => `
 <svg viewBox="0 -14 120 156" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
   <defs>
@@ -11,9 +36,11 @@ const svg = (gradientId) => `
       <stop offset="0%" class="stop-top" />
       <stop offset="100%" class="stop-bottom" />
     </radialGradient>
+    <clipPath id="${gradientId}-clip"><path d="${BODY}" /></clipPath>
   </defs>
 
   <ellipse class="shadow" cx="60" cy="134" rx="26" ry="4" />
+  ${effects()}
 
   <g class="think-dots">
     <circle cx="46" cy="-2" r="3.5" />
@@ -38,12 +65,33 @@ const svg = (gradientId) => `
   </g>
 
   <g class="ghost">
+    <!-- Orbit ring (effect), back half: behind the body. -->
+    <path class="fx fx-orbite orbit-back" d="M8 80 A52 12 0 0 1 112 80" />
+
     <ellipse class="arm arm-l" cx="21" cy="82" rx="6" ry="10" />
     <ellipse class="arm arm-r" cx="99" cy="82" rx="6" ry="10" />
 
-    <path class="body" fill="url(#${gradientId})"
-      d="M20 62 C20 32 38 14 60 14 C82 14 100 32 100 62 V106
-         q-6.67 10 -13.33 0 t-13.33 0 t-13.33 0 t-13.33 0 t-13.33 0 t-13.35 0 Z" />
+    <!-- Accessories that grow out of the head: drawn behind the body so it hides their base. -->
+    <g class="acc acc-oreilles">
+      <path class="ear" d="M27 36 L28 4 L51 16 Z" />
+      <path class="ear" d="M93 36 L92 4 L69 16 Z" />
+      <path class="inner" d="M31 27 L31.5 11 L44 18 Z" />
+      <path class="inner" d="M89 27 L88.5 11 L76 18 Z" />
+    </g>
+    <g class="acc acc-cornes">
+      <path d="M33 31 Q22 15 29 1 Q35 15 47 21 Z" />
+      <path d="M87 31 Q98 15 91 1 Q85 15 73 21 Z" />
+    </g>
+
+    <path class="body" fill="url(#${gradientId})" d="${BODY}" />
+
+    <!-- "Galaxy" skin: stars inside the body. -->
+    <g class="skin-stars" clip-path="url(#${gradientId}-clip)">
+      <circle cx="32" cy="40" r="1.3" /><circle cx="70" cy="30" r="1" /><circle cx="88" cy="48" r="1.4" />
+      <circle cx="28" cy="92" r="1.1" /><circle cx="58" cy="100" r="1.5" /><circle cx="90" cy="96" r="1" />
+      <circle cx="50" cy="24" r="0.9" /><circle cx="94" cy="72" r="1.1" /><circle cx="24" cy="66" r="0.9" />
+      <path transform="translate(80 36)" d="${STAR}" /><path transform="translate(40 104) scale(0.8)" d="${STAR}" />
+    </g>
 
     <ellipse class="halo" cx="60" cy="1" rx="22" ry="5" />
     <path class="sweat" d="M95 38 q5 8 0 11 q-5 -3 0 -11 z" />
@@ -112,6 +160,32 @@ const svg = (gradientId) => `
       <circle cx="73" cy="62" r="9.5" />
       <path d="M56.5 60 Q60 57 63.5 60" />
     </g>
+    <g class="acc acc-fete">
+      <ellipse class="brim" cx="60" cy="18" rx="14" ry="2.6" />
+      <polygon class="cone" points="46,18 74,18 62,-16" />
+      <polygon class="stripe" points="51.3,6.7 70,6.7 68.6,2.7 53.2,2.7" />
+      <polygon class="stripe" points="57.2,-5.8 65.6,-5.8 64.4,-9.2 58.8,-9.2" />
+      <circle class="pom" cx="62" cy="-17" r="4" />
+    </g>
+    <g class="acc acc-licorne">
+      <polygon class="horn" points="55,17 65,17 61,-14" />
+      <path class="twist" d="M56 10 L64.5 8 M57.5 3 L63.5 1 M59 -4 L62.5 -5" />
+    </g>
+    <g class="acc acc-casquette">
+      <path class="visor" d="M84 25 Q104 23 107 30 Q96 33 82 30 Z" />
+      <path class="dome" d="M31 28 C31 4 89 4 89 28 Z" />
+      <circle class="button" cx="60" cy="10.5" r="2.2" />
+    </g>
+    <g class="acc acc-fleur">
+      <circle cx="84" cy="19" r="4.4" /><circle cx="88.8" cy="22.5" r="4.4" /><circle cx="86.9" cy="28" r="4.4" />
+      <circle cx="81.1" cy="28" r="4.4" /><circle cx="79.2" cy="22.5" r="4.4" />
+      <circle class="heart" cx="84" cy="24" r="3" />
+    </g>
+    <g class="acc acc-echarpe">
+      <path class="tail" d="M70 97 L79 96 L81 119 L72 120 Z" />
+      <path class="band" d="M19.5 86 Q60 100 100.5 86 L100.5 95 Q60 109 19.5 95 Z" />
+      <path class="stripes" d="M72 108 L80 107.5 M72.6 114 L80.6 113.5" />
+    </g>
 
     <path class="mouth mouth-smile" d="M55 76 Q60 81 65 76" />
     <ellipse class="mouth mouth-o" cx="60" cy="78" rx="3" ry="3.5" />
@@ -127,6 +201,10 @@ const svg = (gradientId) => `
       <ellipse cx="60" cy="93" rx="6.5" ry="20" transform="rotate(62 60 93)" />
       <ellipse cx="60" cy="93" rx="6.5" ry="20" transform="rotate(-62 60 93)" />
     </g>
+
+    <!-- Orbit ring (effect), front half, and the little moon that goes round. -->
+    <path class="fx fx-orbite orbit-front" d="M8 80 A52 12 0 0 0 112 80" />
+    <g class="fx fx-orbite orbit-x"><g class="orbit-y"><circle cx="60" cy="80" r="3.4" /></g></g>
   </g>
 
   <g class="stop-sign">

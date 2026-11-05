@@ -27,6 +27,11 @@ const SKINS = [
   { id: "gelee", name: "Jelly" },
   { id: "or", name: "Gold" },
   { id: "nuit", name: "Night" },
+  { id: "neon", name: "Neon" },
+  { id: "barbe", name: "Cotton candy" },
+  { id: "glace", name: "Ice" },
+  { id: "galaxie", name: "Galaxy" },
+  { id: "lave", name: "Lava" },
 ];
 const ACCESSORIES = [
   { id: "aucun", name: "None" },
@@ -36,6 +41,23 @@ const ACCESSORIES = [
   { id: "casque", name: "🎧 Headphones" },
   { id: "pousse", name: "🌱 Sprout" },
   { id: "lunettes", name: "👓 Glasses" },
+  { id: "oreilles", name: "🐱 Cat ears" },
+  { id: "cornes", name: "😈 Horns" },
+  { id: "fete", name: "🥳 Party hat" },
+  { id: "licorne", name: "🦄 Unicorn" },
+  { id: "casquette", name: "🧢 Cap" },
+  { id: "fleur", name: "🌸 Flower" },
+  { id: "echarpe", name: "🧣 Scarf" },
+];
+// Around the ghost (mascot.js → effects, style.css → "Effects").
+const EFFECTS = [
+  { id: "aucun", name: "None" },
+  { id: "etoiles", name: "✨ Sparkles" },
+  { id: "orbite", name: "🪐 Orbit" },
+  { id: "aura", name: "🔮 Neon aura" },
+  { id: "bulles", name: "🫧 Bubbles" },
+  { id: "coeurs", name: "💕 Hearts" },
+  { id: "neige", name: "❄️ Snow" },
 ];
 const EDITORS = [
   { id: "antigravity", name: "Antigravity" },
@@ -60,7 +82,7 @@ const SLEEP_CHOICES = [
 const isTauri = "__TAURI_INTERNALS__" in window;
 const DEV_SETTINGS = {
   display: "editor", notifications: true, notifyWhenSilent: true, notifyWhenWaiting: false, animationsOff: [], autoUpdate: true, targetApps: ["antigravity"], follow: false, glide: false, sounds: true, volume: 0.8,
-  size: 1, skin: "classique", accessory: "aucun", sleepAfter: 45, approvals: true, theme: "auto", dnd: false, dndUntil: 0, speech: true,
+  size: 1, skin: "classique", accessory: "aucun", effect: "aucun", sleepAfter: 45, approvals: true, theme: "auto", dnd: false, dndUntil: 0, speech: true,
   guard: true, guardCommands: [], dailyLimitPct: { anthropic: 100 }, repromptAi: false,
 };
 const todayIso = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
@@ -143,7 +165,9 @@ skinsBlock.innerHTML = `
   <p class="mb-1.5 text-sm font-medium">Skin</p>
   <div id="skins" class="grid grid-cols-4 gap-2"></div>
   <p class="mt-3 mb-1.5 text-sm font-medium">Accessory</p>
-  <div id="accessories" class="flex flex-wrap gap-1.5"></div>`;
+  <div id="accessories" class="flex flex-wrap gap-1.5"></div>
+  <p class="mt-3 mb-1.5 text-sm font-medium">Effect</p>
+  <div id="effects" class="flex flex-wrap gap-1.5"></div>`;
 const skinButtons = SKINS.map((skin) => {
   const button = document.createElement("button");
   button.className = "skin-card flex flex-col items-center rounded-xl pt-2 pb-1 ring-1 ring-black/10 dark:ring-white/15";
@@ -164,6 +188,12 @@ const accessoryButtons = ACCESSORIES.map((accessory) => {
   return { accessory, button };
 });
 $("accessories").replaceChildren(...accessoryButtons.map((a) => a.button));
+const effectButtons = EFFECTS.map((effect) => {
+  const button = Object.assign(document.createElement("button"), { className: "chip", textContent: effect.name });
+  button.addEventListener("click", () => save({ effect: effect.id }));
+  return { effect, button };
+});
+$("effects").replaceChildren(...effectButtons.map((e) => e.button));
 
 async function save(change) {
   settings = { ...settings, ...change };
@@ -178,11 +208,13 @@ function render() {
   });
   hero.dataset.skin = settings.skin;
   hero.dataset.accessory = settings.accessory;
+  hero.dataset.effect = settings.effect ?? "aucun";
   for (const { skin, button, preview } of skinButtons) {
     button.classList.toggle("selected", skin.id === settings.skin);
     preview.dataset.accessory = settings.accessory;
   }
   for (const { accessory, button } of accessoryButtons) button.classList.toggle("on", accessory.id === settings.accessory);
+  for (const { effect, button } of effectButtons) button.classList.toggle("on", effect.id === (settings.effect ?? "aucun"));
   configureSound(settings);
 
   $("size").value = settings.size;

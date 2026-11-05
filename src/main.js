@@ -211,6 +211,12 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     return null;
   }
 
+  // Snow in December, when no effect is chosen.
+  function seasonalEffect(s) {
+    if (!s.seasonal || (s.effect && s.effect !== "aucun")) return null;
+    return new Date().getMonth() === 11 ? "neige" : null;
+  }
+
   // An agent stuck: nothing new for 8 minutes while working, or 3 failed actions in one task.
   // Said once per task.
   const STUCK_MS = 8 * 60_000;
@@ -461,7 +467,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   const quit = () => (isTauri ? invoke("quit") : window.close());
 
   // Settings live in Rust (settings.json); every window gets "settings-changed".
-  let settings = { animationsOff: [], autoUpdate: true, follow: false, glide: false, sleepAfter: 45, size: 1, sounds: true, volume: 0.8, skin: "classique", accessory: "aucun", theme: "auto", dnd: false, dndUntil: 0, speech: true };
+  let settings = { animationsOff: [], autoUpdate: true, follow: false, glide: false, sleepAfter: 45, size: 1, sounds: true, volume: 0.8, skin: "classique", accessory: "aucun", effect: "aucun", theme: "auto", dnd: false, dndUntil: 0, speech: true };
 
   function applySettings(next) {
     if (settingsLoaded && !settings.follow && next.follow) speech.say("follow");
@@ -477,6 +483,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     document.documentElement.style.zoom = String(settings.size); // the window is resized to match
     mascotEl.dataset.skin = settings.skin;
     mascotEl.dataset.accessory = seasonalAccessory(settings) ?? settings.accessory;
+    mascotEl.dataset.effect = seasonalEffect(settings) ?? settings.effect ?? "aucun";
     usageBar.rerender();
     render(); // the tray tooltip shows "Do not disturb" too
   }
@@ -643,6 +650,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     compact: { label: "🧹 Simulate a compaction", run: () => runCompactDemo() },
     request: { label: "🔐 Simulate a request", run: () => card.add(TEST_REQUEST()) },
     guard: { label: "🛑 Simulate a stop", run: () => guard.add(TEST_GUARD()) },
+    trick: { label: "🎲 Do a trick", run: () => pet?.trick() },
   };
   const demoItems = (ids) => (isTauri ? [] : ids.map((id) => ({ label: DEMOS[id].label, action: DEMOS[id].run })));
 
@@ -650,7 +658,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   const appOnly = (items) => (isTauri ? items : []);
   const menu = createMenu(document.getElementById("menu"), [
     { heading: "Try it" },
-    ...demoItems(["task", "sessions", "compact", "request", "guard"]),
+    ...demoItems(["task", "sessions", "compact", "request", "guard", "trick"]),
     { heading: "Agents" },
     ...appOnly([
       { label: "🟢 Live agents", action: () => invoke("open_settings", { page: "live" }) },

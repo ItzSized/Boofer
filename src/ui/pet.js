@@ -1,12 +1,19 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import { playPat } from "../audio/chime.js";
+import { animationOff } from "../core/animations.js";
 
 const TRICKS = [
   ["trick-spin", 1100],
   ["trick-hop", 900],
   ["trick-peek", 1600],
+  ["trick-wave", 1700],
+  ["trick-wiggle", 1000],
+  ["trick-dance", 1600],
+  ["trick-boo", 1800],
+  ["trick-yawn", 1800],
 ];
+const TRICK_CLASSES = TRICKS.map(([cls]) => cls);
 const HEART = `<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3.2 4.5 7 4.5c2.1 0 3.6 1.2 5 3 1.4-1.8 2.9-3 5-3 3.8 0 6.1 3.9 4.6 7.3C19.5 16.4 12 21 12 21z"/></svg>`;
 
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
@@ -93,13 +100,20 @@ export function createPet({ app, mascot, mascotEl, closeBtn, fx, targets, isTaur
     if (!isIdle()) wake();
   }, 1000);
 
+  // One trick at a time, never twice in a row.
+  let lastTrick = null;
+  function trick() {
+    const choices = TRICKS.filter(([cls]) => cls !== lastTrick);
+    const [cls, ms] = choices[Math.floor(Math.random() * choices.length)];
+    lastTrick = cls;
+    mascotEl.classList.remove(...TRICK_CLASSES);
+    mascot.flash(cls, ms);
+  }
+
   (function scheduleTrick() {
     setTimeout(() => {
       const busy = !isIdle() || moving || !visible || mascotEl.classList.contains("sleeping");
-      if (!busy && !app.classList.contains("hovering")) {
-        const [cls, ms] = TRICKS[Math.floor(Math.random() * TRICKS.length)];
-        mascot.flash(cls, ms);
-      }
+      if (!busy && !app.classList.contains("hovering") && !animationOff("tricks")) trick();
       scheduleTrick();
     }, 7000 + Math.random() * 8000);
   })();
@@ -154,5 +168,10 @@ export function createPet({ app, mascot, mascotEl, closeBtn, fx, targets, isTaur
   return {
     /** A card, the menu or the bubble came or went under a still cursor: what catches clicks changed. */
     refresh: () => lastTick && onTick(lastTick),
+    /** A random idle trick right now (settings → Try it). */
+    trick: () => {
+      wake();
+      trick();
+    },
   };
 }
