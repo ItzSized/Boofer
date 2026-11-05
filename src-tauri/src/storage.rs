@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use std::time::UNIX_EPOCH;
 
 use crate::session_stats::size_of;
-use crate::usage::home;
+use crate::usage::claude_projects_dirs;
 
 /// A chat title is cut after this many characters.
 const TITLE_CHARS: usize = 80;
@@ -44,17 +44,22 @@ pub struct ProjectStorage {
 
 #[tauri::command]
 pub async fn claude_storage() -> Result<Vec<ProjectStorage>, String> {
-    let projects = home().join(".claude").join("projects");
-    tauri::async_runtime::spawn_blocking(move || storage(&projects))
-        .await
-        .map_err(|e| e.to_string())
+    tauri::async_runtime::spawn_blocking(|| {
+        let mut all: Vec<ProjectStorage> = claude_projects_dirs().iter().flat_map(|projects| storage(projects)).collect();
+        all.sort_by(|a, b| b.bytes.cmp(&a.bytes).then_with(|| a.name.cmp(&b.name)));
+        all
+    })
+    .await
+    .map_err(|e| e.to_string())
 }
 
 /// Shows a project folder of ~/.claude/projects in the file explorer (only those).
 #[tauri::command]
 pub fn open_claude_folder(path: String) -> Result<(), String> {
-    let projects = home().join(".claude").join("projects");
-    let folder = project_folder(Path::new(&path), &projects).ok_or("folder outside ~/.claude/projects")?;
+    let folder = claude_projects_dirs()
+        .iter()
+        .find_map(|projects| project_folder(Path::new(&path), projects))
+        .ok_or("folder outside Claude Code's projects")?;
     // canonicalize() gives \\?\C:\… on Windows, which the explorer doesn't take.
     let shown = folder.to_string_lossy();
     crate::open_target(shown.strip_prefix(r"\\?\").unwrap_or(&*shown))

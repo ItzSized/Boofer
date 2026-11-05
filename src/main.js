@@ -117,6 +117,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
   let spotlight = null; // { key, until }
 
   const tabs = createTabs(document.getElementById("tabs"), {
+    progressOf: (s) => eta.progress(s),
     onSelect(key) {
       pinnedKey = key;
       render();
@@ -187,7 +188,8 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     const parts = [settings.dnd ? "Boofer 🌙" : "Boofer"];
     if (asking()) parts.push(guard.isOpen() ? "\"Stop!\": a command is waiting for your answer" : "A request is waiting for your answer");
     else if (selected && state !== State.IDLE) {
-      const pct = typeof selected.progress === "number" ? ` · ${Math.round(selected.progress * 100)}%` : "";
+      const shown = eta.progress(selected);
+      const pct = typeof shown === "number" ? ` · ${Math.round(shown * 100)}%` : "";
       const left = state === State.DONE ? null : eta.remaining(selected);
       const rest = left == null ? "" : left < 5000 ? " · almost done" : ` · ${approx(left)} left`;
       parts.push(`${selected.project || selected.agent}: ${selected.label}${pct}${rest}`);
@@ -405,7 +407,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
         etaMs: active ? eta.remaining(s) : null,
         steps: d.steps ?? 0,
         files: d.files ?? 0,
-        progress: s.progress,
+        progress: active ? eta.progress(s) : s.progress,
         context: contexts.get(s.key) ?? null,
         disk: disks.get(s.key) ?? null,
         cost: d.startedAt ? describeCost(tokensSoFar(s), d.model ?? contexts.get(s.key)?.model, dailyLimits()) : null,

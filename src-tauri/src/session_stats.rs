@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use tauri::{AppHandle, Manager};
 
-use crate::usage::{home, parse_iso_ms};
+use crate::usage::{claude_projects_dirs, is_claude_transcript, parse_iso_ms};
 
 /// Kinds of context content, in the order they are shown.
 const PARTS: [&str; 8] = ["prompts", "replies", "toolCalls", "files", "commands", "search", "otherTools", "summary"];
@@ -69,10 +69,7 @@ pub struct SessionStats {
 #[tauri::command]
 pub async fn claude_session_stats(app: AppHandle, transcript_path: String, since_ms: i64) -> Result<SessionStats, String> {
     let path = PathBuf::from(transcript_path);
-    let claude_dir = home().join(".claude");
-    let allowed = path.extension().is_some_and(|e| e == "jsonl")
-        && path.canonicalize().is_ok_and(|p| claude_dir.canonicalize().is_ok_and(|dir| p.starts_with(dir)));
-    if !allowed {
+    if !is_claude_transcript(&path) {
         return Err("transcript outside ~/.claude".into());
     }
     tauri::async_runtime::spawn_blocking(move || {
@@ -261,8 +258,7 @@ pub struct DiskUsage {
 #[tauri::command]
 pub async fn claude_disk_usage(transcript_path: String) -> Result<DiskUsage, String> {
     let path = PathBuf::from(transcript_path);
-    let projects = home().join(".claude").join("projects");
-    tauri::async_runtime::spawn_blocking(move || disk_usage(&path, &projects))
+    tauri::async_runtime::spawn_blocking(move || claude_projects_dirs().iter().find_map(|projects| disk_usage(&path, projects)))
         .await
         .map_err(|e| e.to_string())?
         .ok_or_else(|| "transcript outside ~/.claude/projects".into())

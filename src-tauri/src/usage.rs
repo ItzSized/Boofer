@@ -97,7 +97,9 @@ fn compute(cache: &UsageCache, tz: i64) -> Usage {
     let mut buckets = Buckets::new();
     let mut limits: Vec<Limit> = Vec::new();
 
-    scan_claude(cache, &home.join(".claude").join("projects"), tz, &mut buckets);
+    for projects in claude_projects_dirs() {
+        scan_claude(cache, &projects, tz, &mut buckets);
+    }
 
     // Codex sessions (.jsonl.zst)
     for file in walk(&home.join(".codex").join("sessions"), ".jsonl.zst") {
@@ -219,10 +221,7 @@ const CONTEXT_TAIL_BYTES: u64 = 2 << 20;
 #[tauri::command]
 pub async fn claude_context(app: AppHandle, transcript_path: String) -> Result<Option<ContextInfo>, String> {
     let path = PathBuf::from(transcript_path);
-    let claude_dir = home().join(".claude");
-    let allowed = path.extension().is_some_and(|e| e == "jsonl")
-        && path.canonicalize().is_ok_and(|p| claude_dir.canonicalize().is_ok_and(|dir| p.starts_with(dir)));
-    if !allowed {
+    if !is_claude_transcript(&path) {
         return Err("transcript outside ~/.claude".into());
     }
     tauri::async_runtime::spawn_blocking(move || {
@@ -586,6 +585,39 @@ fn read_varint(buf: &[u8], i: &mut usize) -> Option<u64> {
 
 pub(crate) fn home() -> PathBuf {
     std::env::var_os("USERPROFILE").or_else(|| std::env::var_os("HOME")).map(PathBuf::from).unwrap_or_default()
+}
+
+/// Where Claude Code keeps its chats: $CLAUDE_CONFIG_DIR (a comma-separated list is allowed),
+/// ~/.config/claude (where recent versions write on Linux) and ~/.claude. Only the folders that
+/// exist, resolved, without duplicates.
+pub(crate) fn claude_dirs() -> Vec<PathBuf> {
+    let mut candidates: Vec<PathBuf> = Vec::new();
+    if let Some(list) = std::env::var_os("CLAUDE_CONFIG_DIR") {
+        for one in list.to_string_lossy().split(',').map(str::trim).filter(|s| !s.is_empty()) {
+            candidates.push(PathBuf::from(one));
+        }
+    }
+    let config = std::env::var_os("XDG_CONFIG_HOME").map(PathBuf::from).unwrap_or_else(|| home().join(".config"));
+    candidates.push(config.join("claude"));
+    candidates.push(home().join(".claude"));
+    let mut dirs: Vec<PathBuf> = Vec::new();
+    for dir in candidates.iter().filter_map(|d| d.canonicalize().ok()) {
+        if !dirs.contains(&dir) {
+            dirs.push(dir);
+        }
+    }
+    dirs
+}
+
+/// The "projects" folders of `claude_dirs`, where each chat is a .jsonl file.
+pub(crate) fn claude_projects_dirs() -> Vec<PathBuf> {
+    claude_dirs().into_iter().map(|d| d.join("projects")).filter(|p| p.is_dir()).collect()
+}
+
+/// A transcript path given by a hook: only a .jsonl inside one of Claude Code's folders.
+pub(crate) fn is_claude_transcript(path: &Path) -> bool {
+    path.extension().is_some_and(|e| e == "jsonl")
+        && path.canonicalize().is_ok_and(|p| claude_dirs().iter().any(|dir| p.starts_with(dir)))
 }
 
 fn stamp(path: &Path) -> Option<(u64, SystemTime)> {

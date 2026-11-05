@@ -7,7 +7,8 @@ const MINI_GHOST = `<svg viewBox="18 12 84 100" class="mini-ghost size-3.5 shrin
 </svg>`;
 
 /** One little ghost per session, shown when two or more agents are running. Click: shows it and opens its window. */
-export function createTabs(el, { onSelect }) {
+/** `progressOf(session)`: the % to show, the same as the bubble's (core/eta.js). */
+export function createTabs(el, { onSelect, progressOf = (s) => s.progress }) {
   el.className = "mt-1 hidden w-[232px] flex-wrap justify-center gap-1";
 
   el.addEventListener("click", (e) => {
@@ -45,7 +46,7 @@ export function createTabs(el, { onSelect }) {
 
           const status = document.createElement("span");
           status.className = "shrink-0 tabular-nums";
-          status.textContent = statusText(s);
+          status.textContent = statusText(s, progressOf(s));
 
           button.append(dot, name, status);
           return button;
@@ -55,7 +56,7 @@ export function createTabs(el, { onSelect }) {
   };
 }
 
-function statusText(s) {
+function statusText(s, progress) {
   switch (s.state) {
     case State.DONE:
       return "✓";
@@ -66,6 +67,6 @@ function statusText(s) {
     case State.IDLE:
       return "";
     default:
-      return typeof s.progress === "number" ? `${Math.round(s.progress * 100)}%` : "…";
+      return typeof progress === "number" ? `${Math.round(progress * 100)}%` : "…";
   }
 }

@@ -84,8 +84,9 @@ export function createBubble(el, { eta = new EtaEstimator() } = {}) {
       const compactPct = compacting ? Math.min(95, Math.round(((Date.now() - compacting.startedAt) / compactMs) * 100)) : 0;
       // A /compact on its own: the compaction *is* the task.
       const onlyCompacting = Boolean(compacting && d.compactOnly);
-      const known = onlyCompacting || typeof session.progress === "number";
-      const total = onlyCompacting ? compactPct : Math.round((session.progress ?? 0) * 100);
+      const progress = eta.progress(session);
+      const known = onlyCompacting || typeof progress === "number";
+      const total = onlyCompacting ? compactPct : Math.round((progress ?? 0) * 100);
 
       ui.dot.style.background = session.color;
       ui.bar.style.background = session.color;
