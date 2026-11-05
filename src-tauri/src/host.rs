@@ -21,9 +21,16 @@ pub fn command(program: &str) -> Command {
 /// don't count: what started from a terminal sees none of them.
 #[cfg(target_os = "linux")]
 pub fn has_program(name: &str) -> bool {
-    host_env(std::env::vars_os(), bundle_dir().as_deref())
-        .find(|(key, _)| key == "PATH")
-        .is_some_and(|(_, path)| found_in(&path, name))
+    on_host_path(std::env::vars_os(), bundle_dir().as_deref(), name)
+}
+
+#[cfg(target_os = "linux")]
+fn on_host_path(
+    vars: impl Iterator<Item = (std::ffi::OsString, std::ffi::OsString)>,
+    bundle: Option<&std::path::Path>,
+    name: &str,
+) -> bool {
+    host_env(vars, bundle).find(|(key, _)| key == "PATH").is_some_and(|(_, path)| found_in(&path, name))
 }
 
 /// The AppImage we run from. An APPDIR inherited from another application doesn't count.
@@ -204,6 +211,18 @@ mod tests {
         std::env::remove_var("APPDIR");
         std::env::remove_var("BOOFER_TEST_INSIDE");
         std::env::remove_var("GDK_BACKEND");
+    }
+
+    #[test]
+    fn a_program_inside_the_bundle_isnt_the_hosts() {
+        let dir = TempDir::new("host-bundled");
+        let bin = dir.0.join("usr").join("bin");
+        std::fs::create_dir_all(&bin).unwrap();
+        std::fs::write(bin.join("curl"), "").unwrap();
+        std::fs::set_permissions(bin.join("curl"), std::fs::Permissions::from_mode(0o755)).unwrap();
+        let vars = || std::iter::once((OsString::from("PATH"), bin.clone().into_os_string()));
+        assert!(!on_host_path(vars(), Some(&dir.0), "curl"));
+        assert!(on_host_path(vars(), None, "curl"));
     }
 
     #[test]
