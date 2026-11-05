@@ -61,7 +61,36 @@ struct Tick {
     title: String,
 }
 
+/// Linux: the part of the window that catches the pointer, in CSS pixels. The rest lets it through.
+/// tao's "ignore" leaves a 1x1 area: on a Wayland desktop, the pointer would never enter the window
+/// above a native one, and X would never see it over the ghost or a card.
+#[tauri::command]
+pub fn set_click_region(window: WebviewWindow, rects: Vec<[i32; 4]>) {
+    #[cfg(target_os = "linux")]
+    {
+        use gtk::prelude::*;
+        let ghost = window.clone();
+        let _ = window.run_on_main_thread(move || {
+            let Some(gdk_window) = ghost.gtk_window().ok().and_then(|w| w.window()) else { return };
+            let region = gtk::cairo::Region::create();
+            for [left, top, right, bottom] in rects {
+                let _ = region.union_rectangle(&gtk::cairo::RectangleInt::new(left, top, right - left, bottom - top));
+            }
+            gdk_window.input_shape_combine_region(&region, 0, 0);
+        });
+    }
+    #[cfg(not(target_os = "linux"))]
+    let _ = (window, rects);
+}
+
 pub fn start(window: WebviewWindow) {
+    // Linux: on every virtual desktop, and first shown in the corner of the screen rather than
+    // wherever the window manager put it.
+    #[cfg(target_os = "linux")]
+    {
+        let _ = window.set_visible_on_all_workspaces(true);
+        window.state::<PetState>().recall.store(true, Relaxed);
+    }
     std::thread::spawn(move || {
         let mut foreground = ForegroundTracker::default();
         let mut moving = false;
@@ -84,6 +113,7 @@ pub fn start(window: WebviewWindow) {
             // WebView2 forgets the see-through background when its GPU process restarts (sleep,
             // driver update…): the whole window turns into a black rectangle. Said again every
             // 5 s, so it comes back on its own.
+            #[cfg(not(target_os = "linux"))]
             if frame % 300 == 0 {
                 let _ = window.set_background_color(Some(tauri::window::Color(0, 0, 0, 0)));
             }
@@ -190,7 +220,12 @@ pub fn start(window: WebviewWindow) {
             // Recalled with no window to sit on (desktop, or nothing in front): bottom right of the
             // screen the cursor is on, i.e. the one whose tray was just clicked, above the taskbar.
             if recall && target.is_none() {
-                if let Ok(Some(monitor)) = window.monitor_from_point(cx, cy) {
+                // GTK looks for the monitor in logical pixels.
+                #[cfg(target_os = "linux")]
+                let (mx, my) = (cx / scale, cy / scale);
+                #[cfg(not(target_os = "linux"))]
+                let (mx, my) = (cx, cy);
+                if let Ok(Some(monitor)) = window.monitor_from_point(mx, my) {
                     let (area, s) = (monitor.work_area(), monitor.scale_factor());
                     let (left, top) = (area.position.x as f64, area.position.y as f64);
                     // Our size once there: Windows keeps the logical size on a screen with another scale.
@@ -560,9 +595,15 @@ pub(crate) mod os {
 
     /// False too under a window manager that doesn't say which window is in front (no EWMH): the
     /// ghost would wait forever for a window to sit on, so it stays on the desktop instead.
+    /// Same on a Wayland desktop when X doesn't know the window in front: it's a native one, like
+    /// VS Code and the terminal on Ubuntu, or ours. The ghost stays where it is rather than hiding.
     pub fn supports_window_tracking() -> bool {
-        x11().is_some_and(|x| {
+        let tracks = x11().is_some_and(|x| {
             property32(x, x.root, x.atoms._NET_SUPPORTED).is_some_and(|names| names.contains(&x.atoms._NET_ACTIVE_WINDOW))
+        });
+        tracks && !(std::env::var_os("WAYLAND_DISPLAY").is_some() && {
+            let front = window_pid(foreground_window());
+            front == 0 || front == std::process::id()
         })
     }
 

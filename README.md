@@ -24,14 +24,15 @@ Nothing else to install: the installers add WebView2 if it's missing (already th
 
 👉 **[Latest version](https://github.com/ItzSized/Boofer/releases/latest)**, pick one:
 
-- **`Boofer_…_amd64.AppImage`**: nothing to install, `chmod +x` it and run it. It updates itself.
-- **`Boofer_…_amd64.deb`**: `sudo apt install ./Boofer_…_amd64.deb`. It doesn't update itself: **Settings → Check for updates** tells you when there's a new version and opens its download page.
+- **`Boofer_…_amd64.deb`** for Ubuntu and Debian (recommended): `sudo apt install ./Boofer_…_amd64.deb`. It doesn't update itself: **Settings → Check for updates** tells you when there's a new version and opens its download page.
+- **`Boofer_…_amd64.AppImage`** for other distributions: nothing to install, `chmod +x` it and run it. It updates itself. Claude Code's hooks need `curl`: install it if you don't have it (the `.deb` does).
 
 What you need and what's different from Windows:
 
 - **WebKitGTK 4.1** draws the interface: the `.deb` installs it, the AppImage carries it.
-- **X11 or XWayland**: Boofer always runs as an X11 app, also on a Wayland desktop. Without XWayland it can't start there.
-- **Tray icon**: your desktop has to show AppIndicator icons. On GNOME, that's the "AppIndicator and KStatusNotifierItem Support" extension. Without it there's no icon, and the right-click menu of the ghost does the same job. With it, any click opens the menu, and the icon has no tooltip.
+- **X11 or XWayland**: Boofer always runs as an X11 app, also on a Wayland desktop. Without XWayland it can't start there. It also needs a compositor for its see-through background, which GNOME and KDE have.
+- **On a Wayland desktop, Ubuntu's default**: an X11 app can't see native Wayland windows, and VS Code and the terminal are native there. So the ghost doesn't sit on them or follow them: it stays where you put it, bottom right at first, and its eyes only follow the mouse over its own windows. Cards and clicks work as usual. Apps that run under XWayland are followed as on Windows.
+- **Tray icon**: your desktop has to show AppIndicator icons. Ubuntu does. On another GNOME, that's the "AppIndicator and KStatusNotifierItem Support" extension. Without it there's no icon, and the right-click menu of the ghost does the same job; if you hide the ghost, start Boofer again to bring it back. With it, any click opens the menu, and the icon has no tooltip.
 - **Global shortcuts** (Ctrl+Alt+B, M, P) go through X11. On a Wayland desktop it's up to the desktop whether an X11 app gets them, and they may only work while an X11 window is in front.
 - **Browser AIs aren't followed**: reading the tab relies on an accessibility API of Windows. Claude Code, Antigravity and Codex are followed as usual.
 
@@ -109,7 +110,7 @@ Not needed to use Boofer: every push to `main` rebuilds the installers and updat
 - Node.js 20+
 - [Rust](https://rustup.rs) and the Visual Studio "Desktop development with C++" Build Tools
 - WebView2 (already on Windows 10/11)
-- Under Linux, instead of the Build Tools and WebView2: `sudo apt install libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libgtk-3-dev libxdo-dev libssl-dev`, then `npx tauri build --bundles appimage,deb`
+- Under Linux, instead of the Build Tools and WebView2: `sudo apt install libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libgtk-3-dev libxdo-dev libssl-dev`, then `npx tauri build --bundles appimage,deb`
 
 ### Build
 

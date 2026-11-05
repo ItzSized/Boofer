@@ -14,7 +14,7 @@ fn main() {
     // where the cursor is outside its window, so the ghost needs X11 (XWayland on a Wayland desktop).
     #[cfg(target_os = "linux")]
     {
-        default_env("GDK_BACKEND", "x11");
+        std::env::set_var("GDK_BACKEND", "x11");
         // WebKitGTK's DMA-BUF renderer gives black windows on many drivers.
         default_env("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
     }

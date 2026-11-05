@@ -547,6 +547,7 @@ pub fn run() {
             updates::build_commit,
             updates::update_install,
             updates::system,
+            pet::set_click_region,
             resolve_permission,
             resolve_guard,
             apps::running_apps,

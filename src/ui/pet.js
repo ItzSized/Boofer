@@ -1,7 +1,10 @@
+import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import { playPat } from "../audio/chime.js";
 import { animationOff } from "../core/animations.js";
+
+const LINUX = /Linux/.test(navigator.userAgent);
 
 const TRICKS = [
   ["trick-spin", 1100],
@@ -39,11 +42,37 @@ export function createPet({ app, mascot, mascotEl, closeBtn, fx, targets, isTaur
   // unless the cursor is over the ghost, the close button, the menu or the permission card.
   // Away or hidden, the ghost is only faded out: then every click goes through.
   function setIgnore(value) {
-    if (!win || value === ignoring) return;
+    if (!win || LINUX || value === ignoring) return;
     ignoring = value;
     win.setIgnoreCursorEvents(value);
   }
   setIgnore(true); // until the first tick tells where the cursor is
+
+  // Linux: the window only catches the pointer over these rects, and lets the rest through
+  // (src-tauri/src/pet.rs). Rounded out, so that a floating ghost doesn't change them at each frame.
+  let region = null;
+  function setClickRegion(rects) {
+    if (!win || !LINUX) return;
+    const next = rects
+      .filter((r) => r.width > 0)
+      .map((r) => [Math.floor((r.left - 8) / 16) * 16, Math.floor((r.top - 8) / 16) * 16, Math.ceil((r.right + 8) / 16) * 16, Math.ceil((r.bottom + 8) / 16) * 16]);
+    const key = next.join(";");
+    if (key === region) return;
+    region = key;
+    invoke("set_click_region", { rects: next });
+  }
+  setClickRegion([]);
+
+  // On a Wayland desktop, X keeps the last position seen over our window when the pointer goes on
+  // to a native one: without this, the ghost would stay "hovered".
+  let pointerGone = false;
+  if (LINUX) {
+    document.documentElement.addEventListener("mouseenter", () => (pointerGone = false));
+    document.documentElement.addEventListener("mouseleave", () => {
+      pointerGone = true;
+      if (lastTick) onTick(lastTick);
+    });
+  }
 
   let title = null;
   let lastTick = null;
@@ -72,9 +101,11 @@ export function createPet({ app, mascot, mascotEl, closeBtn, fx, targets, isTaur
     mascotEl.style.setProperty("--tilt", `${clamp(t.vx * 2, -14, 14)}deg`);
 
     const wasHovering = app.classList.contains("hovering");
-    const hovering = visible && (inside(t, b, 8) || (wasHovering && inside(t, closeBtn.getBoundingClientRect(), 6)));
+    if (moved) pointerGone = false;
+    const hovering = visible && !pointerGone && (inside(t, b, 8) || (wasHovering && inside(t, closeBtn.getBoundingClientRect(), 6)));
     app.classList.toggle("hovering", hovering);
     setIgnore(!visible || !(hovering || targets().some((el) => inside(t, el.getBoundingClientRect(), 4))));
+    setClickRegion(visible ? [b, closeBtn.getBoundingClientRect(), ...targets().map((el) => el.getBoundingClientRect())] : []);
 
     if (moved) {
       lastMoveAt = Date.now();
