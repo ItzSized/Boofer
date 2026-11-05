@@ -251,7 +251,7 @@ function renderAnimations() {
 }
 
 function renderEditors() {
-  const known = EDITORS.map((e) => e.id);
+  const known = [...EDITORS, ...shownEditors].map((e) => e.id);
   const custom = settings.targetApps.filter((id) => !known.includes(id));
   const chips = [...shownEditors, ...custom.map((id) => ({ id, name: id, custom: true }))].map((editor) => {
     const on = settings.targetApps.includes(editor.id);
@@ -505,7 +505,8 @@ call("system").then(({ os, installsUpdates }) => {
   if (os === "linux") {
     document.querySelectorAll("[data-linux]").forEach((el) => (el.textContent = el.dataset.linux));
     document.querySelectorAll("[data-windows-only]").forEach((el) => el.remove());
-    shownEditors = EDITORS.filter((e) => e.id !== "web-ai");
+    // "terminal" is found in gnome-terminal, xfce4-terminal… Any other one can be added by its name.
+    shownEditors = EDITORS.filter((e) => e.id !== "web-ai").map((e) => (e.id === "windowsterminal" ? { ...e, id: "terminal" } : e));
     if (settings) renderEditors();
   }
   if (!installsUpdates) {

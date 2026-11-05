@@ -24,6 +24,10 @@ tauri-plugin-clipboard-manager = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 
+[target.'cfg(target_os = "linux")'.dependencies]
+# Follows the window in front (X11, XWayland included). Pure Rust: no C library to install.
+x11rb = "0.13"
+
 [target.'cfg(windows)'.dependencies]
 # UI Automation: reads the AI chat tab shown in the browser (src/web.rs).
 windows = { version = "0.62", features = [

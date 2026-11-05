@@ -330,6 +330,7 @@ dependencies = [
  "tiny_http",
  "windows",
  "windows-sys 0.61.2",
+ "x11rb",
  "zstd",
 ]
 
