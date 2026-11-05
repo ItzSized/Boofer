@@ -4,7 +4,7 @@
 
 A little ghost that lives on your screen while your AI agents code. It shows you live where **Antigravity** (Gemini 3.1 Pro, Gemini 4 Argon, Flash…), **Claude Code** and **Codex** are at, lets you approve requests without switching windows, and goes *ding* when it's done.
 
-https://github.com/user-attachments/assets/de1bf793-b005-4a0e-8159-b138536c0c4c
+https://github.com/user-attachments/assets/e2455168-d445-4a0e-b2cf-3031f2f9c7ab
 
 > Independent project, not affiliated with Anthropic. "Claude" and "Claude Code" are trademarks of Anthropic.
 
