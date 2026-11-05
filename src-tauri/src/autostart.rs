@@ -152,6 +152,11 @@ mod os {
         appimage.unwrap_or(exe)
     }
 
+    /// $APPIMAGE is ours only in an AppImage: a .deb may get it from the terminal of another one.
+    fn own_appimage(is_appimage: bool, read: impl FnOnce() -> Option<std::ffi::OsString>) -> Option<PathBuf> {
+        is_appimage.then(read).flatten().map(PathBuf::from)
+    }
+
     fn desktop_entry(program: &std::path::Path) -> String {
         format!(
             "[Desktop Entry]\nType=Application\nName=Boofer\nComment=AI companion on your desktop\nExec=\"{}\" {}\nTerminal=false\nX-GNOME-Autostart-enabled=true\n",
@@ -168,7 +173,7 @@ mod os {
         let path = desktop_path().ok_or("dossier ~/.config introuvable")?;
         if enabled {
             let exe = std::env::current_exe().map_err(|e| e.to_string())?;
-            let appimage = std::env::var_os("APPIMAGE").map(PathBuf::from);
+            let appimage = own_appimage(crate::updates::is_appimage(), || std::env::var_os("APPIMAGE"));
             if let Some(dir) = path.parent() {
                 std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
             }
@@ -190,6 +195,14 @@ mod os {
             let file = PathBuf::from("/home/sam/Apps/Boofer.AppImage");
             assert_eq!(program(Some(file.clone()), mount.clone()), file);
             assert_eq!(program(None, mount.clone()), mount);
+        }
+
+        #[test]
+        fn only_an_appimage_listens_to_appimage() {
+            let inherited = || Some(std::ffi::OsString::from("/home/sam/Apps/Editor.AppImage"));
+            assert_eq!(own_appimage(false, inherited), None);
+            assert_eq!(own_appimage(true, inherited), Some(PathBuf::from("/home/sam/Apps/Editor.AppImage")));
+            assert_eq!(own_appimage(true, || None), None);
         }
 
         #[test]

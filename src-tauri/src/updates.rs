@@ -45,9 +45,14 @@ pub fn system() -> System {
     System { os: std::env::consts::OS, installs_updates: installs_updates() }
 }
 
-/// Under Linux, $APPIMAGE is set by the AppImage runtime only, and it's the file the plugin replaces.
 fn installs_updates() -> bool {
-    !cfg!(target_os = "linux") || std::env::var_os("APPIMAGE").is_some()
+    !cfg!(target_os = "linux") || is_appimage()
+}
+
+/// The bundler writes the bundle type in the binary, so a copy built by cargo is none. $APPIMAGE
+/// doesn't tell: an AppImage (an editor) passes it on to the programs started from its terminal.
+pub fn is_appimage() -> bool {
+    tauri::utils::platform::bundle_type() == Some(tauri::utils::config::BundleType::AppImage)
 }
 
 /// Commit this copy was built from, or null for a build made on a PC.
@@ -151,4 +156,16 @@ pub async fn update_install(app: AppHandle) -> Result<(), String> {
         .await
         .map_err(|e| e.to_string())?;
     app.restart()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // The test binary isn't patched by the bundler, like a copy built by cargo.
+    #[test]
+    fn a_copy_built_by_cargo_installs_nothing_under_linux() {
+        assert!(!is_appimage());
+        assert_eq!(installs_updates(), !cfg!(target_os = "linux"));
+    }
 }

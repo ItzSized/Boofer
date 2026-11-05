@@ -3,9 +3,10 @@ name: Build Windows and Linux (installers, portable version, AppImage, .deb)
 # Each push to main rebuilds Boofer and refreshes the GitHub release of the current version
 # (tauri.conf.json → "version"): people download it ready to use, nothing to compile.
 #
-# windows → linux → finish, one after the other: Windows and Linux both rewrite latest.json, and
-# installed copies update from it. Linux can fail without touching what Windows published:
-# finish only needs Windows.
+# windows, then linux: both rewrite latest.json, one after the other, and installed copies update
+# from it. Windows copies get their build as soon as the windows job is done. The windows job takes
+# the Linux entries out of latest.json, and the linux job only adds them once its files are there:
+# a Linux failure leaves Linux copies on what they have, and touches nothing Windows published.
 on:
   push:
     branches: [main]
@@ -99,10 +100,34 @@ jobs:
           cp src-tauri/target/release/boofer.exe Boofer.exe
           gh release upload "v$version" Boofer.exe --clobber
 
+      # Same version, new commit: installed copies compare this build id with their own
+      # (src-tauri/src/updates.rs) and take the new features without a new version number.
+      - name: Mark latest.json with this build
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          gh release download "v$version" -p latest.json -O latest.json --clobber
+          node -e '
+            const fs = require("fs");
+            const json = JSON.parse(fs.readFileSync("latest.json", "utf8"));
+            json.notes = `${(json.notes ?? "").replace(/\s*<!-- build \w+ -->\s*$/, "")}\n\n<!-- build ${process.env.GITHUB_SHA} -->`;
+            // The Linux files on the release come from an older build. With this commit in the notes,
+            // an AppImage would install that file, restart, and start again. The linux job adds its own.
+            for (const key of Object.keys(json.platforms ?? {})) {
+              if (key.startsWith("linux-")) delete json.platforms[key];
+            }
+            fs.writeFileSync("latest.json", JSON.stringify(json, null, 2));
+          '
+          gh release upload "v$version" latest.json --clobber
+
   linux:
     needs: windows
-    runs-on: ubuntu-22.04 # the oldest glibc available: what's built here runs on newer systems
-    timeout-minutes: 45 # finish waits for this job
+    # The oldest glibc available: what's built here runs on newer systems. GitHub removes ubuntu-22.04
+    # on April 17, 2027, with scheduled outages from March 23, 2027: change the image before that.
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -114,21 +139,10 @@ jobs:
           node-version: 20
           cache: npm
 
-      - uses: dtolnay/rust-toolchain@stable
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: "./src-tauri -> target"
-
-      - name: Install the system libraries
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libgtk-3-dev libxdo-dev libssl-dev
-
-      - run: npm ci
-
       # tauri-action keeps the "platforms" of the latest.json it finds and replaces its "notes" with
-      # releaseBody: given the notes Windows wrote, they don't change. The copy also serves below.
+      # releaseBody: given the notes Windows wrote, they don't change, marker included. The copy also
+      # serves below. Another commit in the notes: this run was overtaken and someone re-ran it. Its
+      # files must not replace the newer ones, nor its entries go under the marker of another build.
       - name: Keep what Windows wrote in latest.json
         id: windows_json
         env:
@@ -136,11 +150,37 @@ jobs:
         run: |
           version=$(node -p "require('./src-tauri/tauri.conf.json').version")
           gh release download "v$version" -p latest.json -O "$RUNNER_TEMP/latest.json" --clobber
+          node -e '
+            const { notes } = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
+            if (!notes?.includes(`<!-- build ${process.env.GITHUB_SHA} -->`)) {
+              throw new Error(`latest.json is not from ${process.env.GITHUB_SHA}: this run is not the last one`);
+            }
+          ' "$RUNNER_TEMP/latest.json"
           {
             echo "notes<<BOOFER_NOTES_END"
             node -p 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).notes' "$RUNNER_TEMP/latest.json"
             echo "BOOFER_NOTES_END"
           } >> "$GITHUB_OUTPUT"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      # linuxdeploy and its plugins, downloaded by the bundler on each build otherwise: same reasons
+      # as the Windows tools above.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/tauri
+          key: tauri-bundler-tools-linux-v1
+
+      - name: Install the system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libgtk-3-dev libxdo-dev libssl-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-pulseaudio
+
+      - run: npm ci
 
       - name: Build and publish the AppImage and the .deb
         uses: tauri-apps/tauri-action@v0
@@ -173,39 +213,9 @@ jobs:
             gh release upload "v$version" "$RUNNER_TEMP/latest.json" --clobber
           fi
 
-  # Runs when Windows succeeded, whatever happened to Linux. Not after a cancelled run: the push
-  # that cancelled it is publishing again.
-  finish:
-    needs: [windows, linux]
-    if: ${{ !cancelled() && needs.windows.result == 'success' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      # Same version, new commit: installed copies compare this build id with their own
-      # (src-tauri/src/updates.rs) and take the new features without a new version number.
-      - name: Mark latest.json with this build
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          version=$(node -p "require('./src-tauri/tauri.conf.json').version")
-          gh release download "v$version" -p latest.json -O latest.json --clobber
-          node -e '
-            const fs = require("fs");
-            const json = JSON.parse(fs.readFileSync("latest.json", "utf8"));
-            // Every Windows copy updates from this entry: never publish a file without it.
-            if (!json.platforms?.["windows-x86_64"]?.url?.endsWith("-setup.exe")) {
-              throw new Error("latest.json lost its windows-x86_64 entry");
-            }
-            json.notes = `${(json.notes ?? "").replace(/\s*<!-- build \w+ -->\s*$/, "")}\n\n<!-- build ${process.env.GITHUB_SHA} -->`;
-            fs.writeFileSync("latest.json", JSON.stringify(json, null, 2));
-          '
-          gh release upload "v$version" latest.json --clobber
-
       # tauri-action only writes the text of a release when it creates it, and the Windows job comes
       # first: Linux is added here, once its files are really there.
       - name: Add Linux to the text of the release
-        if: needs.linux.result == 'success'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -216,8 +226,8 @@ jobs:
             cat >> body.md <<'BOOFER_LINUX_END'
 
           **Linux (x86_64, X11 or XWayland)**, pick one:
-          - `Boofer_x.y.z_amd64.AppImage`: nothing to install, `chmod +x` it and run it. It updates itself.
-          - `Boofer_x.y.z_amd64.deb`: `sudo apt install ./Boofer_x.y.z_amd64.deb`. It doesn't update itself: Settings → Check for updates opens the download page of a new version.
+          - `Boofer_x.y.z_amd64.deb`: for Ubuntu and Debian (recommended). `sudo apt install ./Boofer_x.y.z_amd64.deb`. It doesn't update itself: Settings → Check for updates opens the download page of a new version.
+          - `Boofer_x.y.z_amd64.AppImage`: for other distributions. Nothing to install, `chmod +x` it and run it. It updates itself.
 
           On GNOME, the tray icon needs the "AppIndicator and KStatusNotifierItem Support" extension. Browser AIs are followed on Windows only.
           BOOFER_LINUX_END

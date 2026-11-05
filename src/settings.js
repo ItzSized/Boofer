@@ -534,7 +534,8 @@ $("update-check").addEventListener("click", () => {
 
 // The page is written for Windows. Elsewhere: the right word (data-linux), no feature that doesn't
 // exist there (data-windows-only, src-tauri/src/web.rs), no promise of updates a .deb can't keep.
-call("system").then(({ os, installsUpdates }) => {
+const system = call("system");
+system.then(({ os, installsUpdates }) => {
   if (os === "linux") {
     document.querySelectorAll("[data-linux]").forEach((el) => (el.textContent = el.dataset.linux));
     document.querySelectorAll("[data-windows-only]").forEach((el) => el.remove());
@@ -595,6 +596,8 @@ $("build-title").addEventListener("click", () => watchedBuild && openUrl(`${REPO
 async function watchBuild() {
   if (!isTauri || !buildCommit) return;
   try {
+    // A copy that doesn't install updates never takes a new build: nothing to announce.
+    if (!(await system).installsUpdates) return;
     const build = await buildInProgress(buildCommit);
     if (!build) {
       const wasBuilding = Boolean(watchedBuild);
