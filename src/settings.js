@@ -10,6 +10,7 @@ import { createMascot } from "./ui/mascot.js";
 import { createUsageView } from "./ui/usage-view.js";
 import { createTokensView } from "./ui/tokens-view.js";
 import { createLiveView } from "./ui/live-view.js";
+import { createStorageView } from "./ui/storage-view.js";
 import { PERKS, levelFor, loadXp } from "./core/level.js";
 import { clockTime } from "./core/format.js";
 import { compact as compactTokens } from "./core/models.js";
@@ -72,7 +73,42 @@ const DEV_ANSWERS = {
   set_compact_window: () => {},
   set_concise: () => {},
   model_usage: () => new Promise((resolve) => setTimeout(() => resolve(DEV_USAGE()), 600)),
+  claude_storage: () => new Promise((resolve) => setTimeout(() => resolve(DEV_STORAGE()), 400)),
+  open_claude_folder: () => {},
 };
+function DEV_STORAGE() {
+  const now = Date.now();
+  const ago = (days) => now - days * 86_400_000;
+  const chat = (id, mb, days, title) => ({ id, bytes: mb * 1024 ** 2, modifiedMs: ago(days), title });
+  const project = (name, chats, extraMb, lastDays) => ({
+    name,
+    path: `C:\\Users\\you\\.claude\\projects\\C--Users-you-Documents-${name}`,
+    bytes: chats.reduce((sum, c) => sum + c.bytes, 0) + extraMb * 1024 ** 2,
+    chatCount: chats.length,
+    lastUsedMs: ago(lastDays),
+    chats: [...chats].sort((a, b) => b.bytes - a.bytes),
+  });
+  const big = [
+    chat("c1", 1180, 2, "Rebuild the economy so rebirths scale past 1e300 without float drift"),
+    chat("c2", 860, 6, "Why does the shop UI flicker when two pets are equipped?"),
+    chat("c3", 640, 9, "Add a daily rewards page with a streak counter"),
+    chat("c4", 410, 15, "Profile the server tick and find what allocates every frame"),
+    chat("c5", 335, 21, "Migrate the save format to version 4 and keep old saves loadable"),
+    chat("c6", 220, 26, "Write the remote events for trading"),
+    chat("c7", 180, 33, ""),
+    chat("c8", 95, 41, "Fix the HUD overlap on small phones"),
+    chat("c9", 64, 52, "Tidy the leaderboard code"),
+    chat("c10", 41, 58, "Explain how the pet fusion odds are computed"),
+    chat("c11", 18, 70, "Rename the Rebirth module"),
+    chat("c12", 6, 80, "Quick question about tweens"),
+  ];
+  return [
+    project("website", [chat("w1", 38, 4, "Add a pricing section to the landing page"), chat("w2", 12, 19, "Fix the contact form validation"), chat("w3", 3, 40, "Why is the hero image blurry on retina screens?")], 2, 4),
+    project("Multiverse-Incremental", big, 120, 0),
+    project("Boofer", [chat("b1", 142, 0, "Add a Storage page to the settings"), chat("b2", 96, 1, "Show what a chat weighs on the Live page"), chat("b3", 51, 5, "The ghost should cross its arms before a force push"), chat("b4", 22, 11, "Write the 30-second promo video script")], 4, 0),
+    project("dotfiles", [chat("d1", 1, 90, "Set up the shell prompt")], 0, 90),
+  ].sort((a, b) => b.bytes - a.bytes); // heaviest first, like the real answer
+}
 function DEV_USAGE() {
   const day = (ago) => new Date(Date.now() - ago * 86_400_000 - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
   const rows = [];
@@ -544,7 +580,7 @@ setInterval(() => {
 }, 30_000);
 
 // One page per category. "settings" (tray, ghost menu) or an unknown name opens the first one.
-const PAGES = ["look", "ghost", "alerts", "agents", "today", "general", "models", "live", "tokens"];
+const PAGES = ["look", "ghost", "alerts", "agents", "today", "general", "models", "live", "tokens", "storage"];
 let page = PAGES[0];
 function showPage(next) {
   page = PAGES.includes(next) ? next : PAGES[0];
@@ -552,6 +588,7 @@ function showPage(next) {
   for (const name of PAGES) $(`page-${name}`).classList.toggle("hidden", page !== name);
   if (page === "models") usage.refresh();
   if (page === "tokens") tokens.refresh();
+  if (page === "storage") storage.show();
   if (page === "live") live.start();
   else live.stop();
   window.history.replaceState(null, "", `#${page}`);
@@ -560,6 +597,7 @@ document.querySelectorAll("[data-page]").forEach((tab) => tab.addEventListener("
 const usage = createUsageView({ call, settings: () => settings, save });
 const tokens = createTokensView({ call, isTauri });
 const live = createLiveView({ call, isTauri, emit, listen });
+const storage = createStorageView({ call, isTauri, emit, listen });
 $("install-hooks").addEventListener("click", async () => {
   try {
     await call("install_claude_hooks");

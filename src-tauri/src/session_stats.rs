@@ -289,7 +289,7 @@ fn disk_usage(transcript: &Path, projects: &Path) -> Option<DiskUsage> {
 }
 
 /// Bytes of a file or of a whole folder. Links aren't followed: they could lead anywhere.
-fn size_of(path: &Path) -> u64 {
+pub(crate) fn size_of(path: &Path) -> u64 {
     let Ok(meta) = std::fs::symlink_metadata(path) else { return 0 };
     if !meta.is_dir() {
         return meta.len();
