@@ -138,6 +138,9 @@ fn start_event_server(app: AppHandle, server: tiny_http::Server) {
             }
 
             if is_post && request.url() == "/show" {
+                // Answered first: a new instance waits 400 ms, then takes this one for a stuck
+                // older build and stops it. Opening the window can take longer than that.
+                let _ = request.respond(tiny_http::Response::from_string(format!("build={}", build_stamp())));
                 app.state::<PetState>().hidden.store(false, Relaxed);
                 if let Some(items) = app.try_state::<TrayItems>() {
                     let _ = items.hidden.set_checked(false);
@@ -147,7 +150,6 @@ fn start_event_server(app: AppHandle, server: tiny_http::Server) {
                 }
                 // Boofer double-clicked while already running: its window comes up.
                 let _ = show_settings(&app, "settings");
-                let _ = request.respond(tiny_http::Response::from_string(format!("build={}", build_stamp())));
                 continue;
             }
 
