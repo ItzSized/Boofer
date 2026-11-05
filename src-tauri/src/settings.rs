@@ -216,11 +216,28 @@ pub(crate) fn write_user_file(path: &Path, text: &str) -> Result<(), String> {
     let mut tmp = target.clone().into_os_string();
     tmp.push(".booffer-tmp");
     let tmp = PathBuf::from(tmp);
-    std::fs::write(&tmp, text).map_err(|e| e.to_string())?;
+    let mut file = std::fs::File::create(&tmp).map_err(|e| e.to_string())?;
+    // Before the text goes in: it may hold a key, and the target may be readable by its owner only.
+    copy_mode(&target, &file).and_then(|_| file.write_all(text.as_bytes())).map_err(|e| e.to_string())?;
+    drop(file);
     std::fs::rename(&tmp, &target).map_err(|e| {
         let _ = std::fs::remove_file(&tmp);
         e.to_string()
     })
+}
+
+/// Gives a new file the rights of the one it stands for. No such file: the default rights.
+#[cfg(unix)]
+fn copy_mode(from: &Path, to: &std::fs::File) -> std::io::Result<()> {
+    match std::fs::metadata(from) {
+        Ok(meta) => to.set_permissions(meta.permissions()),
+        Err(_) => Ok(()),
+    }
+}
+
+#[cfg(not(unix))]
+fn copy_mode(_from: &Path, _to: &std::fs::File) -> std::io::Result<()> {
+    Ok(())
 }
 
 pub(crate) fn claude_settings_path() -> Option<PathBuf> {
@@ -230,9 +247,26 @@ pub(crate) fn claude_settings_path() -> Option<PathBuf> {
 }
 
 /// "missing": no Boofer hooks yet. "outdated": installed by an older Boofer (some events
-/// are missing, e.g. compaction). "ok": everything is there.
+/// are missing, e.g. compaction). "ok": everything is there. "curl-missing" (Linux): everything
+/// is there but can't work, the hooks call curl and hide its failure.
 #[tauri::command]
 pub fn claude_hooks_status() -> &'static str {
+    let status = installed_hooks();
+    #[cfg(target_os = "linux")]
+    let status = with_curl(status, crate::host::has_program("curl"));
+    status
+}
+
+#[cfg(target_os = "linux")]
+fn with_curl(status: &'static str, curl: bool) -> &'static str {
+    if status == "ok" && !curl {
+        "curl-missing"
+    } else {
+        status
+    }
+}
+
+fn installed_hooks() -> &'static str {
     let Some(root) = claude_settings_path()
         .and_then(|path| std::fs::read_to_string(path).ok())
         .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok())
@@ -269,7 +303,7 @@ fn has_entry(list: &serde_json::Value, entry: &serde_json::Value) -> bool {
 
 /// Boofer hooks from an older version: add the new events (the user already said yes once).
 pub fn upgrade_claude_hooks() {
-    if claude_hooks_status() == "outdated" {
+    if installed_hooks() == "outdated" {
         let _ = install_claude_hooks();
     }
 }
@@ -313,7 +347,7 @@ fn install_hooks_at(path: &Path) -> Result<(), String> {
         let failed = |e: std::io::Error| format!("couldn't make a backup copy, nothing was changed: {e}");
         match std::fs::OpenOptions::new().write(true).create_new(true).open(&backup) {
             Ok(mut file) => {
-                if let Err(e) = file.write_all(text.as_bytes()) {
+                if let Err(e) = copy_mode(path, &file).and_then(|_| file.write_all(text.as_bytes())) {
                     drop(file); // closed first: Windows won't delete an open file
                     let _ = std::fs::remove_file(&backup);
                     return Err(failed(e));
@@ -391,6 +425,64 @@ pub(crate) mod tests {
         assert!(std::fs::read_to_string(&path).unwrap().contains(HOOK_MARKER));
         assert!(!path.with_extension("json.booffer-backup").exists());
         assert!(!dir.0.join("settings.json.booffer-tmp").exists());
+    }
+
+    #[cfg(unix)]
+    fn mode(path: &Path) -> u32 {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::metadata(path).unwrap().permissions().mode() & 0o777
+    }
+
+    #[cfg(unix)]
+    fn set_mode(path: &Path, mode: u32) {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(path, std::fs::Permissions::from_mode(mode)).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_private_settings_file_stays_private_and_so_does_its_backup() {
+        let dir = TempDir::new("private");
+        let path = dir.0.join("settings.json");
+        std::fs::write(&path, r#"{"env": {"KEY": "secret"}}"#).unwrap();
+        set_mode(&path, 0o600);
+        install_hooks_at(&path).unwrap();
+        assert_eq!(mode(&path), 0o600);
+        assert_eq!(mode(&path.with_extension("json.booffer-backup")), 0o600);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_shared_settings_file_stays_shared() {
+        let dir = TempDir::new("shared");
+        let path = dir.0.join("settings.json");
+        std::fs::write(&path, "{}").unwrap();
+        set_mode(&path, 0o664);
+        install_hooks_at(&path).unwrap();
+        assert_eq!(mode(&path), 0o664);
+        assert_eq!(mode(&path.with_extension("json.booffer-backup")), 0o664);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_read_only_file_is_still_replaced() {
+        let dir = TempDir::new("read-only");
+        let path = dir.0.join("CLAUDE.md");
+        std::fs::write(&path, "old").unwrap();
+        set_mode(&path, 0o400);
+        write_user_file(&path, "new").unwrap();
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "new");
+        assert_eq!(mode(&path), 0o400);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn without_curl_connected_hooks_say_so() {
+        assert_eq!(with_curl("ok", true), "ok");
+        assert_eq!(with_curl("ok", false), "curl-missing");
+        // Not connected yet: the Connect button stays, the message comes once it's done.
+        assert_eq!(with_curl("missing", false), "missing");
+        assert_eq!(with_curl("outdated", false), "outdated");
     }
 
     #[test]

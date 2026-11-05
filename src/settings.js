@@ -383,12 +383,13 @@ async function refreshHooks() {
     ok: ["✓ Claude Code is connected", "The hooks are in ~/.claude/settings.json (status, requests, compaction)."],
     outdated: ["Claude Code: update available", "Adds the new hooks (e.g. see when the context is compacted)."],
     missing: ["Claude Code is not connected", "Adds Boofer's hooks to ~/.claude/settings.json (your settings are kept, a backup copy is made)."],
+    "curl-missing": ["curl is missing: Boofer can't hear Claude Code", "Install it with: sudo apt install curl"],
   };
   const [title, text] = texts[status] ?? texts.missing;
   $("hooks-title").textContent = title;
   $("hooks-text").textContent = text;
   $("install-hooks").textContent = status === "outdated" ? "Update" : "Connect";
-  $("install-hooks").classList.toggle("hidden", status === "ok");
+  $("install-hooks").classList.toggle("hidden", status === "ok" || status === "curl-missing");
 }
 
 $("sleep").replaceChildren(

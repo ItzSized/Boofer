@@ -4,6 +4,7 @@ mod apps;
 mod autostart;
 mod codex;
 mod guard;
+mod host;
 mod migrate;
 mod permission;
 mod pet;
@@ -358,7 +359,7 @@ fn open_target(target: &str) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     let result = std::process::Command::new("open").arg(target).spawn();
     #[cfg(all(unix, not(target_os = "macos")))]
-    let result = std::process::Command::new("xdg-open").arg(target).spawn();
+    let result = host::command("xdg-open").arg(target).spawn();
     result.map(|_| ()).map_err(|e| e.to_string())
 }
 

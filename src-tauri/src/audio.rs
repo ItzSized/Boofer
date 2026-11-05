@@ -45,10 +45,10 @@ pub fn system_muted() -> bool {
 #[cfg(target_os = "linux")]
 fn read_output(program: &str, args: &[&str]) -> Option<String> {
     use std::io::Read;
-    use std::process::{Command, Stdio};
+    use std::process::Stdio;
     use std::time::{Duration, Instant};
 
-    let mut child = Command::new(program)
+    let mut child = crate::host::command(program)
         .args(args)
         .env("LC_ALL", "C")
         .stdin(Stdio::null())
