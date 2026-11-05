@@ -73,6 +73,10 @@ pub struct Settings {
     pub seasonal: bool,
     /// "classique", "doux" or "retro".
     pub sound_theme: String,
+    /// Long commands in a terminal (a % that goes up) are followed like a task (terminal.rs).
+    pub watch_terminal: bool,
+    /// GitHub Copilot's chat in VS Code is followed like the other agents (vscode.rs).
+    pub watch_vscode: bool,
 }
 
 impl Default for Settings {
@@ -108,6 +112,8 @@ impl Default for Settings {
             stream_mode: false,
             seasonal: true,
             sound_theme: "classique".into(),
+            watch_terminal: true,
+            watch_vscode: true,
         }
     }
 }
@@ -241,6 +247,13 @@ fn copy_mode(_from: &Path, _to: &std::fs::File) -> std::io::Result<()> {
 }
 
 pub(crate) fn claude_settings_path() -> Option<PathBuf> {
+    // Claude Code reads its settings from $CLAUDE_CONFIG_DIR when it is set.
+    if let Some(dir) = std::env::var_os("CLAUDE_CONFIG_DIR") {
+        let first = dir.to_string_lossy().split(',').next().unwrap_or("").trim().to_string();
+        if !first.is_empty() {
+            return Some(PathBuf::from(first).join("settings.json"));
+        }
+    }
     std::env::var_os("USERPROFILE")
         .or_else(|| std::env::var_os("HOME"))
         .map(|home| PathBuf::from(home).join(".claude").join("settings.json"))

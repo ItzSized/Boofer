@@ -16,7 +16,7 @@ const RANGES = { today: 0, "7d": 6, "30d": 29, all: null };
 const RANGE_KEY = "booffer.usageRange";
 const TOOL_KEY = "booffer.usageTool";
 /** Tools read from files on the PC; anything else comes from the browser. */
-const APP_TOOLS = ["Claude Code", "Antigravity", "Codex"];
+const APP_TOOLS = ["Claude Code", "Antigravity", "Codex", "Copilot"];
 const toolGroup = (tool) => (APP_TOOLS.includes(tool) ? tool : "Browser");
 const SPARK_DAYS = 14;
 

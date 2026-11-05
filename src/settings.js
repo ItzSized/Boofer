@@ -84,7 +84,7 @@ const isTauri = "__TAURI_INTERNALS__" in window;
 const DEV_SETTINGS = {
   display: "editor", notifications: true, notifyWhenSilent: true, notifyWhenWaiting: false, animationsOff: [], autoUpdate: true, targetApps: ["antigravity"], follow: false, glide: false, sounds: true, volume: 0.8,
   size: 1, skin: "classique", accessory: "aucun", effect: "aucun", sleepAfter: 45, approvals: true, theme: "auto", dnd: false, dndUntil: 0, speech: true,
-  guard: true, guardCommands: [], dailyLimitPct: { anthropic: 100 }, repromptAi: false,
+  guard: true, guardCommands: [], dailyLimitPct: { anthropic: 100 }, repromptAi: false, watchVscode: true, watchTerminal: true,
 };
 const todayIso = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
 const DEV_ANSWERS = {
@@ -167,34 +167,38 @@ skinsBlock.innerHTML = `
   <p class="mb-1.5 text-sm font-medium">Skin</p>
   <div id="skins" class="grid grid-cols-4 gap-2"></div>
   <p class="mt-3 mb-1.5 text-sm font-medium">Accessory</p>
-  <div id="accessories" class="flex flex-wrap gap-1.5"></div>
+  <div id="accessories" class="grid grid-cols-4 gap-2"></div>
   <p class="mt-3 mb-1.5 text-sm font-medium">Effect</p>
-  <div id="effects" class="flex flex-wrap gap-1.5"></div>`;
-const skinButtons = SKINS.map((skin) => {
+  <div id="effects" class="grid grid-cols-4 gap-2"></div>`;
+
+// A card = a mini ghost wearing the choice, and its name (the emoji is left out: the ghost shows it).
+function lookCard(name, look, onPick) {
   const button = document.createElement("button");
   button.className = "skin-card flex flex-col items-center rounded-xl pt-2 pb-1 ring-1 ring-black/10 dark:ring-white/15";
   const preview = document.createElement("div");
   preview.className = "mascot mini";
   preview.dataset.state = "idle";
-  preview.dataset.skin = skin.id;
+  Object.assign(preview.dataset, look);
   createMascot(preview);
-  const label = Object.assign(document.createElement("span"), { className: "text-[11px] text-zinc-600 dark:text-zinc-300", textContent: skin.name });
+  const label = Object.assign(document.createElement("span"), {
+    className: "text-[11px] text-zinc-600 dark:text-zinc-300",
+    textContent: name.replace(/^[^A-Za-z0-9]+\s/, ""),
+  });
   button.append(preview, label);
-  button.addEventListener("click", () => save({ skin: skin.id }));
-  return { skin, button, preview };
-});
+  button.addEventListener("click", onPick);
+  return { button, preview };
+}
+const skinButtons = SKINS.map((skin) => ({ skin, ...lookCard(skin.name, { skin: skin.id }, () => save({ skin: skin.id })) }));
 $("skins").replaceChildren(...skinButtons.map((s) => s.button));
-const accessoryButtons = ACCESSORIES.map((accessory) => {
-  const button = Object.assign(document.createElement("button"), { className: "chip", textContent: accessory.name });
-  button.addEventListener("click", () => save({ accessory: accessory.id }));
-  return { accessory, button };
-});
+const accessoryButtons = ACCESSORIES.map((accessory) => ({
+  accessory,
+  ...lookCard(accessory.name, { accessory: accessory.id }, () => save({ accessory: accessory.id })),
+}));
 $("accessories").replaceChildren(...accessoryButtons.map((a) => a.button));
-const effectButtons = EFFECTS.map((effect) => {
-  const button = Object.assign(document.createElement("button"), { className: "chip", textContent: effect.name });
-  button.addEventListener("click", () => save({ effect: effect.id }));
-  return { effect, button };
-});
+const effectButtons = EFFECTS.map((effect) => ({
+  effect,
+  ...lookCard(effect.name, { effect: effect.id }, () => save({ effect: effect.id })),
+}));
 $("effects").replaceChildren(...effectButtons.map((e) => e.button));
 
 async function save(change) {
@@ -215,8 +219,16 @@ function render() {
     button.classList.toggle("selected", skin.id === settings.skin);
     preview.dataset.accessory = settings.accessory;
   }
-  for (const { accessory, button } of accessoryButtons) button.classList.toggle("on", accessory.id === settings.accessory);
-  for (const { effect, button } of effectButtons) button.classList.toggle("on", effect.id === (settings.effect ?? "aucun"));
+  // Each card shows its choice on the ghost as it is now: your skin, your accessory.
+  for (const { accessory, button, preview } of accessoryButtons) {
+    button.classList.toggle("selected", accessory.id === settings.accessory);
+    preview.dataset.skin = settings.skin;
+  }
+  for (const { effect, button, preview } of effectButtons) {
+    button.classList.toggle("selected", effect.id === (settings.effect ?? "aucun"));
+    preview.dataset.skin = settings.skin;
+    preview.dataset.accessory = settings.accessory;
+  }
   configureSound(settings);
 
   $("size").value = settings.size;
@@ -240,6 +252,8 @@ function render() {
   $("volume").value = settings.volume;
   $("volume").disabled = !settings.sounds;
   $("approvals").checked = settings.approvals;
+  $("watch-vscode").checked = settings.watchVscode !== false;
+  $("watch-terminal").checked = settings.watchTerminal !== false;
   $("guard-toggle").checked = settings.guard !== false;
   // Not while it's being typed in: settings also come back when another window changes them.
   if (document.activeElement !== $("guard-commands")) $("guard-commands").value = (settings.guardCommands ?? []).join("\n");
@@ -438,6 +452,8 @@ $("notifications").addEventListener("change", (e) => save({ notifications: e.tar
 $("notify-silent").addEventListener("change", (e) => save({ notifyWhenSilent: e.target.checked }));
 $("notify-waiting").addEventListener("change", (e) => save({ notifyWhenWaiting: e.target.checked }));
 $("auto-update").addEventListener("change", (e) => save({ autoUpdate: e.target.checked }));
+$("watch-vscode").addEventListener("change", (e) => save({ watchVscode: e.target.checked }));
+$("watch-terminal").addEventListener("change", (e) => save({ watchTerminal: e.target.checked }));
 // Off then on again keeps the groups chosen before.
 $("anim-all").addEventListener("change", (e) => {
   const groups = (settings.animationsOff ?? []).filter((id) => id !== "all");

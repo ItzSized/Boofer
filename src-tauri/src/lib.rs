@@ -11,9 +11,11 @@ mod pet;
 mod session_stats;
 mod settings;
 mod storage;
+mod terminal;
 mod tokens;
 mod updates;
 mod usage;
+mod vscode;
 mod web;
 
 use std::io::{Read, Write};
@@ -571,6 +573,8 @@ pub fn run() {
             antigravity::start_watcher(app.handle().clone());
             codex::start_watcher(app.handle().clone());
             web::start_watcher(app.handle().clone());
+            terminal::start_watcher(app.handle().clone());
+            vscode::start_watcher(app.handle().clone());
             register_shortcuts(app.handle());
             std::thread::spawn(settings::upgrade_claude_hooks);
             permission::start_reaper(app.handle().clone());
