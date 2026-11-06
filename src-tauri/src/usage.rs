@@ -1,7 +1,7 @@
 //! Usage per AI model, read from the local files of each tool. Nothing leaves the PC.
 //!
 //! - Claude Code: ~/.claude/projects/**/*.jsonl (model + usage on assistant messages)
-//! - Codex:       ~/.codex/sessions/**/*.jsonl.zst (model per turn, token_count events, plan limits)
+//! - Codex:       ~/.codex/sessions/**/*.jsonl[.zst] (model per turn, token_count events, plan limits)
 //! - Antigravity: ~/.gemini/antigravity/brain/*/.system_generated/logs/transcript.jsonl
 //!                + ~/.gemini/antigravity(-ide)/conversations/*.db (Gemini 3.1 Pro, 4 Argon, Flash…)
 //!
@@ -101,8 +101,9 @@ fn compute(cache: &UsageCache, tz: i64) -> Usage {
         scan_claude(cache, &projects, tz, &mut buckets);
     }
 
-    // Codex sessions (.jsonl.zst)
-    for file in walk(&home.join(".codex").join("sessions"), ".jsonl.zst") {
+    // Codex sessions: .jsonl.zst, or plain .jsonl depending on the version.
+    let codex_root = home.join(".codex").join("sessions");
+    for file in walk(&codex_root, ".jsonl.zst").into_iter().chain(walk(&codex_root, ".jsonl")) {
         let Some(stamp) = stamp(&file) else { continue };
         let mut others = cache.others.lock().unwrap();
         let fresh = others.get(&file).is_some_and(|c| c.stamp == stamp);
@@ -275,11 +276,18 @@ fn context_window(model: &str, tokens: u64) -> u64 {
 
 // ---------- Codex ----------
 
+fn codex_bytes(path: &Path) -> Option<Vec<u8>> {
+    if path.extension().is_some_and(|e| e == "zst") {
+        zstd::stream::decode_all(std::fs::File::open(path).ok()?).ok()
+    } else {
+        std::fs::read(path).ok()
+    }
+}
+
 fn read_codex(path: &Path, tz: i64) -> (Buckets, Vec<Limit>) {
     let mut buckets = Buckets::new();
     let mut limits = Vec::new();
-    let Ok(file) = std::fs::File::open(path) else { return (buckets, limits) };
-    let Ok(bytes) = zstd::stream::decode_all(file) else { return (buckets, limits) };
+    let Some(bytes) = codex_bytes(path) else { return (buckets, limits) };
     let text = String::from_utf8_lossy(&bytes);
 
     let mut model = String::from("codex");
@@ -690,6 +698,20 @@ fn civil_from_days(z: i64) -> (i64, i64, i64) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn reads_plain_codex_sessions() {
+        let path = std::env::temp_dir().join(format!("boofer-codex-{}.jsonl", std::process::id()));
+        let lines = [
+            r#"{"type":"turn_context","payload":{"model":"gpt-6-luna"}}"#,
+            r#"{"timestamp":"2026-11-04T10:00:00.000Z","type":"event_msg","payload":{"type":"token_count","info":{"last_token_usage":{"input_tokens":70,"output_tokens":30}}}}"#,
+        ];
+        std::fs::write(&path, lines.join("\n")).unwrap();
+        let (buckets, _) = read_codex(&path, 0);
+        std::fs::remove_file(&path).unwrap();
+        let counts = buckets[&("Codex".to_string(), "gpt-6-luna".to_string(), "2026-11-04".to_string())];
+        assert_eq!((counts.input, counts.output), (70, 30));
+    }
 
     #[test]
     fn parses_antigravity_models() {
