@@ -5,13 +5,45 @@ import { withWebUsage } from "../core/web-usage.js";
 const REFRESH_MS = 30_000;
 const esc = (text) => String(text).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 const SHOWN = 3;
+const CLAUDE_FAMILY = "anthropic";
+const PLAN_TOOL = "Claude Code";
+/** The limits are read every 5 min: older than this, the % is only an estimate. */
+const STALE_MS = 15 * 60_000;
+
+const hhmm = (date) => date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+
+/** "23:20" today, "Sun 10:00" on another day. */
+function resetLabel(ms) {
+  const date = new Date(ms);
+  if (date.toDateString() === new Date().toDateString()) return hhmm(date);
+  return `${date.toLocaleDateString("en-US", { weekday: "short" })} ${hhmm(date)}`;
+}
+
+/** One plan limit: "Session  11% / 100% · resets 23:20" and its bar. */
+function planRow(limit, now) {
+  const running = limit.resetsAt > now;
+  const used = running ? Math.min(100, Math.round(limit.usedPercent)) : 0; // window over: back to zero
+  const label = limit.windowMinutes >= 1440 ? "Week" : "Session";
+  const bar = used >= 90 ? "bg-rose-500" : used >= 70 ? "bg-amber-500" : "";
+  const stale = now - limit.seenAt > STALE_MS;
+  return `<div title="Read at ${hhmm(new Date(limit.seenAt))}">
+    <div class="flex items-center gap-1.5 text-[10px] leading-3.5">
+      <span class="font-medium text-zinc-700 dark:text-zinc-200">${label}</span>
+      <span class="ml-auto shrink-0 tabular-nums text-zinc-500 dark:text-zinc-400"><strong class="${used >= 90 ? "text-rose-500" : "text-zinc-700 dark:text-zinc-200"}">${stale ? "~" : ""}${used}%</strong> / 100%${running ? ` · resets ${resetLabel(limit.resetsAt)}` : ""}</span>
+    </div>
+    <div class="mt-0.5 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+      <div class="h-full rounded-full ${bar}" style="width:${used}%;${bar ? "" : `background:${familyColor(CLAUDE_FAMILY)}`}"></div>
+    </div>
+  </div>`;
+}
 
 /**
  * Small card under the ghost: today's top models (falls back to the last 7 days).
  * With daily limits set, one line per AI: "🎯 Claude 62% · ⚡ 12% ahead".
+ * With Claude Code's plan limits known, a bar for the session and one for the week.
  * Clicking it opens the full "📊 Models" page of the settings window.
  */
-export function createUsageBar(el, { isTauri, invoke, limits = () => ({}), onData = () => {} }) {
+export function createUsageBar(el, { isTauri, invoke, limits = () => ({}), claudeOnly = () => false, onData = () => {} }) {
   el.className =
     "pointer-events-auto mt-1.5 w-[224px] cursor-pointer rounded-2xl bg-white/95 px-3 py-2 shadow-md ring-1 ring-black/5 " +
     "transition hover:ring-violet-400 dark:bg-zinc-900/95 dark:ring-white/10";
@@ -23,12 +55,15 @@ export function createUsageBar(el, { isTauri, invoke, limits = () => ({}), onDat
       <span class="ml-auto">see all ›</span>
     </div>
     <div data-rows class="mt-1 space-y-1"></div>
+    <div data-plan class="mt-1.5 hidden space-y-1 border-t border-zinc-100 pt-1 dark:border-zinc-800"></div>
     <div data-budgets class="mt-1.5 hidden space-y-0.5 border-t border-zinc-100 pt-1 dark:border-zinc-800"></div>`;
   const budgetsEl = el.querySelector("[data-budgets]");
   const periodEl = el.querySelector("[data-period]");
   const rowsEl = el.querySelector("[data-rows]");
+  const planEl = el.querySelector("[data-plan]");
 
   let rows = null;
+  let plan = [];
   let activeModel = null;
 
   el.addEventListener("click", (e) => {
@@ -38,12 +73,16 @@ export function createUsageBar(el, { isTauri, invoke, limits = () => ({}), onDat
 
   function render() {
     let period = "today";
-    let models = summarize(rows, localDay(0));
+    const only = claudeOnly();
+    const shown = only ? rows.filter((row) => describeModel(row.model).family === CLAUDE_FAMILY) : rows;
+    let models = summarize(shown, localDay(0));
     if (models.length === 0) {
       period = "7 days";
-      models = summarize(rows, localDay(6));
+      models = summarize(shown, localDay(6));
     }
-    el.classList.toggle("hidden", models.length === 0);
+    el.classList.toggle("hidden", models.length === 0 && plan.length === 0);
+    planEl.classList.toggle("hidden", plan.length === 0);
+    planEl.innerHTML = plan.map((limit) => planRow(limit, Date.now())).join("");
     periodEl.textContent = `· ${period}`;
     const peak = Math.max(1, ...models.map((m) => m.calls));
     rowsEl.innerHTML = models
@@ -64,7 +103,7 @@ export function createUsageBar(el, { isTauri, invoke, limits = () => ({}), onDat
       })
       .join("");
 
-    const budgets = dailyBudgets(rows, limits(rows));
+    const budgets = dailyBudgets(rows, limits(rows)).filter((b) => !only || b.family === CLAUDE_FAMILY);
     budgetsEl.classList.toggle("hidden", budgets.length === 0);
     budgetsEl.innerHTML = budgets
       .map((b) => {
@@ -94,6 +133,7 @@ export function createUsageBar(el, { isTauri, invoke, limits = () => ({}), onDat
     try {
       const usage = await invoke("model_usage", { tzOffsetMinutes: new Date().getTimezoneOffset() });
       rows = withWebUsage(usage.rows);
+      plan = (usage.limits ?? []).filter((l) => l.tool === PLAN_TOOL).sort((a, b) => a.windowMinutes - b.windowMinutes);
       render();
       onData(usage);
     } catch {

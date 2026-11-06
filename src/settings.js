@@ -82,7 +82,7 @@ const SLEEP_CHOICES = [
 // In a plain browser (npm run dev), fake the Rust side so the page can be designed.
 const isTauri = "__TAURI_INTERNALS__" in window;
 const DEV_SETTINGS = {
-  display: "editor", notifications: true, notifyWhenSilent: true, notifyWhenWaiting: false, animationsOff: [], autoUpdate: true, targetApps: ["antigravity"], follow: false, glide: false, sounds: true, volume: 0.8,
+  display: "editor", notifications: true, notifyWhenSilent: true, notifyWhenWaiting: false, usageCardClaudeOnly: false, animationsOff: [], autoUpdate: true, targetApps: ["antigravity"], follow: false, glide: false, sounds: true, volume: 0.8,
   size: 1, skin: "classique", accessory: "aucun", effect: "aucun", sleepAfter: 45, approvals: true, theme: "auto", dnd: false, dndUntil: 0, speech: true,
   guard: true, guardCommands: [], dailyLimitPct: { anthropic: 100 }, repromptAi: false, watchVscode: true, watchTerminal: true,
 };
@@ -264,6 +264,7 @@ function render() {
   $("notifications").checked = settings.notifications !== false;
   $("notify-silent").checked = settings.notifyWhenSilent !== false;
   $("notify-waiting").checked = settings.notifyWhenWaiting === true;
+  $("usage-card-claude-only").checked = settings.usageCardClaudeOnly === true;
   $("auto-update").checked = settings.autoUpdate !== false;
   renderAnimations();
 }
@@ -451,6 +452,7 @@ $("dnd-toggle").addEventListener("change", (e) => save({ dnd: e.target.checked, 
 $("notifications").addEventListener("change", (e) => save({ notifications: e.target.checked }));
 $("notify-silent").addEventListener("change", (e) => save({ notifyWhenSilent: e.target.checked }));
 $("notify-waiting").addEventListener("change", (e) => save({ notifyWhenWaiting: e.target.checked }));
+$("usage-card-claude-only").addEventListener("change", (e) => save({ usageCardClaudeOnly: e.target.checked }));
 $("auto-update").addEventListener("change", (e) => save({ autoUpdate: e.target.checked }));
 $("watch-vscode").addEventListener("change", (e) => save({ watchVscode: e.target.checked }));
 $("watch-terminal").addEventListener("change", (e) => save({ watchTerminal: e.target.checked }));

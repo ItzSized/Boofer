@@ -31,7 +31,7 @@ What you need and what's different from Windows:
 
 - **WebKitGTK 4.1** draws the interface: the `.deb` installs it, the AppImage carries it.
 - **X11 or XWayland**: Boofer always runs as an X11 app, also on a Wayland desktop. Without XWayland it can't start there. It also needs a compositor for its see-through background, which GNOME and KDE have.
-- **On a Wayland desktop, Ubuntu's default**: an X11 app can't see native Wayland windows, and VS Code and the terminal are native there. So the ghost doesn't sit on them or follow them: it stays where you put it, bottom right at first, and its eyes only follow the mouse over its own windows. Cards and clicks work as usual. Apps that run under XWayland are followed as on Windows.
+- **On a Wayland desktop, Ubuntu's default**: an X11 app can't see native Wayland windows, and VS Code and the terminal are native there. So the ghost doesn't sit on them or follow them: it stays where you put it, bottom right at first, and its eyes only follow the mouse over its own windows. Cards and clicks work as usual. Apps that run under XWayland are followed as on Windows, and once an editor of yours is seen there (VS Code with `--ozone-platform=x11`), **On my editor** also hides the ghost on native windows and the empty desktop.
 - **Tray icon**: your desktop has to show AppIndicator icons. Ubuntu does. On another GNOME, that's the "AppIndicator and KStatusNotifierItem Support" extension. Without it there's no icon, and the right-click menu of the ghost does the same job; if you hide the ghost, start Boofer again to bring it back. With it, any click opens the menu, and the icon has no tooltip.
 - **Global shortcuts** (Ctrl+Alt+B, M, P) go through X11. On a Wayland desktop it's up to the desktop whether an X11 app gets them, and they may only work while an X11 window is in front.
 - **Browser AIs aren't followed**: reading the tab relies on an accessibility API of Windows. Claude Code, Antigravity and Codex are followed as usual.
@@ -70,7 +70,7 @@ What changed in each version: [CHANGELOG.md](CHANGELOG.md), the notes of each [r
 
 ### 📊 Usage and tokens
 
-- **Model usage** (Settings → 📊 Models): which AIs you really use, their share, 14 days of activity, what it would cost at API prices, and your Codex plan limits. Everything is read locally.
+- **Model usage** (Settings → 📊 Models): which AIs you really use, their share, 14 days of activity, what it would cost at API prices, and your plan limits for Codex and, on Linux, Claude Code. Everything is read locally.
 - **Daily limit per AI**: a token cap for Claude, Gemini and GPT, alerts at 80% and 100%, and "⚡ ahead / 🐢 behind" your pace.
 - **Save tokens** (Settings → ✂️ Tokens): make Claude Code compact earlier, ask for short answers.
 - **Reprompt** (right-click or Ctrl+Alt+P): the copied prompt rewritten just for the AI, shorter, locally or with Claude Haiku.

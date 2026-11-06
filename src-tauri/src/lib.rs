@@ -570,6 +570,8 @@ pub fn run() {
             if let Some(server) = server_cell.lock().unwrap().take() {
                 start_event_server(app.handle().clone(), server);
             }
+            #[cfg(target_os = "linux")]
+            usage::start_claude_limits_watcher(app.handle().clone());
             antigravity::start_watcher(app.handle().clone());
             codex::start_watcher(app.handle().clone());
             web::start_watcher(app.handle().clone());

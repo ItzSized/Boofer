@@ -154,7 +154,7 @@ pub fn start(window: WebviewWindow) {
             }
             let shown = everywhere
                 || follow_windows
-                || !os::supports_window_tracking()
+                || !(os::supports_window_tracking() || foreground.x11_editor_open(frame, &targets))
                 || target.is_some()
                 || state.attention.load(Relaxed);
             let visible = shown && !state.hidden.load(Relaxed);
@@ -283,6 +283,8 @@ struct ForegroundTracker {
     /// An AI chat tab is in front in the browser (web.rs): the browser counts as an editor
     /// when "web-ai" is among the targets.
     web_ai: bool,
+    /// Wayland desktop: an editor of the targets was seen under XWayland.
+    x11_editor: bool,
 }
 
 /// Browsers whose tabs web.rs can read (Chromium based).
@@ -306,6 +308,7 @@ impl ForegroundTracker {
     /// New targets or mode: judges the last window that isn't ours again right away, since
     /// ours (the settings window, the menu) is usually the one in front when they change.
     fn retarget(&mut self, targets: &[String], any_window: bool) {
+        self.x11_editor = false;
         self.hwnd = 0;
         self.editor = None;
         self.target = None;
@@ -318,7 +321,9 @@ impl ForegroundTracker {
     fn classify(&mut self, hwnd: usize, targets: &[String], any_window: bool) {
         let pid = os::window_pid(hwnd);
         self.other = Some(hwnd);
-        let win_title = os::window_title(hwnd).to_lowercase();
+        // Under Linux the program's path decides: a title with "code" in it (a chat channel, a
+        // page about Claude Code) isn't an editor.
+        let win_title = if cfg!(target_os = "linux") { String::new() } else { os::window_title(hwnd).to_lowercase() };
         let is_target = os::process_name(pid).is_some_and(|path| {
             let path_lower = path.to_lowercase();
             targets
@@ -338,6 +343,20 @@ impl ForegroundTracker {
             self.target = None;
         }
         // Follow mode, desktop or taskbar in front: stay on the last window.
+    }
+
+    /// Wayland desktop, X doesn't know the window in front: is it surely not the editor? Yes once
+    /// the editor was seen under XWayland (VS Code with --ozone-platform=x11): the window in front
+    /// is a native one or the desktop, and the ghost hides there. A native editor is never seen,
+    /// so the ghost keeps staying where it is. Looked for about once a second, until found.
+    fn x11_editor_open(&mut self, frame: u64, targets: &[String]) -> bool {
+        if self.hwnd != 0 {
+            return false;
+        }
+        if !self.x11_editor && frame % 60 == 0 {
+            self.x11_editor = os::xwayland_window_of(targets);
+        }
+        self.x11_editor
     }
 
     fn target(&self) -> Option<(usize, os::Rect)> {
@@ -380,6 +399,10 @@ pub(crate) mod os {
 
     pub fn supports_window_tracking() -> bool {
         true
+    }
+
+    pub fn xwayland_window_of(_: &[String]) -> bool {
+        false
     }
 
     pub fn left_button_down() -> bool {
@@ -607,6 +630,20 @@ pub(crate) mod os {
         })
     }
 
+    /// On a Wayland desktop, an app window of one of these programs that X knows about.
+    pub fn xwayland_window_of(targets: &[String]) -> bool {
+        std::env::var_os("WAYLAND_DISPLAY").is_some()
+            && top_level_windows().into_iter().any(|w| {
+                let pid = window_pid(w);
+                pid != std::process::id()
+                    && is_app_window(w)
+                    && process_name(pid).is_some_and(|path| {
+                        let path = path.to_lowercase();
+                        targets.iter().any(|t| !t.is_empty() && path.contains(t.as_str()))
+                    })
+            })
+    }
+
     pub fn left_button_down() -> bool {
         pointer().is_some_and(|p| p.mask.contains(KeyButMask::BUTTON1))
     }
@@ -734,6 +771,7 @@ pub(crate) mod os {
     }
     pub fn cursor_pos() -> Option<(f64, f64)> { None }
     pub fn supports_window_tracking() -> bool { false }
+    pub fn xwayland_window_of(_: &[String]) -> bool { false }
     pub fn left_button_down() -> bool { false }
     pub fn foreground_window() -> usize { 0 }
     pub fn window_pid(_: usize) -> u32 { 0 }
@@ -745,6 +783,24 @@ pub(crate) mod os {
     pub fn is_app_window(_: usize) -> bool { false }
     pub fn focus_window_titled(_: &str) -> bool { false }
     pub fn focus_window(_: usize) -> bool { false }
+}
+
+#[cfg(test)]
+mod tracker_tests {
+    use super::ForegroundTracker;
+
+    #[test]
+    fn a_known_x11_editor_counts_only_when_x_doesnt_know_the_front() {
+        let mut tracker = ForegroundTracker { x11_editor: true, ..Default::default() };
+        assert!(tracker.x11_editor_open(1, &[]));
+        tracker.hwnd = 5; // ours or another X window: the usual rules decide
+        assert!(!tracker.x11_editor_open(1, &[]));
+    }
+
+    #[test]
+    fn no_editor_seen_keeps_the_ghost_where_it_is() {
+        assert!(!ForegroundTracker::default().x11_editor_open(0, &[]));
+    }
 }
 
 /// Need a real X screen, a window manager, xterm and xdotool. Each one in its own process:

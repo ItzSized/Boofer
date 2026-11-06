@@ -56,6 +56,7 @@ if (!isTauri && !window.location.search.includes("pet=1")) {
     isTauri,
     invoke,
     limits: (rows) => limitsFromPercent(rows, settings.dailyLimitPct),
+    claudeOnly: () => settings.usageCardClaudeOnly === true,
     onData: (usage) => onUsage(usage),
   });
   const app = document.getElementById("app");
