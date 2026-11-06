@@ -321,7 +321,9 @@ impl ForegroundTracker {
     fn classify(&mut self, hwnd: usize, targets: &[String], any_window: bool) {
         let pid = os::window_pid(hwnd);
         self.other = Some(hwnd);
-        let win_title = os::window_title(hwnd).to_lowercase();
+        // Under Linux the program's path decides: a title with "code" in it (a chat channel, a
+        // page about Claude Code) isn't an editor.
+        let win_title = if cfg!(target_os = "linux") { String::new() } else { os::window_title(hwnd).to_lowercase() };
         let is_target = os::process_name(pid).is_some_and(|path| {
             let path_lower = path.to_lowercase();
             targets
