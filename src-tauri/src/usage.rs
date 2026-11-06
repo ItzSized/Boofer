@@ -83,6 +83,8 @@ struct CachedFile {
 pub struct UsageCache {
     claude: Mutex<HashMap<PathBuf, ClaudeFile>>,
     others: Mutex<HashMap<PathBuf, CachedFile>>,
+    /// Latest plan limits read from `claude -p /usage`: Claude Code's chats don't hold them.
+    claude_limits: Mutex<Vec<Limit>>,
 }
 
 #[tauri::command]
@@ -128,6 +130,8 @@ fn compute(cache: &UsageCache, tz: i64) -> Usage {
     // Antigravity 2.0 brain transcripts + Antigravity 1.0/2.0 SQLite conversation DBs
     scan_antigravity(cache, &home.join(".gemini"), tz, &mut buckets);
 
+    limits.extend(cache.claude_limits.lock().unwrap().iter().cloned());
+
     // Keep only the most recent reading for each limit window.
     let mut latest: HashMap<(String, u64), Limit> = HashMap::new();
     for limit in limits {
@@ -145,6 +149,95 @@ fn compute(cache: &UsageCache, tz: i64) -> Usage {
 }
 
 // ---------- Claude Code ----------
+
+/// How often the plan limits are read. `/usage` runs locally in Claude Code: no model call, no
+/// token spent, about 1.5 s of one core.
+#[cfg(target_os = "linux")]
+const CLAUDE_LIMITS_EVERY: std::time::Duration = std::time::Duration::from_secs(5 * 60);
+
+#[cfg(target_os = "linux")]
+pub fn start_claude_limits_watcher(app: AppHandle) {
+    std::thread::spawn(move || loop {
+        if let Some(program) = claude_program() {
+            let reading = read_claude_limits(&program);
+            if reading.spent {
+                return; // /usage reached a model: never spend tokens on a progress bar
+            }
+            if !reading.limits.is_empty() {
+                *app.state::<UsageCache>().claude_limits.lock().unwrap() = reading.limits;
+            }
+        }
+        std::thread::sleep(CLAUDE_LIMITS_EVERY);
+    });
+}
+
+/// `claude` on the PATH, or the one of the most recent VS Code extension.
+#[cfg(target_os = "linux")]
+fn claude_program() -> Option<PathBuf> {
+    if crate::host::has_program("claude") {
+        return Some(PathBuf::from("claude"));
+    }
+    let extensions = std::fs::read_dir(home().join(".vscode").join("extensions")).ok()?;
+    extensions
+        .flatten()
+        .filter(|e| e.file_name().to_string_lossy().starts_with("anthropic.claude-code-"))
+        .map(|e| e.path().join("resources").join("native-binary").join("claude"))
+        .filter(|path| path.is_file())
+        .max_by_key(|path| std::fs::metadata(path).and_then(|m| m.modified()).ok())
+}
+
+#[cfg(target_os = "linux")]
+fn read_claude_limits(program: &Path) -> ClaudeLimits {
+    // No session file, none of the user's hooks: Boofer must not see this as an agent at work.
+    let output = crate::host::command("timeout")
+        .arg("60")
+        .arg(program)
+        .args(["-p", "/usage", "--output-format", "stream-json", "--verbose", "--no-session-persistence"])
+        .args(["--setting-sources", "local", "--max-turns", "1"])
+        .env_remove("CLAUDECODE")
+        .current_dir(std::env::temp_dir())
+        .stdin(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .output();
+    let now = SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_millis() as i64);
+    output.map_or_else(|_| ClaudeLimits::default(), |o| parse_claude_limits(&String::from_utf8_lossy(&o.stdout), now))
+}
+
+#[derive(Default)]
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+struct ClaudeLimits {
+    limits: Vec<Limit>,
+    /// The command was answered by a model instead of locally.
+    spent: bool,
+}
+
+/// The `usage_report` of `--output-format stream-json`; missing (older Claude Code) = no limits.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+fn parse_claude_limits(stdout: &str, now: i64) -> ClaudeLimits {
+    let mut reading = ClaudeLimits::default();
+    for line in stdout.lines() {
+        let Ok(v) = serde_json::from_str::<serde_json::Value>(line) else { continue };
+        if v["type"] == "result" {
+            reading.spent = v["num_turns"].as_u64().unwrap_or(0) > 0 || v["total_cost_usd"].as_f64().unwrap_or(0.0) > 0.0;
+        }
+        for limit in v["usage_report"]["rate_limits"]["limits"].as_array().into_iter().flatten() {
+            let window_minutes = match limit["kind"].as_str() {
+                Some("session") => 300,
+                Some("weekly_all") => 7 * 24 * 60,
+                _ => continue,
+            };
+            let Some(used_percent) = limit["percent"].as_f64() else { continue };
+            reading.limits.push(Limit {
+                tool: "Claude Code".into(),
+                window_minutes,
+                used_percent,
+                resets_at: limit["resets_at"].as_str().and_then(parse_iso_ms),
+                seen_at: now,
+            });
+        }
+    }
+    reading
+}
 
 fn scan_claude(cache: &UsageCache, root: &Path, tz: i64, out: &mut Buckets) {
     let mut files = cache.claude.lock().unwrap();
@@ -698,6 +791,33 @@ fn civil_from_days(z: i64) -> (i64, i64, i64) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn reads_claude_usage_report() {
+        let out = concat!(
+            r#"{"type":"system","subtype":"init"}"#, "\n",
+            r#"{"type":"assistant","usage_report":{"rate_limits":{"limits":["#,
+            r#"{"kind":"session","percent":11,"resets_at":"2026-11-05T22:20:00.128377+00:00"},"#,
+            r#"{"kind":"weekly_all","percent":6,"resets_at":"2026-11-08T09:00:00.128402+00:00"},"#,
+            r#"{"kind":"weekly_scoped","percent":50,"resets_at":null}]}}}"#, "\n",
+            r#"{"type":"result","num_turns":0,"total_cost_usd":0}"#, "\n",
+        );
+        let reading = parse_claude_limits(out, 42);
+        assert!(!reading.spent);
+        assert_eq!(reading.limits.len(), 2);
+        let session = &reading.limits[0];
+        assert_eq!((session.tool.as_str(), session.window_minutes, session.seen_at), ("Claude Code", 300, 42));
+        assert_eq!(session.used_percent, 11.0);
+        assert_eq!(session.resets_at, Some(1_793_917_200_128)); // 22:20:00.128 UTC
+        assert_eq!(reading.limits[1].window_minutes, 10_080);
+    }
+
+    #[test]
+    fn notices_when_usage_reaches_a_model() {
+        let reading = parse_claude_limits(r#"{"type":"result","num_turns":1,"total_cost_usd":0.002}"#, 0);
+        assert!(reading.spent);
+        assert!(parse_claude_limits("not json", 0).limits.is_empty());
+    }
 
     #[test]
     fn reads_plain_codex_sessions() {

@@ -70,7 +70,7 @@ What changed in each version: [CHANGELOG.md](CHANGELOG.md), the notes of each [r
 
 ### 📊 Usage and tokens
 
-- **Model usage** (Settings → 📊 Models): which AIs you really use, their share, 14 days of activity, what it would cost at API prices, and your Codex plan limits. Everything is read locally.
+- **Model usage** (Settings → 📊 Models): which AIs you really use, their share, 14 days of activity, what it would cost at API prices, and your plan limits for Codex and, on Linux, Claude Code. Everything is read locally.
 - **Daily limit per AI**: a token cap for Claude, Gemini and GPT, alerts at 80% and 100%, and "⚡ ahead / 🐢 behind" your pace.
 - **Save tokens** (Settings → ✂️ Tokens): make Claude Code compact earlier, ask for short answers.
 - **Reprompt** (right-click or Ctrl+Alt+P): the copied prompt rewritten just for the AI, shorter, locally or with Claude Haiku.
