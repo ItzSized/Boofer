@@ -60,6 +60,8 @@ pub struct Settings {
     /// A Windows notification when a permission or a « Stop ! » waits for an answer while the
     /// editor isn't in front. Off by default.
     pub notify_when_waiting: bool,
+    /// The card under the ghost only shows Claude; the Models page keeps every AI. Off by default.
+    pub usage_card_claude_only: bool,
     /// Animation groups switched off ("float", "work", "arms", "celebrate", "tricks", "blink", "sleep"),
     /// or "all".
     pub animations_off: Vec<String>,
@@ -106,6 +108,7 @@ impl Default for Settings {
             reprompt_ai: false,
             notify_when_silent: true,
             notify_when_waiting: false,
+            usage_card_claude_only: false,
             animations_off: Vec::new(),
             auto_update: true,
             web_ai_added: true,
